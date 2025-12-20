@@ -3,7 +3,11 @@ import React, { createContext, useState, useContext } from 'react';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null); // { username, role }
+    // Initialize from localStorage if available
+    const [user, setUser] = useState(() => {
+        const savedUser = localStorage.getItem('user');
+        return savedUser ? JSON.parse(savedUser) : null;
+    });
 
     const login = async (username, password, role) => {
         try {
@@ -14,7 +18,9 @@ export const AuthProvider = ({ children }) => {
             });
             const data = await res.json();
             if (data.success) {
-                setUser({ username: data.username, role: data.role });
+                const userData = { username: data.username, role: data.role };
+                setUser(userData);
+                localStorage.setItem('user', JSON.stringify(userData));
                 return { success: true };
             } else {
                 return { success: false, message: data.message };
@@ -27,6 +33,7 @@ export const AuthProvider = ({ children }) => {
 
     const logout = () => {
         setUser(null);
+        localStorage.removeItem('user');
     };
 
     return (

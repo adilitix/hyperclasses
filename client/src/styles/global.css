@@ -1,14 +1,39 @@
 :root {
-  --bg-color: #0f172a;
-  --text-color: #e2e8f0;
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --accent: #8b5cf6;
-  --glass-bg: rgba(30, 41, 59, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-monitor: rgba(15, 23, 42, 0.85);
-  --success: #10b981;
-  --danger: #ef4444;
+  /* Futuristic Dark Mode (Default) */
+  --bg-color: #050510;
+  --text-color: #e0e6ed;
+  --primary: #00f0ff;
+  /* Cyan Neon */
+  --primary-hover: #00bcd4;
+  --primary-glow: rgba(0, 240, 255, 0.5);
+  --accent: #7000ff;
+  /* Electric Purple */
+  --accent-glow: rgba(112, 0, 255, 0.5);
+
+  --glass-bg: rgba(20, 25, 40, 0.6);
+  --glass-border: rgba(100, 200, 255, 0.2);
+  --glass-highlight: rgba(255, 255, 255, 0.1);
+
+  --success: #00ff9d;
+  --danger: #ff0055;
+  --warning: #ffbe0b;
+
+  --neon-shadow: 0 0 10px var(--primary-glow), 0 0 20px rgba(0, 240, 255, 0.2);
+}
+
+[data-theme='light'] {
+  --bg-color: #f0f4f8;
+  --text-color: #1a202c;
+  --primary: #0070f3;
+  --primary-glow: rgba(0, 112, 243, 0.3);
+  --accent: #7928ca;
+  --accent-glow: rgba(121, 40, 202, 0.3);
+
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --glass-highlight: rgba(255, 255, 255, 0.5);
+
+  --neon-shadow: 0 4px 14px 0 rgba(0, 118, 255, 0.39);
 }
 
 body {
@@ -17,14 +42,40 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
   overflow: hidden;
-  /* App-like feel */
+  background: radial-gradient(circle at 50% -20%, #1a1a40, #050510);
+}
+
+/* Animated Background Mesh (Pseudo-element) */
+body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image:
+    linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+  pointer-events: none;
+  z-index: -1;
+  animation: meshPan 60s linear infinite;
+}
+
+@keyframes meshPan {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 50px 50px;
+  }
 }
 
 #root {
   height: 100vh;
-  /* Fallback */
   height: 100dvh;
-  /* Mobile browsers */
   width: 100vw;
   display: flex;
   flex-direction: column;
@@ -44,8 +95,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(15, 23, 42, 0.9);
+  background: rgba(5, 5, 16, 0.8);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   z-index: 60;
   flex-shrink: 0;
 }
@@ -61,17 +114,25 @@ body {
   margin: 0;
   font-size: 1.2rem;
   font-weight: 800;
-  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: linear-gradient(to right, var(--primary), #ffffff);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 5px var(--primary-glow));
 }
 
 .user-badge {
-  padding: 0.2rem 0.6rem;
+  padding: 0.3rem 0.8rem;
   border-radius: 4px;
+  /* Techy sharp corners or minimal radius */
   font-size: 0.8rem;
+  font-family: 'Fira Code', monospace;
   white-space: nowrap;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--glass-border);
+  color: var(--primary);
 }
 
 .app-content {
@@ -83,87 +144,121 @@ body {
   box-sizing: border-box;
 }
 
-/* Code Block Utility */
+/* Code Block Utility - Holographic Terminal */
 .code-block {
-  background: #1e1e1e;
+  background: rgba(10, 10, 20, 0.9);
   padding: 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: 0.3rem;
+  /* More angular */
   overflow-x: auto;
   font-family: 'Fira Code', monospace;
   border: 1px solid var(--glass-border);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+  color: #a5b3ce;
   user-select: text;
-  /* Force selectable text */
   -webkit-user-select: text;
   white-space: pre-wrap;
-  /* Wrap long lines on mobile */
   word-break: break-word;
 }
 
-/* Glassmorphism Utilities */
+.code-block code {
+  color: var(--primary);
+  text-shadow: 0 0 2px var(--primary-glow);
+}
+
+/* Glassmorphism Utilities - HUD Style */
 .glass-panel {
   background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  border-radius: 1rem;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), inset 0 0 0 1px var(--glass-highlight);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Scanline effect overlay for panels */
+.glass-panel::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.05) 50%);
+  background-size: 100% 4px;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.3;
 }
 
 .btn {
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: 1px solid transparent;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   font-size: 0.9rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  color: white;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  box-shadow: 0 0 10px var(--primary-glow);
 }
 
 .btn-primary:hover {
-  opacity: 0.9;
+  background: var(--primary);
+  color: #000;
+  box-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary-glow);
   transform: translateY(-1px);
 }
 
 .input-field {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(10, 15, 30, 0.5);
   border: 1px solid var(--glass-border);
-  color: white;
-  padding: 0.6rem;
-  border-radius: 0.5rem;
+  color: var(--text-color);
+  padding: 0.8rem;
+  border-radius: 6px;
   outline: none;
   font-family: inherit;
-  transition: border-color 0.2s;
+  transition: all 0.3s ease;
 }
 
 .input-field:focus {
   border-color: var(--primary);
+  box-shadow: 0 0 10px var(--primary-glow);
+  background: rgba(10, 15, 30, 0.8);
 }
 
-/* Scrollbar */
+/* Scrollbar - Sci-fi Thin */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  background: var(--glass-border);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--primary);
 }
 
 /* Responsive Layout */

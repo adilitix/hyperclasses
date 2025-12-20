@@ -10,7 +10,8 @@ export const SocketProvider = ({ children }) => {
 
     useEffect(() => {
         if (user) {
-            const newSocket = io('/', {
+            const serverUrl = import.meta.env.VITE_SERVER_URL || '/';
+            const newSocket = io(serverUrl, {
                 transports: ['websocket'],
                 reconnection: true,
             });
