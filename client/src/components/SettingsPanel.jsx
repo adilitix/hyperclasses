@@ -118,13 +118,7 @@ function SettingsPanel({ theme, setTheme, primaryColor, setPrimaryColor, downloa
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Customize your experience and manage your profile</p>
             </div>
 
-            <div className="settings-main-layout" style={{
-                display: 'grid',
-                gridTemplateColumns: '250px 1fr',
-                gap: '2rem',
-                boxSizing: 'border-box',
-                width: '100%'
-            }}>
+            <div className="settings-main-layout">
                 {/* Side Navigation - Segmented on mobile */}
                 <div className="settings-nav-container" style={{
                     display: 'flex',

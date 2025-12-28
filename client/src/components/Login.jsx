@@ -32,7 +32,7 @@ function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        const res = await login(username, role === 'student' ? null : password, role, eventId);
+        const res = await login(username.trim(), role === 'student' ? null : password.trim(), role, eventId.trim());
         if (!res.success) {
             setError(res.message);
         }
@@ -253,6 +253,8 @@ function Login() {
                                 style={{ width: '100%', boxSizing: 'border-box' }}
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
+                                autoCorrect="off"
+                                autoCapitalize="none"
                                 required
                             />
                         </div>
@@ -267,6 +269,8 @@ function Login() {
                                     value={eventId}
                                     onChange={(e) => setEventId(e.target.value)}
                                     placeholder="Enter event ID provided by instructor"
+                                    autoCorrect="off"
+                                    autoCapitalize="none"
                                     required
                                 />
                             </div>
@@ -281,6 +285,8 @@ function Login() {
                                     style={{ width: '100%', boxSizing: 'border-box' }}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
+                                    autoCorrect="off"
+                                    autoCapitalize="none"
                                     required
                                 />
                             </div>

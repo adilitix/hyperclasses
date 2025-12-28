@@ -521,6 +521,14 @@ body::before {
   overflow: hidden;
 }
 
+.settings-main-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 2rem;
+  box-sizing: border-box;
+  width: 100%;
+}
+
 .admin-sidebar {
   width: 240px;
   background: #0d1117;
