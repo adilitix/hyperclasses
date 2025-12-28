@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "id": 1766931659666,
+    "username": "System",
+    "text": "Super Admin joined the session.",
+    "timestamp": "2025-12-28T14:20:59.666Z",
+    "isSystem": true
+  },
+  {
+    "id": 1766932030733,
+    "username": "System",
+    "text": "Super Admin joined the session.",
+    "timestamp": "2025-12-28T14:27:10.733Z",
+    "isSystem": true
+  }
+]

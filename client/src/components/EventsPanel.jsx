@@ -152,22 +152,28 @@ function EventsPanel({ onEnterEvent }) {
                                     {(user.role === 'admin' || user.role === 'superadmin') && (
                                         <button
                                             onClick={(e) => { e.stopPropagation(); handleDeleteEvent(evt.id); }}
-                                            className="btn btn-ghost"
+                                            className="delete-event-btn"
+                                            title="Delete Workshop"
                                             style={{
-                                                padding: 0,
+                                                position: 'absolute',
+                                                top: '12px',
+                                                right: '12px',
+                                                width: '30px',
+                                                height: '30px',
                                                 borderRadius: '50%',
-                                                width: '28px',
-                                                height: '28px',
-                                                color: 'var(--danger)',
-                                                borderColor: 'rgba(239, 68, 68, 0.3)',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                flexShrink: 0,
-                                                background: 'rgba(239, 68, 68, 0.05)'
+                                                background: 'rgba(239, 68, 68, 0.1)',
+                                                border: '1px solid rgba(239, 68, 68, 0.2)',
+                                                color: 'var(--danger)',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease',
+                                                zIndex: 10,
+                                                padding: 0
                                             }}
                                         >
-                                            ✕
+                                            <span style={{ fontSize: '12px', fontWeight: 900 }}>✕</span>
                                         </button>
                                     )}
                                 </div>

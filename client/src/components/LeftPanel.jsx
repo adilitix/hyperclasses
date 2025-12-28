@@ -176,56 +176,22 @@ function LeftPanel({ viewingSnapshot, setViewingSnapshot }) {
                     borderBottom: '1px solid var(--glass-border)',
                     background: 'rgba(0,0,0,0.2)'
                 }}>
-                    <h3 style={{ margin: '0 0 1rem 0' }}>Admin Console</h3>
-                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <h3 className="admin-console-header mobile-hide" style={{ margin: '0 0 1rem 0' }}>Admin Console</h3>
+                    <div className="segmented-control" style={{ display: 'flex', gap: '2px', marginBottom: '1rem', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
                         <button
-                            className={`btn ${editorType === 'text' ? 'btn-primary' : ''}`}
-                            style={{ background: editorType === 'text' ? '' : 'rgba(255,255,255,0.1)' }}
+                            className={`tab-btn ${editorType === 'text' ? 'active' : ''}`}
                             onClick={() => setEditorType('text')}
+                            style={{ flex: 1, padding: '0.6rem', border: 'none', background: editorType === 'text' ? 'var(--primary)' : 'transparent', color: editorType === 'text' ? '#000' : 'var(--text-secondary)', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
                         >
-                            Rich Text / HTML
+                            <span>📝</span> <span className="btn-text">Rich Text</span>
                         </button>
                         <button
-                            className={`btn ${editorType === 'code' ? 'btn-primary' : ''}`}
-                            style={{ background: editorType === 'code' ? '' : 'rgba(255,255,255,0.1)' }}
+                            className={`tab-btn ${editorType === 'code' ? 'active' : ''}`}
                             onClick={() => setEditorType('code')}
+                            style={{ flex: 1, padding: '0.6rem', border: 'none', background: editorType === 'code' ? 'var(--primary)' : 'transparent', color: editorType === 'code' ? '#000' : 'var(--text-secondary)', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
                         >
-                            Code Editor
+                            <span>💻</span> <span className="btn-text">Code Editor</span>
                         </button>
-
-                        {editorType === 'code' && (
-                            <>
-                                <select
-                                    value={editorLanguage}
-                                    onChange={(e) => setEditorLanguage(e.target.value)}
-                                    className="btn"
-                                    style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--glass-border)', color: 'white' }}
-                                >
-                                    <option value="javascript">JavaScript</option>
-                                    <option value="html">HTML</option>
-                                    <option value="css">CSS</option>
-                                    <option value="python">Python</option>
-                                    <option value="json">JSON</option>
-                                </select>
-
-                                <button
-                                    onClick={() => {
-                                        const next = !isLiveMode;
-                                        setIsLiveMode(next);
-                                        if (next) handleBroadcast(editorContent);
-                                    }}
-                                    className="btn"
-                                    style={{
-                                        background: isLiveMode ? 'var(--danger)' : 'rgba(255,255,255,0.1)',
-                                        border: isLiveMode ? 'none' : '1px solid var(--glass-border)',
-                                        gap: '0.4rem',
-                                        fontSize: '0.85rem'
-                                    }}
-                                >
-                                    {isLiveMode ? '🔴 STOP LIVE' : '📡 GO LIVE'}
-                                </button>
-                            </>
-                        )}
                     </div>
 
                     {editorType === 'code' ? (
@@ -265,6 +231,56 @@ function LeftPanel({ viewingSnapshot, setViewingSnapshot }) {
                     )}
 
                     {editorType === 'code' && (
+                        <div className="code-options-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', gap: '0.75rem' }}>
+                            <button
+                                onClick={() => {
+                                    const next = !isLiveMode;
+                                    setIsLiveMode(next);
+                                    if (next) handleBroadcast(editorContent);
+                                }}
+                                className="btn live-btn"
+                                style={{
+                                    background: isLiveMode ? 'var(--danger)' : 'rgba(255,255,255,0.1)',
+                                    border: isLiveMode ? 'none' : '1px solid var(--glass-border)',
+                                    gap: '0.6rem',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 800,
+                                    padding: '0.6rem 1rem',
+                                    flex: 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderRadius: '10px'
+                                }}
+                            >
+                                {isLiveMode ? '🔴 STOP LIVE' : '📡 GO LIVE'}
+                            </button>
+
+                            <select
+                                value={editorLanguage}
+                                onChange={(e) => setEditorLanguage(e.target.value)}
+                                className="input-field language-select"
+                                style={{
+                                    background: 'rgba(0,0,0,0.4)',
+                                    border: '1px solid var(--glass-border)',
+                                    color: 'white',
+                                    width: '120px',
+                                    padding: '0.5rem',
+                                    height: '42px',
+                                    fontSize: '0.8rem',
+                                    borderRadius: '10px'
+                                }}
+                            >
+                                <option value="javascript">JS</option>
+                                <option value="html">HTML</option>
+                                <option value="css">CSS</option>
+                                <option value="python">PY</option>
+                                <option value="json">JSON</option>
+                            </select>
+                        </div>
+                    )}
+
+                    {editorType === 'code' && (
                         <input
                             type="text"
                             className="input-field"
@@ -275,7 +291,7 @@ function LeftPanel({ viewingSnapshot, setViewingSnapshot }) {
                         />
                     )}
 
-                    <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div className="toolbar-group" style={{ display: 'flex', gap: '0.4rem', marginTop: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
                         <button onClick={handleBroadcast} className="btn btn-primary" style={{ padding: '0.5rem 0.8rem' }} title="Broadcast Updates">
                             <span className="btn-icon">📡</span>
                             <span className="btn-text">Broadcast</span>
@@ -312,21 +328,19 @@ function LeftPanel({ viewingSnapshot, setViewingSnapshot }) {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                 <button
                                     onClick={() => fileInputRef.current.click()}
-                                    className="btn btn-secondary"
+                                    className="btn btn-ghost"
                                     disabled={uploading}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', position: 'relative' }}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.4rem',
+                                        padding: '0.5rem 0.8rem',
+                                        background: 'rgba(255,255,255,0.03)',
+                                        border: '1px solid var(--glass-border)'
+                                    }}
                                 >
-                                    <span className="material-icons" style={{ fontSize: '1.2rem' }}>{uploading ? 'sync' : 'upload'}</span>
-                                    {uploading ? 'Uploading...' : 'Upload'}
-                                    {uploading && (
-                                        <motion.div
-                                            animate={{ rotate: 360 }}
-                                            transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                                            style={{ marginLeft: '4px', display: 'inline-block' }}
-                                        >
-                                            ⏳
-                                        </motion.div>
-                                    )}
+                                    <span style={{ fontSize: '1.1rem' }}>{uploading ? '⏳' : '📁'}</span>
+                                    <span className="btn-text">{uploading ? '...' : 'Upload'}</span>
                                 </button>
                                 <input type="file" hidden onChange={handleFileUpload} disabled={uploading} ref={fileInputRef} />
                                 {uploadStatus && (

@@ -1,1 +1,114 @@
-[]
+[
+  {
+    "id": "1766930316678",
+    "username": "Super Admin",
+    "role": "superadmin",
+    "ip": "127.0.0.1",
+    "loginTime": "2025-12-28T13:58:36.678Z",
+    "logoutTime": "2025-12-28T14:01:18.361Z"
+  },
+  {
+    "id": "1766930487593",
+    "username": "Super Admin",
+    "role": "superadmin",
+    "ip": "127.0.0.1",
+    "loginTime": "2025-12-28T14:01:27.593Z",
+    "logoutTime": null
+  },
+  {
+    "id": "1766930516763",
+    "username": "Super Admin",
+    "role": "superadmin",
+    "ip": "127.0.0.1",
+    "loginTime": "2025-12-28T14:01:56.763Z",
+    "logoutTime": null
+  },
+  {
+    "id": "1766930557688",
+    "username": "Super Admin",
+    "role": "superadmin",
+    "ip": "127.0.0.1",
+    "loginTime": "2025-12-28T14:02:37.688Z",
+    "logoutTime": null
+  },
+  {
+    "id": "1766930736322",
+    "username": "Super Admin",
+    "role": "superadmin",
+    "ip": "127.0.0.1",
+    "loginTime": "2025-12-28T14:05:36.322Z",
+    "logoutTime": null
+  },
+  {
+    "id": "1766930939538",
+    "username": "admin",
+    "role": "admin",
+    "ip": "10.181.18.120",
+    "loginTime": "2025-12-28T14:08:59.538Z",
+    "logoutTime": null
+  },
+  {
+    "id": "1766931045210",
+    "username": "Aadil",
+    "role": "student",
+    "ip": "10.181.18.51",
+    "loginTime": "2025-12-28T14:10:45.210Z",
+    "logoutTime": null
+  },
+  {
+    "id": "1766931046344",
+    "username": "admin",
+    "role": "admin",
+    "ip": "10.181.18.120",
+    "loginTime": "2025-12-28T14:10:46.344Z",
+    "logoutTime": null
+  },
+  {
+    "id": "1766931060142",
+    "username": "Aadil",
+    "role": "student",
+    "ip": "10.181.18.51",
+    "loginTime": "2025-12-28T14:11:00.142Z",
+    "logoutTime": "2025-12-28T14:11:23.984Z"
+  },
+  {
+    "id": "1766931084128",
+    "username": "Aadil",
+    "role": "student",
+    "ip": "10.181.18.51",
+    "loginTime": "2025-12-28T14:11:24.128Z",
+    "logoutTime": null
+  },
+  {
+    "id": "1766931112362",
+    "username": "Aadil",
+    "role": "student",
+    "ip": "10.181.18.51",
+    "loginTime": "2025-12-28T14:11:52.362Z",
+    "logoutTime": null
+  },
+  {
+    "id": "1766931192166",
+    "username": "Super Admin",
+    "role": "superadmin",
+    "ip": "127.0.0.1",
+    "loginTime": "2025-12-28T14:13:12.166Z",
+    "logoutTime": null
+  },
+  {
+    "id": "1766931659657",
+    "username": "Super Admin",
+    "role": "superadmin",
+    "ip": "127.0.0.1",
+    "loginTime": "2025-12-28T14:20:59.657Z",
+    "logoutTime": null
+  },
+  {
+    "id": "1766932030659",
+    "username": "Super Admin",
+    "role": "superadmin",
+    "ip": "127.0.0.1",
+    "loginTime": "2025-12-28T14:27:10.659Z",
+    "logoutTime": null
+  }
+]

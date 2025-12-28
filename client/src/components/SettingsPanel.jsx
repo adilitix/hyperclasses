@@ -90,36 +90,65 @@ function SettingsPanel({ theme, setTheme, primaryColor, setPrimaryColor, downloa
     const renderNavButton = (id, icon, label) => (
         <button
             onClick={() => setActiveSection(id)}
-            className={`btn ${activeSection === id ? 'btn-primary' : 'btn-ghost'}`}
+            className={`settings-tab-btn ${activeSection === id ? 'active' : ''}`}
             style={{
-                justifyContent: 'flex-start',
-                width: '100%',
-                padding: '0.75rem 1rem',
-                fontSize: '0.9rem',
-                border: activeSection === id ? 'none' : '1px solid transparent'
+                flex: 1,
+                padding: '0.6rem',
+                fontSize: '0.8rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                border: 'none',
+                background: activeSection === id ? 'var(--primary)' : 'transparent',
+                color: activeSection === id ? '#000' : 'var(--text-secondary)',
+                borderRadius: '8px',
+                transition: 'all 0.2s ease',
+                fontWeight: activeSection === id ? '700' : '500'
             }}
         >
-            <span style={{ marginRight: '0.75rem' }}>{icon}</span> {label}
+            <span>{icon}</span> {label}
         </button>
     );
 
     return (
-        <div style={{ padding: 'clamp(1rem, 5vw, 2.5rem)', maxWidth: '1000px', margin: '0 auto' }}>
+        <div className="settings-container" style={{ padding: 'clamp(1rem, 5vw, 2.5rem)', maxWidth: '1000px', margin: '0 auto' }}>
             <div style={{ marginBottom: '2rem' }}>
                 <h2 className="cine-text" style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Control Center</h2>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Customize your experience and manage your profile</p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 250px) 1fr', gap: '2rem' }} className="mobile-wrap">
-                {/* Side Navigation */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div className="settings-main-layout" style={{
+                display: 'grid',
+                gridTemplateColumns: '250px 1fr',
+                gap: '2rem',
+                boxSizing: 'border-box',
+                width: '100%'
+            }}>
+                {/* Side Navigation - Segmented on mobile */}
+                <div className="settings-nav-container" style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.5rem',
+                    background: 'rgba(255,255,255,0.03)',
+                    padding: '4px',
+                    borderRadius: '12px',
+                    height: 'fit-content'
+                }}>
                     {renderNavButton('appearance', '🎨', 'Appearance')}
-                    {user?.role !== 'student' && renderNavButton('profile', '🛡️', 'Profile Editor')}
+                    {user?.role !== 'student' && renderNavButton('profile', '🛡️', 'Profile')}
                     {user?.role === 'student' && renderNavButton('downloads', '💾', 'Downloads')}
                 </div>
 
                 {/* Content Area */}
-                <div className="glass-panel" style={{ padding: '2rem', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--cine-border)' }}>
+                <div className="settings-content-pane glass-panel" style={{
+                    padding: '2rem',
+                    background: 'rgba(255,255,255,0.01)',
+                    border: '1px solid var(--cine-border)',
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    overflow: 'hidden'
+                }}>
                     {activeSection === 'appearance' && (
                         <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}>
                             <h3 className="cine-text" style={{ fontSize: '1rem', marginBottom: '2rem', color: 'var(--primary)' }}>System Appearance</h3>
@@ -183,7 +212,7 @@ function SettingsPanel({ theme, setTheme, primaryColor, setPrimaryColor, downloa
                                         onChange={e => setDisplayName(e.target.value)} style={{ width: '100%' }}
                                     />
                                 </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }} className="mobile-wrap">
+                                <div className="mobile-wrap" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1rem' }}>
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem' }}>New Password</label>
                                         <input

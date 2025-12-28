@@ -97,6 +97,7 @@ function RightPanel({ messages, onMessagesUpdate, onClose }) {
 
             <div
                 ref={scrollContainerRef}
+                className="chat-messages-container"
                 style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}
             >
                 {messages.map((msg) => (

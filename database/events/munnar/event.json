@@ -4,10 +4,10 @@
   "createdBy": "Super Admin",
   "createdAt": "2025-12-28T10:16:23.603Z",
   "currentContent": {
-    "type": "text",
-    "content": "<h1>Welcome to Robotics Workshop </h1><p>Waiting for instructor...</p>",
-    "language": "html",
-    "instructions": ""
+    "type": "code",
+    "content": "",
+    "instructions": "",
+    "language": "python"
   },
   "files": [],
   "chatDisabled": false

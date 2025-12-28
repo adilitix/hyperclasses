@@ -12,6 +12,7 @@ import { useSocket } from '../contexts/SocketContext';
 import AboutPanel from './AboutPanel';
 import Logo from './Logo';
 import { motion, AnimatePresence } from 'framer-motion';
+import '../styles/mobile.css';
 
 // Simple notification sound (Beep)
 const NOTIFICATION_SOUND = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"; // Truncated for brevity
@@ -34,6 +35,19 @@ function Layout() {
     const [showAbout, setShowAbout] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+    // Mobile Navigation State
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const [activeMobileTab, setActiveMobileTab] = useState(
+        (user.role === 'admin' || user.role === 'superadmin') ? 'events' : 'classroom'
+    );
+    const [showMobileModules, setShowMobileModules] = useState(false);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     // Theme State
     const [theme, setTheme] = useState('dark');
     const [primaryColor, setPrimaryColor] = useState('#00f0ff');
@@ -46,6 +60,7 @@ function Layout() {
         setCurrentEvent({ id, name });
         window.currentEventId = id; // For quick access
         setAdminActiveTab('classroom');
+        if (isMobile) setActiveMobileTab('classroom');
         if (socket) {
             socket.emit('join_event', {
                 username: user.username,
@@ -58,6 +73,7 @@ function Layout() {
     const handleExitEvent = () => {
         setCurrentEvent(null);
         setAdminActiveTab('events');
+        if (isMobile) setActiveMobileTab('events');
     };
 
     // Download Path State (persisted in localStorage)
@@ -475,31 +491,37 @@ function Layout() {
             <div className="app-main" ref={scrollContainerRef}>
                 {/* Header */}
                 <header className="app-header" style={{ padding: '0.75rem 1.25rem' }}>
-                    <button
-                        className="btn btn-ghost hamburger-btn"
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        style={{ display: 'none', padding: '0.5rem', minWidth: '40px' }}
-                    >
-                        {isSidebarOpen ? '✕' : '☰'}
-                    </button>
+                    {/* Hamburger removed for mobile as we have bottom nav */}
+                    {!isMobile && (
+                        <button
+                            className="btn btn-ghost hamburger-btn"
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                            style={{ display: 'none', padding: '0.5rem', minWidth: '40px' }}
+                        >
+                            {isSidebarOpen ? '✕' : '☰'}
+                        </button>
+                    )}
 
                     {/* Active Event Indicator */}
                     <div style={{ marginLeft: '0.5rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem' }}>
                         {(currentEvent || user.eventName) && (
-                            <div style={{
-                                background: 'rgba(56, 189, 248, 0.1)',
-                                border: '1px solid var(--primary)',
-                                padding: '0.3rem 0.75rem',
-                                borderRadius: '20px',
-                                fontSize: '0.85rem',
+                            <div className="event-name-display" style={{
+                                background: 'rgba(56, 189, 248, 0.05)',
+                                border: '1px solid rgba(56, 189, 248, 0.3)',
+                                padding: '0.4rem 1rem',
+                                borderRadius: '30px',
+                                fontSize: '0.75rem',
                                 color: 'var(--primary)',
-                                fontWeight: 700,
+                                fontWeight: 800,
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '0.4rem'
+                                gap: '0.5rem',
+                                boxShadow: 'inset 0 0 10px rgba(56, 189, 248, 0.1)',
+                                textTransform: 'uppercase',
+                                letterSpacing: '2px'
                             }}>
-                                <span className="mobile-hide cine-text" style={{ fontSize: '0.7rem' }}>WORKSHOP:</span>
-                                <span style={{ color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>{currentEvent?.name || user.eventName}</span>
+                                <span className="mobile-hide" style={{ opacity: 0.6 }}>LIVE SESSION:</span>
+                                <span>{currentEvent?.name || user.eventName}</span>
                             </div>
                         )}
                         {showSuperAdmin && (
@@ -512,7 +534,10 @@ function Layout() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         {user.role === 'superadmin' && (
                             <button
-                                onClick={() => setShowSuperAdmin(!showSuperAdmin)}
+                                onClick={() => {
+                                    setShowSuperAdmin(!showSuperAdmin);
+                                    if (isMobile) setActiveMobileTab('classroom');
+                                }}
                                 className={`btn ${showSuperAdmin ? 'btn-primary' : 'btn-ghost'}`}
                                 style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
                             >
@@ -595,49 +620,186 @@ function Layout() {
                             className="glass-panel"
                             style={{ display: 'flex', flexDirection: 'column' }}
                         >
-                            <AdminDashboard
-                                activeTab={adminActiveTab}
-                                currentEvent={currentEvent}
-                                onEnterEvent={handleEnterEvent}
-                                viewingSnapshot={viewingSnapshot}
-                                setViewingSnapshot={setViewingSnapshot}
-                                theme={theme}
-                                setTheme={setTheme}
-                                primaryColor={primaryColor}
-                                setPrimaryColor={setPrimaryColor}
-                                downloadPath={downloadPath}
-                                setDownloadPath={setDownloadPath}
-                                downloadFormat={downloadFormat}
-                                setDownloadFormat={setDownloadFormat}
-                            />
+                            {(isMobile && activeMobileTab === 'events' && !currentEvent) || !isMobile || (isMobile && activeMobileTab !== 'classroom') ? (
+                                <AdminDashboard
+                                    activeTab={isMobile ? activeMobileTab : adminActiveTab}
+                                    currentEvent={currentEvent}
+                                    onEnterEvent={handleEnterEvent}
+                                    viewingSnapshot={viewingSnapshot}
+                                    setViewingSnapshot={setViewingSnapshot}
+                                    theme={theme}
+                                    setTheme={setTheme}
+                                    primaryColor={primaryColor}
+                                    setPrimaryColor={setPrimaryColor}
+                                    downloadPath={downloadPath}
+                                    setDownloadPath={setDownloadPath}
+                                    downloadFormat={downloadFormat}
+                                    setDownloadFormat={setDownloadFormat}
+                                    messages={messages}
+                                    setMessages={setMessages}
+                                />
+                            ) : null}
+
+                            {isMobile && activeMobileTab === 'classroom' && currentEvent && (
+                                <LeftPanel viewingSnapshot={viewingSnapshot} setViewingSnapshot={setViewingSnapshot} />
+                            )}
                         </motion.div>
                     ) : (
                         // Student View: Split Layout with Lesson + Chat
-                        <div className="main-layout student-layout">
+                        <div className={`main-layout student-layout ${isMobile ? 'mobile-mode' : ''}`}>
                             {/* Left: Lesson Content */}
-                            <motion.div
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.5 }}
-                                className="glass-panel lesson-panel"
-                                style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
-                            >
-                                <LeftPanel viewingSnapshot={viewingSnapshot} setViewingSnapshot={setViewingSnapshot} />
-                            </motion.div>
+                            {(!isMobile || activeMobileTab === 'classroom') && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.5 }}
+                                    className="glass-panel lesson-panel"
+                                    style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+                                >
+                                    <LeftPanel viewingSnapshot={viewingSnapshot} setViewingSnapshot={setViewingSnapshot} />
+                                </motion.div>
+                            )}
 
                             {/* Right: Chat Panel */}
-                            <motion.div
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.5, delay: 0.1 }}
-                                className="glass-panel chat-panel"
-                                style={{ display: 'flex', flexDirection: 'column' }}
-                            >
-                                <RightPanel messages={messages} onMessagesUpdate={setMessages} />
-                            </motion.div>
+                            {(!isMobile || activeMobileTab === 'chat') && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.5, delay: 0.1 }}
+                                    className={`glass-panel chat-panel ${isMobile ? 'active' : ''}`}
+                                    style={{ display: 'flex', flexDirection: 'column' }}
+                                >
+                                    <RightPanel messages={messages} onMessagesUpdate={setMessages} />
+                                </motion.div>
+                            )}
                         </div>
                     )}
                 </div>
+
+                {/* Mobile Bottom Navigation Bar */}
+                {isMobile && (
+                    <div className="mobile-nav-bar">
+                        <button
+                            className={`mobile-nav-item ${activeMobileTab === 'classroom' ? 'active' : ''}`}
+                            onClick={() => setActiveMobileTab('classroom')}
+                        >
+                            <span className="icon">🖥️</span>
+                            <span>Class</span>
+                        </button>
+
+                        {(user.role === 'admin' || user.role === 'superadmin') && (
+                            <button
+                                className={`mobile-nav-item ${activeMobileTab === 'events' ? 'active' : ''}`}
+                                onClick={() => setActiveMobileTab('events')}
+                            >
+                                <span className="icon">📅</span>
+                                <span>Events</span>
+                            </button>
+                        )}
+
+                        <button
+                            className={`mobile-nav-item ${activeMobileTab === 'chat' ? 'active' : ''}`}
+                            onClick={() => setActiveMobileTab('chat')}
+                        >
+                            <div style={{ position: 'relative' }}>
+                                <span className="icon">💬</span>
+                                {unreadCount > 0 && (
+                                    <span style={{
+                                        position: 'absolute', top: -5, right: -10,
+                                        background: 'var(--danger)', color: 'white',
+                                        borderRadius: '50%', width: 16, height: 16,
+                                        fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                    }}>
+                                        {unreadCount}
+                                    </span>
+                                )}
+                            </div>
+                            <span>Chat</span>
+                        </button>
+
+                        {(user.role === 'admin' || user.role === 'superadmin') && currentEvent && (
+                            <button
+                                className={`mobile-nav-item ${['students', 'tickets', 'chat-history', 'attendance'].includes(activeMobileTab) ? 'active' : ''}`}
+                                onClick={() => setShowMobileModules(true)}
+                            >
+                                <span className="icon">📂</span>
+                                <span>Modules</span>
+                            </button>
+                        )}
+
+                        <button
+                            className={`mobile-nav-item ${activeMobileTab === 'settings' ? 'active' : ''}`}
+                            onClick={() => {
+                                if (user.role === 'student') {
+                                    setShowSettings(true);
+                                } else {
+                                    setActiveMobileTab('settings');
+                                }
+                            }}
+                        >
+                            <span className="icon">⚙️</span>
+                            <span>Setup</span>
+                        </button>
+                    </div>
+                )}
+
+                {/* Mobile Admin Module Selector Overlay */}
+                <AnimatePresence>
+                    {isMobile && showMobileModules && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 100 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 100 }}
+                            className="mobile-module-overlay"
+                            style={{
+                                position: 'fixed', bottom: 0, left: 0, right: 0, top: 0,
+                                background: 'rgba(12, 17, 29, 0.98)', zIndex: 3000,
+                                padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem'
+                            }}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                <h2 style={{ fontSize: '1.2rem', margin: 0 }}>Session Modules</h2>
+                                <button className="btn btn-ghost" onClick={() => setShowMobileModules(false)}>✕</button>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                {[
+                                    { id: 'students', icon: '👥', label: 'Students' },
+                                    { id: 'tickets', icon: '🎫', label: 'Tickets' },
+                                    { id: 'chat-history', icon: '💬', label: 'History' },
+                                    { id: 'attendance', icon: '📊', label: 'Attendance' },
+                                    { id: 'about', icon: 'ℹ️', label: 'About' }
+                                ].map(mod => (
+                                    <button
+                                        key={mod.id}
+                                        onClick={() => {
+                                            setActiveMobileTab(mod.id);
+                                            setShowMobileModules(false);
+                                        }}
+                                        className="btn btn-ghost"
+                                        style={{
+                                            background: 'rgba(255,255,255,0.05)',
+                                            flexDirection: 'column', height: '100px',
+                                            border: activeMobileTab === mod.id ? '1px solid var(--primary)' : '1px solid transparent'
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{mod.icon}</span>
+                                        <span style={{ fontSize: '0.8rem' }}>{mod.label}</span>
+                                    </button>
+                                ))}
+                                <button
+                                    onClick={() => {
+                                        handleExitEvent();
+                                        setShowMobileModules(false);
+                                    }}
+                                    className="btn btn-ghost"
+                                    style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', height: '100px', gridColumn: 'span 2' }}
+                                >
+                                    <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>🚪</span> Leave Session
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Footer */}
                 <footer style={{
@@ -657,8 +819,8 @@ function Layout() {
                 <PollOverlay activePoll={activePoll} />
                 <TimerOverlay />
 
-                {/* Floating Chat Button (Admin Only - Students have persistent panel) */}
-                {(user.role === 'admin' || user.role === 'superadmin') && (
+                {/* Floating Chat Button (Admin Only - Students have persistent panel) - Hidden on Mobile */}
+                {(user.role === 'admin' || user.role === 'superadmin') && !isMobile && (
                     <motion.button
                         onClick={() => setIsChatOpen(!isChatOpen)}
                         drag
@@ -734,8 +896,8 @@ function Layout() {
                     </div>
                 )}
 
-                {/* Chat Overlay / Popup (Admin Only) */}
-                {(user.role === 'admin' || user.role === 'superadmin') && (
+                {/* Chat Overlay / Popup (Admin Only) - Hidden on mobile in favor of bottom nav */}
+                {(user.role === 'admin' || user.role === 'superadmin') && !isMobile && (
                     <AnimatePresence>
                         {isChatOpen && (
                             <motion.div
