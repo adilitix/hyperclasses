@@ -112,6 +112,14 @@
         padding: 1rem !important;
         width: 100% !important;
         box-sizing: border-box !important;
+        overflow: hidden !important;
+        /* Fix for shadow artifacts on iPhone */
+    }
+
+    .glass-panel .glass-panel {
+        padding: 0.75rem !important;
+        /* Reduced padding for nested containers */
+        width: 100% !important;
     }
 
     /* 5. Mobile Specific Chat Bubbles */
@@ -345,7 +353,21 @@
         margin: 0 !important;
     }
 
-    /* 16. Hide Footer */
+    .session-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        /* Force single column on mobile */
+        gap: 1rem !important;
+        width: 100% !important;
+    }
+
+    .delete-event-btn {
+        width: 36px !important;
+        height: 36px !important;
+        right: 8px !important;
+        top: 8px !important;
+    }
+
     footer {
         display: none !important;
     }

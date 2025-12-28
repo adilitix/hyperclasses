@@ -133,7 +133,7 @@ function EventsPanel({ onEnterEvent }) {
                         <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--primary)' }}>🟢 Active Sessions</h3>
                     </div>
 
-                    <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+                    <div className="session-grid">
                         {events.map(evt => (
                             <div key={evt.id} className="animate-slide-up" style={{
                                 padding: '1rem',
@@ -154,26 +154,8 @@ function EventsPanel({ onEnterEvent }) {
                                             onClick={(e) => { e.stopPropagation(); handleDeleteEvent(evt.id); }}
                                             className="delete-event-btn"
                                             title="Delete Workshop"
-                                            style={{
-                                                position: 'absolute',
-                                                top: '12px',
-                                                right: '12px',
-                                                width: '30px',
-                                                height: '30px',
-                                                borderRadius: '50%',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                background: 'rgba(239, 68, 68, 0.1)',
-                                                border: '1px solid rgba(239, 68, 68, 0.2)',
-                                                color: 'var(--danger)',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s ease',
-                                                zIndex: 10,
-                                                padding: 0
-                                            }}
                                         >
-                                            <span style={{ fontSize: '12px', fontWeight: 900 }}>✕</span>
+                                            <span className="close-icon">✕</span>
                                         </button>
                                     )}
                                 </div>
