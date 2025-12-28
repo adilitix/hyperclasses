@@ -842,13 +842,19 @@ async function sendAttendanceUpdate(eventId) {
     });
 }
 
-// Serve React Frontend (Product Build)
-app.use(express.static(path.join(__dirname, '../client/dist')));
-
-// Handle React Routing (return index.html for unknown routes)
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-});
+// Serve React Frontend if it exists
+const distPath = path.join(__dirname, '../client/dist');
+if (fs.existsSync(distPath)) {
+    app.use(express.static(distPath));
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(distPath, 'index.html'));
+    });
+} else {
+    // If running as API only (e.g. on Render)
+    app.get('/', (req, res) => {
+        res.json({ status: 'HyperClass API is running', cloud: 'Supabase Active' });
+    });
+}
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
