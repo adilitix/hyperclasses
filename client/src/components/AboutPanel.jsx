@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth, API_BASE_URL } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 
 function AboutPanel({ trainerUsername }) {
@@ -12,14 +12,14 @@ function AboutPanel({ trainerUsername }) {
 
     useEffect(() => {
         // Fetch Website Settings
-        fetch('/api/settings')
+        fetch(`${API_BASE_URL}/api/settings`)
             .then(res => res.json())
             .then(data => setSettings(data))
             .catch(err => console.error('Error fetching settings:', err));
 
         // Fetch Trainer Info if username provided
         if (trainerUsername) {
-            fetch(`/api/trainer/${trainerUsername}`)
+            fetch(`${API_BASE_URL}/api/trainer/${trainerUsername}`)
                 .then(res => res.json())
                 .then(data => setTrainer(data))
                 .catch(err => console.error('Error fetching trainer:', err));

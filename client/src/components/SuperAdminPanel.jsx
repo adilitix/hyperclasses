@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSocket } from '../contexts/SocketContext';
+import { API_BASE_URL } from '../contexts/AuthContext';
 
 function SuperAdminPanel() {
     const socket = useSocket();
@@ -45,7 +46,7 @@ function SuperAdminPanel() {
         socket.emit('get_admins');
 
         // Fetch Settings via API for initial state
-        fetch('/api/settings')
+        fetch(`${API_BASE_URL}/api/settings`)
             .then(res => res.json())
             .then(data => {
                 setSettings(data);

@@ -44,6 +44,7 @@ function Layout() {
 
     const handleEnterEvent = (id, name) => {
         setCurrentEvent({ id, name });
+        window.currentEventId = id; // For quick access
         setAdminActiveTab('classroom');
         if (socket) {
             socket.emit('join_event', {
@@ -93,6 +94,18 @@ function Layout() {
     const [history, setHistory] = useState([]);
     const [viewingSnapshot, setViewingSnapshot] = useState(null);
     const [showTimeline, setShowTimeline] = useState(false);
+    const [storageActive, setStorageActive] = useState(false);
+
+    useEffect(() => {
+        const checkCloud = async () => {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_SERVER_URL || ''}/api/storage-status`);
+                const data = await res.json();
+                setStorageActive(data.connected);
+            } catch (e) { }
+        };
+        checkCloud();
+    }, []);
 
     useEffect(() => {
         if (!socket) return;
@@ -429,7 +442,18 @@ function Layout() {
                         <span>{user.role === 'admin' ? '🛡️' : user.role === 'superadmin' ? '⚡' : '👤'}</span>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{user.displayName || user.username}</span>
-                            <span style={{ fontSize: '0.75rem', opacity: 0.5, textTransform: 'capitalize' }}>{user.role}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.8 }}>
+                                <div style={{
+                                    width: '7px',
+                                    height: '7px',
+                                    borderRadius: '50%',
+                                    background: storageActive ? '#00e676' : '#ff5252',
+                                    boxShadow: storageActive ? '0 0 10px #00e676' : 'none'
+                                }} />
+                                <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                    {storageActive ? 'Cloud Live' : 'Local Only'}
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <button
@@ -446,7 +470,7 @@ function Layout() {
                         <span style={{ minWidth: '24px', marginRight: '0.5rem' }}>🚪</span> Logout
                     </button>
                 </div>
-            </aside>
+            </aside >
 
             <div className="app-main" ref={scrollContainerRef}>
                 {/* Header */}
@@ -764,14 +788,9 @@ function Layout() {
                             display: flex !important;
                         }
                     }
-                    @media (max-width: 400px) {
-                        .app-header .btn-text {
-                            display: none;
-                        }
-                    }
                 `}</style>
             </div>
-        </div >
+        </div>
     );
 }
 

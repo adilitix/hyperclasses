@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSocket } from '../contexts/SocketContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth, API_BASE_URL } from '../contexts/AuthContext';
 
 function EventsPanel({ onEnterEvent }) {
     const { user } = useAuth();
@@ -11,7 +11,7 @@ function EventsPanel({ onEnterEvent }) {
 
     const fetchEvents = async () => {
         try {
-            const res = await fetch('/api/events');
+            const res = await fetch(`${API_BASE_URL}/api/events`);
             const data = await res.json();
             // Sorting by newest first?
             setEvents(data.reverse());
@@ -33,7 +33,7 @@ function EventsPanel({ onEnterEvent }) {
         setLoading(true);
 
         try {
-            const res = await fetch('/api/events', {
+            const res = await fetch(`${API_BASE_URL}/api/events`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -60,7 +60,7 @@ function EventsPanel({ onEnterEvent }) {
     const handleDeleteEvent = async (id) => {
         if (!confirm('Are you sure? This will kick everyone out and delete all data for this event.')) return;
         try {
-            await fetch(`/api/events/${id}`, { method: 'DELETE' });
+            await fetch(`${API_BASE_URL}/api/events/${id}`, { method: 'DELETE' });
             fetchEvents();
         } catch (err) {
             console.error(err);

@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const supabase = require('./supabase');
 
 const DB_DIR = path.join(__dirname, '../database');
 const EVENTS_DIR = path.join(DB_DIR, 'events');
@@ -40,6 +41,8 @@ function saveAdmins(admins) {
     } catch (err) {
         console.error('Error saving admins:', err);
     }
+    // Sync to Cloud
+    supabase.syncToCloud('admins', admins).catch(console.error);
 }
 
 // Load all events from disk
@@ -144,6 +147,9 @@ function saveEvent(event) {
         if (event.attendance) {
             fs.writeFileSync(path.join(eventDir, 'attendance.json'), JSON.stringify(event.attendance, null, 2));
         }
+
+        // Sync to Cloud
+        supabase.syncToCloud(`event_${event.id}`, event).catch(console.error);
     } catch (err) {
         console.error('Error saving event:', err);
     }
@@ -208,4 +214,6 @@ function saveSettings(settings) {
     } catch (err) {
         console.error('Error saving settings:', err);
     }
+    // Sync to Cloud
+    supabase.syncToCloud('settings', settings).catch(console.error);
 }

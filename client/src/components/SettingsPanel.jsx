@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth, API_BASE_URL } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
 
 function SettingsPanel({ theme, setTheme, primaryColor, setPrimaryColor, downloadPath, setDownloadPath, downloadFormat, setDownloadFormat }) {
@@ -44,7 +44,7 @@ function SettingsPanel({ theme, setTheme, primaryColor, setPrimaryColor, downloa
         setMessage({ type: '', text: '' });
 
         try {
-            const res = await fetch('/api/profile/update', {
+            const res = await fetch(`${API_BASE_URL}/api/profile/update`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

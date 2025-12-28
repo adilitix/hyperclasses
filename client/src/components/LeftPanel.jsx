@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSocket } from '../contexts/SocketContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth, API_BASE_URL } from '../contexts/AuthContext';
 import Editor from "@monaco-editor/react";
 import CopyButton from './CopyButton';
+import { motion } from 'framer-motion'; // Assuming framer-motion is installed for the animation
 
 function LeftPanel({ viewingSnapshot, setViewingSnapshot }) {
     const socket = useSocket();
@@ -18,6 +19,7 @@ function LeftPanel({ viewingSnapshot, setViewingSnapshot }) {
     const liveTimeoutRef = React.useRef(null);
     const [editorLanguage, setEditorLanguage] = useState('javascript');
     const [uploading, setUploading] = useState(false);
+    const [uploadStatus, setUploadStatus] = useState(''); // New state for status feedback
 
     const [pollQuestion, setPollQuestion] = useState('');
     const [pollOptions, setPollOptions] = useState('Yes, No');
@@ -38,6 +40,8 @@ function LeftPanel({ viewingSnapshot, setViewingSnapshot }) {
         return saved ? JSON.parse(saved) : [];
     });
     const [snippetName, setSnippetName] = useState('');
+
+    const fileInputRef = React.useRef(null); // Ref for the hidden file input
 
     useEffect(() => {
         if (!socket) return;
@@ -126,18 +130,31 @@ function LeftPanel({ viewingSnapshot, setViewingSnapshot }) {
         const file = e.target.files[0];
         if (!file) return;
 
+        // Use eventId from user (student) or props (admin)
+        const eventId = user.role === 'student' ? user.eventId : (socket?.data?.eventId || window.currentEventId);
+
         setUploading(true);
+        setUploadStatus('Uploading to Cloud...');
         const formData = new FormData();
         formData.append('file', file);
+        if (eventId) formData.append('eventId', eventId);
 
         try {
-            await fetch('/api/upload', {
+            const res = await fetch(`${API_BASE_URL}/api/upload`, {
                 method: 'POST',
                 body: formData
             });
+            const data = await res.json();
+            if (data.success) {
+                setUploadStatus('File Shared! ✅');
+                setTimeout(() => setUploadStatus(''), 3000);
+            } else {
+                throw new Error(data.message || 'Upload failed');
+            }
         } catch (err) {
             console.error(err);
-            alert('Upload failed');
+            setUploadStatus('Upload Error ❌');
+            alert(err.message || 'Upload failed');
         } finally {
             setUploading(false);
             e.target.value = null;
@@ -292,11 +309,36 @@ function LeftPanel({ viewingSnapshot, setViewingSnapshot }) {
                         </div>
 
                         <div style={{ borderLeft: '1px solid var(--glass-border)', paddingLeft: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <label className="btn" style={{ background: 'var(--accent)', cursor: 'pointer', color: 'white', padding: '0.5rem 0.8rem' }} title="Upload File">
-                                <span className="btn-icon">📤</span>
-                                <span className="btn-text">Upload</span>
-                                <input type="file" hidden onChange={handleFileUpload} disabled={uploading} />
-                            </label>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <button
+                                    onClick={() => fileInputRef.current.click()}
+                                    className="btn btn-secondary"
+                                    disabled={uploading}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', position: 'relative' }}
+                                >
+                                    <span className="material-icons" style={{ fontSize: '1.2rem' }}>{uploading ? 'sync' : 'upload'}</span>
+                                    {uploading ? 'Uploading...' : 'Upload'}
+                                    {uploading && (
+                                        <motion.div
+                                            animate={{ rotate: 360 }}
+                                            transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                                            style={{ marginLeft: '4px', display: 'inline-block' }}
+                                        >
+                                            ⏳
+                                        </motion.div>
+                                    )}
+                                </button>
+                                <input type="file" hidden onChange={handleFileUpload} disabled={uploading} ref={fileInputRef} />
+                                {uploadStatus && (
+                                    <motion.span
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        style={{ fontSize: '0.85rem', color: uploadStatus.includes('❌') ? '#ff4d4d' : 'var(--primary)', fontWeight: 500 }}
+                                    >
+                                        {uploadStatus}
+                                    </motion.span>
+                                )}
+                            </div>
 
                             <button
                                 onClick={() => setShowPollCreator(!showPollCreator)}
@@ -433,8 +475,10 @@ function LeftPanel({ viewingSnapshot, setViewingSnapshot }) {
                             {files.map((file, i) => (
                                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.5rem 0.75rem', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--glass-border)' }}>
                                     <a
-                                        href={`/uploads/${file.filename}`}
-                                        download
+                                        href={file.url || `/uploads/${file.filename}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        download={!file.url}
                                         style={{ textDecoration: 'none', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 500 }}
                                     >
                                         📄 {file.filename}
@@ -443,7 +487,7 @@ function LeftPanel({ viewingSnapshot, setViewingSnapshot }) {
                                         <button
                                             onClick={async () => {
                                                 if (confirm('Delete this file?')) {
-                                                    await fetch(`/api/files/${file.filename}`, { method: 'DELETE' });
+                                                    await fetch(`${API_BASE_URL}/api/files/${file.filename}`, { method: 'DELETE' });
                                                 }
                                             }}
                                             className="btn"

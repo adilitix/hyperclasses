@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext } from 'react';
 
 const AuthContext = createContext(null);
+export const API_BASE_URL = import.meta.env.VITE_SERVER_URL || '';
 
 export const AuthProvider = ({ children }) => {
     // Initialize from localStorage if available
@@ -11,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (username, password, role, eventId) => {
         try {
-            const res = await fetch('/api/login', {
+            const res = await fetch(`${API_BASE_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password, role, eventId })

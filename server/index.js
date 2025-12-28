@@ -6,6 +6,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const db = require('./database');
+const supabase = require('./supabase');
 
 const app = express();
 const server = http.createServer(app);
@@ -242,31 +243,67 @@ app.delete('/api/events/:id', (req, res) => {
 });
 
 
-app.post('/api/upload', upload.single('file'), (req, res) => {
-    // Requires eventId in body to know where to put it in state
-    const { eventId } = req.body;
+app.get('/api/storage-status', async (req, res) => {
+    const isConnected = await supabase.healthCheck();
+    res.json({ connected: isConnected });
+});
 
+app.post('/api/upload', upload.single('file'), async (req, res) => {
+    const { eventId } = req.body;
     if (!req.file) return res.status(400).send('No file uploaded');
 
-    const fileInfo = {
-        filename: req.file.originalname,
-        size: req.file.size
-    };
+    try {
+        let fileInfo;
+        const isConnected = await supabase.healthCheck();
 
-    // If eventId provided, add to that event's file list
-    if (eventId && GLOBAL_STATE.events.has(eventId)) {
-        const event = GLOBAL_STATE.events.get(eventId);
-        // Add if not exists
-        if (!event.files.find(f => f.filename === fileInfo.filename)) {
-            event.files.push(fileInfo);
-            io.to(eventId).emit('file_list_update', event.files);
+        if (isConnected) {
+            // Upload to Supabase
+            // Use unique name to avoid bucket collisions
+            const uniqueName = `${Date.now()}_${req.file.originalname}`;
+            const cloudFile = await supabase.uploadFile(uniqueName, req.file.path, req.file.mimetype);
+            fileInfo = {
+                filename: req.file.originalname,
+                size: req.file.size,
+                url: cloudFile.url,
+                cloud: true,
+                timestamp: Date.now()
+            };
+            // Cleanup local temp file
+            if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        } else {
+            // Fallback to local storage
+            console.warn('Supabase not connected. Falling back to local storage.');
+            fileInfo = {
+                filename: req.file.originalname,
+                size: req.file.size,
+                url: `/uploads/${req.file.originalname}`,
+                cloud: false,
+                timestamp: Date.now()
+            };
+            // Move file to uploads folder
+            const targetPath = path.join(__dirname, 'uploads', req.file.originalname);
+            if (!fs.existsSync(path.join(__dirname, 'uploads'))) fs.mkdirSync(path.join(__dirname, 'uploads'));
+            if (req.file.path !== targetPath) {
+                fs.copyFileSync(req.file.path, targetPath);
+                fs.unlinkSync(req.file.path);
+            }
         }
-    } else {
-        // If no event ID (maybe uploaded from dashboard?), just store on disk 
-        // effectively orphaned from UI until manually linked, but we'll ignore for now
-    }
 
-    res.json({ success: true, file: fileInfo });
+        // If eventId provided, add to that event's file list
+        if (eventId && GLOBAL_STATE.events.has(eventId)) {
+            const event = GLOBAL_STATE.events.get(eventId);
+            if (!event.files.find(f => f.filename === fileInfo.filename)) {
+                event.files.push(fileInfo);
+                db.saveEvent(event);
+                io.to(eventId).emit('file_list_update', event.files);
+            }
+        }
+
+        res.json({ success: true, file: fileInfo, cloud: isConnected });
+    } catch (err) {
+        console.error('Upload error:', err);
+        res.status(500).json({ success: false, message: 'Upload failed' });
+    }
 });
 
 app.delete('/api/files/:filename', (req, res) => {
@@ -813,7 +850,7 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
 });
