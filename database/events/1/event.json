@@ -1,0 +1,14 @@
+{
+  "id": "1",
+  "name": "test",
+  "createdBy": "admin",
+  "createdAt": "2025-12-27T11:42:46.215Z",
+  "currentContent": {
+    "type": "text",
+    "content": "<h1>Welcome to test</h1><p>Waiting for instructor...</p>",
+    "language": "html",
+    "instructions": ""
+  },
+  "files": [],
+  "chatDisabled": false
+}

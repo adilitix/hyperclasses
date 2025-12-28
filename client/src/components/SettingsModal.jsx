@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import AboutPanel from './AboutPanel';
 
-function SettingsModal({ isOpen, onClose, theme, setTheme, primaryColor, setPrimaryColor, logout, user }) {
+function SettingsModal({ isOpen, onClose, theme, setTheme, primaryColor, setPrimaryColor, logout, user, downloadPath, setDownloadPath, downloadFormat, setDownloadFormat, trainerUsername }) {
     if (!isOpen) return null;
 
     const colors = [
@@ -12,6 +13,43 @@ function SettingsModal({ isOpen, onClose, theme, setTheme, primaryColor, setPrim
         { name: 'Purple', value: '#bf00ff' }, // Custom Purple
         { name: 'Blue', value: '#0070f3' },
     ];
+
+    const fileFormats = [
+        { name: 'Python', ext: 'py' },
+        { name: 'JavaScript', ext: 'js' },
+        { name: 'HTML', ext: 'html' },
+        { name: 'CSS', ext: 'css' },
+        { name: 'Java', ext: 'java' },
+        { name: 'C++', ext: 'cpp' },
+        { name: 'Text', ext: 'txt' },
+    ];
+
+    const handleBrowseFolder = async () => {
+        try {
+            // Check if File System Access API is supported
+            if ('showDirectoryPicker' in window) {
+                const dirHandle = await window.showDirectoryPicker();
+                setDownloadPath(dirHandle.name); // Store directory handle name
+                // Store the handle for later use
+                localStorage.setItem('downloadDirHandle', JSON.stringify({
+                    name: dirHandle.name,
+                    // We'll store the handle in a global variable since we can't serialize it
+                }));
+                window.downloadDirHandle = dirHandle;
+            } else {
+                // Fallback for browsers that don't support the API
+                const path = prompt('Enter the folder name where you want to download code files:', downloadPath || 'Downloads');
+                if (path !== null) {
+                    setDownloadPath(path);
+                }
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.error('Error selecting folder:', err);
+                alert('Failed to select folder. You can type the folder name manually.');
+            }
+        }
+    };
 
     return (
         <AnimatePresence>
@@ -136,29 +174,95 @@ function SettingsModal({ isOpen, onClose, theme, setTheme, primaryColor, setPrim
                         </div>
                     </div>
 
-                    {/* Section: Account */}
-                    <div>
-                        <h4 style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Account</h4>
+                    {/* Section: Download Settings (For Students) */}
+                    {user?.role === 'student' && (
+                        <div style={{ marginBottom: '2rem' }}>
+                            <h4 style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Download Settings</h4>
 
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <div style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>Download Folder</div>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <input
+                                        type="text"
+                                        className="input-field"
+                                        value={downloadPath || ''}
+                                        onChange={(e) => setDownloadPath(e.target.value)}
+                                        placeholder="Click 'Browse' to select folder"
+                                        readOnly
+                                        style={{
+                                            flex: 1,
+                                            padding: '0.5rem',
+                                            background: 'rgba(0,0,0,0.3)',
+                                            border: '1px solid var(--glass-border)',
+                                            borderRadius: '4px',
+                                            color: 'var(--text-color)',
+                                            cursor: 'pointer'
+                                        }}
+                                        onClick={handleBrowseFolder}
+                                    />
+                                    <button
+                                        onClick={handleBrowseFolder}
+                                        className="btn"
+                                        style={{
+                                            background: 'var(--primary)',
+                                            color: '#000',
+                                            padding: '0.5rem 1rem'
+                                        }}
+                                    >
+                                        📁 Browse
+                                    </button>
+                                </div>
+                                <div style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: '0.3rem' }}>
+                                    Click 'Browse' to select a folder using your system's folder picker
+                                </div>
+                            </div>
+
+                            <div style={{ marginBottom: '1rem' }}>
+                                <div style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>File Format</div>
+                                <select
+                                    value={downloadFormat || 'py'}
+                                    onChange={(e) => setDownloadFormat(e.target.value)}
+                                    className="btn"
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.5rem',
+                                        background: 'rgba(0,0,0,0.3)',
+                                        border: '1px solid var(--glass-border)',
+                                        borderRadius: '4px',
+                                        color: 'var(--text-color)',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {fileFormats.map(format => (
+                                        <option key={format.ext} value={format.ext}>
+                                            {format.name} (.{format.ext})
+                                        </option>
+                                    ))}
+                                </select>
+                                <div style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: '0.3rem' }}>
+                                    Files will be saved as: eventname_001.{downloadFormat || 'py'}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Section: Account (Read Only) */}
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h4 style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Account</h4>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 <span style={{ fontWeight: 'bold' }}>{user?.username}</span>
                                 <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>{user?.role}</span>
                             </div>
                         </div>
+                    </div>
 
-                        <button
-                            onClick={logout}
-                            className="btn"
-                            style={{
-                                width: '100%',
-                                background: 'rgba(255, 50, 50, 0.1)',
-                                border: '1px solid var(--danger)',
-                                color: 'var(--danger)'
-                            }}
-                        >
-                            Log Out
-                        </button>
+                    {/* Section: About System */}
+                    <div>
+                        <h4 style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>About System</h4>
+                        <div style={{ maxHeight: '200px', overflowY: 'auto', background: 'rgba(0,0,0,0.1)', borderRadius: '8px', padding: '0.5rem' }}>
+                            <AboutPanel trainerUsername={trainerUsername} />
+                        </div>
                     </div>
 
                 </motion.div>

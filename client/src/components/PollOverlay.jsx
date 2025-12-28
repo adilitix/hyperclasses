@@ -48,7 +48,7 @@ function PollOverlay({ activePoll }) {
             >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <h3 style={{ margin: 0, color: 'var(--primary)' }}>📊 Live Poll</h3>
-                    {user.role === 'admin' && (
+                    {(user.role === 'admin' || user.role === 'superadmin') && (
                         <button onClick={handleEndPoll} className="btn" style={{ background: 'var(--danger)', fontSize: '0.8rem', padding: '0.2rem 0.5rem' }}>End Poll</button>
                     )}
                 </div>
@@ -58,8 +58,9 @@ function PollOverlay({ activePoll }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                     {activePoll.options.map((opt, i) => {
                         const percent = totalVotes === 0 ? 0 : Math.round((opt.count / totalVotes) * 100);
-                        const isStudent = user.role !== 'admin';
-                        const showResults = !isStudent || voted || user.role === 'admin';
+                        const isAdmin = user.role === 'admin' || user.role === 'superadmin';
+                        const isStudent = !isAdmin;
+                        const showResults = !isStudent || voted || isAdmin;
 
                         return (
                             <div key={i} style={{ position: 'relative' }}>
@@ -114,7 +115,7 @@ function PollOverlay({ activePoll }) {
                     }
                 `}</style>
 
-                {voted && user.role !== 'admin' && (
+                {voted && user.role !== 'admin' && user.role !== 'superadmin' && (
                     <div style={{ marginTop: '1rem', fontSize: '0.8rem', textAlign: 'center', opacity: 0.7 }}>
                         ✅ Vote Submitted
                     </div>

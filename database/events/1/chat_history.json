@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1766835768052,
+    "username": "System",
+    "text": "admin joined the session.",
+    "timestamp": "2025-12-27T11:42:48.052Z",
+    "isSystem": true
+  },
+  {
+    "id": 1766835793191,
+    "username": "System",
+    "text": "admin left the session.",
+    "timestamp": "2025-12-27T11:43:13.191Z",
+    "isSystem": true
+  },
+  {
+    "id": 1766903245063,
+    "username": "System",
+    "text": "aadiya joined the session.",
+    "timestamp": "2025-12-28T06:27:25.063Z",
+    "isSystem": true
+  },
+  {
+    "id": 1766903272946,
+    "username": "System",
+    "text": "aadiya joined the session.",
+    "timestamp": "2025-12-28T06:27:52.946Z",
+    "isSystem": true
+  },
+  {
+    "id": 1766903546104,
+    "username": "System",
+    "text": "aadiya joined the session.",
+    "timestamp": "2025-12-28T06:32:26.104Z",
+    "isSystem": true
+  },
+  {
+    "id": 1766903659125,
+    "username": "System",
+    "text": "Super Admin joined the session.",
+    "timestamp": "2025-12-28T06:34:19.125Z",
+    "isSystem": true
+  }
+]

@@ -6,6 +6,11 @@ import Layout from './components/Layout';
 
 function AppContent() {
     const { user } = useAuth();
+
+    React.useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [user]);
+
     return user ? <Layout /> : <Login />;
 }
 

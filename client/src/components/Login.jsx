@@ -15,7 +15,9 @@ function Login() {
     const [role, setRole] = useState('student');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [eventId, setEventId] = useState('');
     const [error, setError] = useState('');
+    const [showLoginMobile, setShowLoginMobile] = useState(false); // Mobile toggle
 
     // Carousel State
     const [currentImage, setCurrentImage] = useState(0);
@@ -30,7 +32,7 @@ function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        const res = await login(username, password, role);
+        const res = await login(username, role === 'student' ? null : password, role, eventId);
         if (!res.success) {
             setError(res.message);
         }
@@ -38,29 +40,31 @@ function Login() {
 
     return (
         <div style={{
-            height: '100vh',
+            minHeight: '100vh',
             width: '100vw',
-            display: 'grid',
-            gridTemplateColumns: '1fr minmax(400px, 30%)', // Responsive split
+            display: 'flex',
+            flexDirection: 'row',
             background: 'var(--bg-color)',
-            overflow: 'hidden'
+            overflowX: 'hidden',
+            overflowY: 'auto'
         }} className="landing-page-container">
 
             {/* LEFT SIDE - Marketing & Visuals */}
-            <div style={{
+            <div className={`marketing-side ${showLoginMobile ? 'mobile-hide' : ''}`} style={{
                 position: 'relative',
+                flex: 1,
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
-                padding: '4rem',
+                padding: '4rem 6%',
                 color: 'white',
-                overflow: 'hidden'
+                minHeight: '100vh'
             }}>
                 {/* Background Carousel */}
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={currentImage}
-                        initial={{ opacity: 0, scale: 1.1 }}
+                        initial={{ opacity: 0, scale: 1.05 }}
                         animate={{ opacity: 0.4, scale: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 1.5 }}
@@ -71,7 +75,7 @@ function Login() {
                             backgroundSize: 'cover',
                             backgroundPosition: 'center',
                             zIndex: 0,
-                            filter: 'blur(2px) brightness(0.7)'
+                            filter: 'blur(2px) brightness(0.6)'
                         }}
                     />
                 </AnimatePresence>
@@ -83,55 +87,70 @@ function Login() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
                     >
-                        <h1 style={{
-                            fontSize: '5rem', // Made bigger
-                            fontWeight: 800,
-                            marginBottom: '0.5rem',
-                            background: 'linear-gradient(to right, #00f0ff, #ffffff)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            textShadow: '0 0 30px rgba(0, 240, 255, 0.3)',
-                            fontFamily: 'Orbitron, sans-serif' // Ensuring futuristic font if available, or fallback
-                        }}>
-                            HyperClass
-                        </h1>
                         <div style={{
                             display: 'inline-block',
                             background: 'rgba(255, 190, 11, 0.2)',
                             color: 'var(--warning)',
                             border: '1px solid var(--warning)',
-                            padding: '0.2rem 0.8rem',
+                            padding: '0.3rem 1rem',
                             borderRadius: '20px',
-                            fontSize: '0.9rem',
-                            marginBottom: '2rem',
+                            fontSize: '0.8rem',
+                            marginBottom: '1.5rem',
                             fontWeight: 'bold',
                             letterSpacing: '1px',
                             textTransform: 'uppercase'
                         }}>
                             Pre-release v0.9
                         </div>
+
+                        <h1 style={{
+                            fontSize: 'clamp(2.5rem, 8vw, 5rem)',
+                            fontWeight: 800,
+                            marginBottom: '1rem',
+                            background: 'linear-gradient(to right, #00f0ff, #ffffff)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            lineHeight: 1.1,
+                            fontFamily: 'Orbitron, sans-serif'
+                        }}>
+                            HyperClass
+                        </h1>
+
                         <h2 style={{
-                            fontSize: '2rem',
+                            fontSize: 'clamp(1.2rem, 3vw, 2.2rem)',
                             color: 'var(--primary)',
-                            marginBottom: '2rem',
-                            fontWeight: 300
+                            marginBottom: '1.5rem',
+                            fontWeight: 400,
+                            maxWidth: '700px'
                         }}>
                             Advanced Workshop Management Made Easy
                         </h2>
                         <p style={{
-                            fontSize: '1.2rem',
+                            fontSize: 'clamp(0.95rem, 1.5vw, 1.15rem)',
                             lineHeight: 1.6,
                             maxWidth: '600px',
-                            color: '#e0e6ed',
-                            marginBottom: '3rem',
-                            textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                            color: '#cbd5e1',
+                            marginBottom: '3rem'
                         }}>
                             Experience the future of education with real-time code syncing,
                             AI-powered insights, and a seamless holographic interface.
                         </p>
 
+                        <button
+                            className="btn btn-primary mobile-only-flex"
+                            onClick={() => setShowLoginMobile(true)}
+                            style={{ padding: '1.2rem 2.5rem', fontSize: '1.1rem', marginBottom: '3rem' }}
+                        >
+                            Connect to Mainframe →
+                        </button>
+
                         {/* Feature Grid */}
-                        <div style={{ display: 'flex', gap: '2rem' }}>
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                            gap: '1.5rem',
+                            maxWidth: '600px'
+                        }} className="feature-grid mobile-hide">
                             {[
                                 { icon: '⚡', title: 'Real-time', desc: 'Instant code syncing' },
                                 { icon: '🤖', title: 'AI Powered', desc: 'Smart assistance' },
@@ -144,15 +163,14 @@ function Login() {
                                     transition={{ delay: 0.4 + (i * 0.1) }}
                                     className="glass-panel"
                                     style={{
-                                        padding: '1.5rem',
+                                        padding: '1.25rem',
                                         background: 'rgba(255,255,255,0.05)',
-                                        borderRadius: '12px',
-                                        width: '150px'
+                                        borderRadius: '12px'
                                     }}
                                 >
-                                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{feature.icon}</div>
-                                    <div style={{ fontWeight: 'bold', color: 'var(--primary)', marginBottom: '0.2rem' }}>{feature.title}</div>
-                                    <div style={{ fontSize: '0.8rem', opacity: 0.7 }}>{feature.desc}</div>
+                                    <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{feature.icon}</div>
+                                    <div style={{ fontWeight: 'bold', color: 'var(--primary)', marginBottom: '0.2rem', fontSize: '0.9rem' }}>{feature.title}</div>
+                                    <div style={{ fontSize: '0.75rem', opacity: 0.6, lineHeight: '1.4' }}>{feature.desc}</div>
                                 </motion.div>
                             ))}
                         </div>
@@ -161,16 +179,18 @@ function Login() {
             </div>
 
             {/* RIGHT SIDE - Login Form */}
-            <div style={{
+            <div className={`login-side ${!showLoginMobile ? 'mobile-hide' : ''}`} style={{
                 position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: 'rgba(5, 5, 16, 0.95)',
+                background: 'rgba(5, 5, 25, 0.98)',
                 borderLeft: '1px solid var(--glass-border)',
-                backdropFilter: 'blur(20px)',
+                backdropFilter: 'blur(24px)',
                 boxShadow: '-10px 0 50px rgba(0,0,0,0.5)',
-                zIndex: 10
+                zIndex: 10,
+                width: '450px',
+                flexShrink: 0
             }}>
                 <motion.div
                     initial={{ opacity: 0, x: 50 }}
@@ -187,6 +207,16 @@ function Login() {
                         background: 'rgba(20, 25, 40, 0.4)'
                     }}
                 >
+                    <div style={{ position: 'absolute', top: '2rem', left: '2rem' }} className="mobile-only-flex">
+                        <button
+                            onClick={() => setShowLoginMobile(false)}
+                            className="btn btn-ghost"
+                            style={{ padding: '0.5rem 1rem' }}
+                        >
+                            ← Back
+                        </button>
+                    </div>
+
                     <motion.div
                         animate={{ rotate: 360 }}
                         transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
@@ -227,6 +257,21 @@ function Login() {
                             />
                         </div>
 
+                        {role === 'student' && (
+                            <div className="animate-fade-in">
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#94a3b8', textAlign: 'left' }}>Event ID</label>
+                                <input
+                                    type="text"
+                                    className="input-field"
+                                    style={{ width: '100%', boxSizing: 'border-box' }}
+                                    value={eventId}
+                                    onChange={(e) => setEventId(e.target.value)}
+                                    placeholder="Enter event ID provided by instructor"
+                                    required
+                                />
+                            </div>
+                        )}
+
                         {role === 'admin' && (
                             <div className="animate-fade-in">
                                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#94a3b8', textAlign: 'left' }}>Password</label>
@@ -257,14 +302,39 @@ function Login() {
 
                 {/* Mobile/Responsive Style Injection */}
                 <style>{`
-                    @media (max-width: 900px) {
+                    @media (max-width: 1024px) {
                         .landing-page-container {
-                            grid-template-columns: 1fr !important;
-                            overflow-y: auto !important;
+                            flex-direction: column !important;
+                            height: auto !important;
                         }
-                        .landing-page-container > div:first-child {
-                            padding: 2rem !important;
-                            min-height: 50vh;
+                        .marketing-side {
+                            padding: 3rem 1.5rem !important;
+                            min-height: 100vh !important;
+                            flex: none !important;
+                            display: flex !important;
+                        }
+                        .login-side {
+                            width: 100% !important;
+                            height: 100vh !important;
+                            padding: 3rem 0 !important;
+                            border-left: none !important;
+                            background: rgba(5, 5, 20, 1) !important;
+                            display: flex !important;
+                        }
+                        .feature-grid {
+                            grid-template-columns: 1fr !important;
+                        }
+                        .mobile-hide {
+                            display: none !important;
+                        }
+                    }
+                    
+                    @media (max-width: 480px) {
+                        .marketing-side h1 {
+                            font-size: 3rem !important;
+                        }
+                        .glass-panel {
+                            padding: 1.5rem !important;
                         }
                     }
                 `}</style>

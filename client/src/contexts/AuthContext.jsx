@@ -9,16 +9,22 @@ export const AuthProvider = ({ children }) => {
         return savedUser ? JSON.parse(savedUser) : null;
     });
 
-    const login = async (username, password, role) => {
+    const login = async (username, password, role, eventId) => {
         try {
             const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password, role })
+                body: JSON.stringify({ username, password, role, eventId })
             });
             const data = await res.json();
             if (data.success) {
-                const userData = { username: data.username, role: data.role };
+                // Include eventId in the stored user data
+                const userData = {
+                    username: data.username,
+                    role: data.role,
+                    eventId: data.eventId, // Important: Student needs this to rejoin
+                    eventName: data.eventName
+                };
                 setUser(userData);
                 localStorage.setItem('user', JSON.stringify(userData));
                 return { success: true };
@@ -34,10 +40,18 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         setUser(null);
         localStorage.removeItem('user');
+        // Clear anything else might be useful
+        localStorage.removeItem('codeSnippets'); // Maybe keep snippets? Up to user.
+    };
+
+    const updateUser = (newData) => {
+        const updatedUser = { ...user, ...newData };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout }}>
+        <AuthContext.Provider value={{ user, login, logout, updateUser }}>
             {children}
         </AuthContext.Provider>
     );

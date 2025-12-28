@@ -1,0 +1,30 @@
+[
+  {
+    "username": "admin",
+    "password": "admin@123",
+    "about": "im a teacher",
+    "displayName": "Aadil"
+  },
+  {
+    "username": "admin2",
+    "password": "mammoosashi",
+    "about": "Im a teacher",
+    "displayName": "admin2"
+  },
+  {
+    "username": "akash",
+    "password": "akash@123"
+  },
+  {
+    "username": "kk",
+    "password": "kk@123"
+  },
+  {
+    "username": "sanal",
+    "password": "sanal@123"
+  },
+  {
+    "username": "nihal",
+    "password": "nihal@123"
+  }
+]
