@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import LandingNavbar from '../components/LandingNavbar';
+import LandingFooter from '../components/LandingFooter';
 import '../styles/landing.css';
 
 const LandingPage = () => {
@@ -13,21 +15,7 @@ const LandingPage = () => {
 
     return (
         <div className="landing-container">
-            <nav className="landing-nav">
-                <div className="logo">
-                    <span className="rocket">🚀</span> Hyperclass
-                </div>
-                <div className="nav-links">
-                    <a href="#features">Features</a>
-                    <a href="#workshops">Workshops</a>
-                    <a href="#resources">Resources</a>
-                    <a href="#" onClick={() => window.location.href = 'mailto:contact@hyperclass.com'}>Contact Us</a>
-                </div>
-                <div className="nav-actions">
-                    <button className="btn-secondary" onClick={() => navigate('/pricing')}>See Pricing</button>
-                    <button className="btn-primary" onClick={() => navigate('/login')}>Start Free Trial</button>
-                </div>
-            </nav>
+            <LandingNavbar />
 
             <header className="hero-section">
                 <div className="hero-content">
@@ -95,6 +83,8 @@ const LandingPage = () => {
                     <p>Verified certificates to shine your new work with developments.</p>
                 </div>
             </section>
+
+            <LandingFooter />
         </div>
     );
 };

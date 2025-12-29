@@ -6,6 +6,9 @@ import Login from './components/Login';
 import Layout from './components/Layout';
 import LandingPage from './pages/LandingPage';
 import PricingPage from './pages/PricingPage';
+import FeaturesPage from './pages/FeaturesPage';
+import WorkshopsPage from './pages/WorkshopsPage';
+import ContactPage from './pages/ContactPage';
 
 function ProtectedRoute({ children }) {
     const { user } = useAuth();
@@ -31,6 +34,9 @@ function App() {
                     <Routes>
                         <Route path="/" element={<LandingPage />} />
                         <Route path="/pricing" element={<PricingPage />} />
+                        <Route path="/features" element={<FeaturesPage />} />
+                        <Route path="/workshops" element={<WorkshopsPage />} />
+                        <Route path="/contact" element={<ContactPage />} />
                         <Route path="/login" element={<LoginWrapper />} />
                         <Route path="/app/*" element={
                             <ProtectedRoute>
