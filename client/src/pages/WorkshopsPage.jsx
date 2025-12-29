@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import LandingNavbar from '../components/LandingNavbar';
 import LandingFooter from '../components/LandingFooter';
@@ -7,17 +7,31 @@ import '../styles/landing.css';
 
 const WorkshopsPage = () => {
     const navigate = useNavigate();
+    const [selectedWorkshop, setSelectedWorkshop] = useState(null);
 
     useEffect(() => {
         document.body.classList.add('landing-mode');
         return () => document.body.classList.remove('landing-mode');
     }, []);
 
+    const workshopTiers = [
+        { days: 1, price: 99, label: 'Introductory - 1 Day' },
+        { days: 3, price: 299, label: 'Deep Dive - 3 Days' },
+        { days: 5, price: 499, label: 'Mastery - 5 Days' },
+    ];
+
+    const handleEnroll = (workshopTitle, tier) => {
+        const message = `HI im interested in your ${workshopTitle.toUpperCase()} workshop (${tier.label} at Rs ${tier.price})`;
+        window.open(`https://wa.me/918075355024?text=${encodeURIComponent(message)}`, '_blank');
+        setSelectedWorkshop(null);
+    };
+
     const [filter, setFilter] = useState('All');
     const categories = ['All', 'Coding', 'Robotics', 'AI'];
 
     const workshops = [
         {
+            id: 'robotics-esp32',
             title: "Intro to Robotics with ESP32",
             category: "Robotics",
             duration: "2 Hours",
@@ -27,6 +41,7 @@ const WorkshopsPage = () => {
             image: "🤖"
         },
         {
+            id: 'mern-stack',
             title: "Full-Stack Web Dev with MERN",
             category: "Coding",
             duration: "4 Hours",
@@ -36,6 +51,7 @@ const WorkshopsPage = () => {
             image: "💻"
         },
         {
+            id: 'ai-ml',
             title: "AI & Machine Learning Fundamentals",
             category: "AI",
             duration: "3 Hours",
@@ -45,6 +61,7 @@ const WorkshopsPage = () => {
             image: "🧠"
         },
         {
+            id: 'iot-home',
             title: "IoT & Smart Home Automation",
             category: "Robotics",
             duration: "2.5 Hours",
@@ -54,6 +71,7 @@ const WorkshopsPage = () => {
             image: "🏠"
         },
         {
+            id: 'python-ds',
             title: "Advanced Python for Data Science",
             category: "Coding",
             duration: "3 Hours",
@@ -63,6 +81,7 @@ const WorkshopsPage = () => {
             image: "🐍"
         },
         {
+            id: 'drone-build',
             title: "Build Your Own Drone",
             category: "Robotics",
             duration: "5 Hours",
@@ -83,6 +102,7 @@ const WorkshopsPage = () => {
                 <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
                     <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '1rem', color: '#0f172a' }}>Explore Our Interactive Workshops</h1>
                     <p style={{ fontSize: '1.25rem', color: '#64748b' }}>Master new skills in coding, robotics, and AI through live, hands-on sessions.</p>
+                    <p style={{ marginTop: '1rem', color: '#0ea5e9', fontWeight: 600 }}>Introductory Offers starting at Rs 99!</p>
                 </div>
 
                 {/* Filters */}
@@ -115,47 +135,74 @@ const WorkshopsPage = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '2rem' }}>
                     {filteredWorkshops.map((w, i) => (
                         <motion.div
-                            key={i}
+                            key={w.id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.1 }}
-                            style={{
-                                background: 'white',
-                                border: '1px solid #e2e8f0',
-                                borderRadius: '16px',
-                                padding: '1.5rem',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
-                            }}
+                            className="workshop-card-container"
+                            style={{ margin: 0 }} /* Reset landing.css margin */
                         >
-                            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-                                <div style={{
-                                    width: '60px', height: '60px', background: '#f8fafc',
-                                    borderRadius: '12px', display: 'flex', alignItems: 'center',
-                                    justifyContent: 'center', fontSize: '2rem'
-                                }}>
-                                    {w.image}
-                                </div>
-                                <div>
-                                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a' }}>{w.title}</h3>
-                                    <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.25rem' }}>
-                                        {w.duration} | {w.level} | {w.live ? '🔴 Live' : 'Recorded'}
+                            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                                    <div style={{
+                                        width: '60px', height: '60px', background: '#f8fafc',
+                                        borderRadius: '12px', display: 'flex', alignItems: 'center',
+                                        justifyContent: 'center', fontSize: '2rem'
+                                    }}>
+                                        {w.image}
+                                    </div>
+                                    <div>
+                                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a' }}>{w.title}</h3>
+                                        <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.25rem' }}>
+                                            {w.duration} | {w.level} | {w.live ? '🔴 Live' : 'Recorded'}
+                                        </div>
                                     </div>
                                 </div>
+
+                                <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: 1.5, flex: 1, marginBottom: '1.5rem' }}>
+                                    {w.desc}
+                                </p>
+
+                                <button
+                                    className={`btn-primary ${selectedWorkshop === w.id ? 'active' : ''}`}
+                                    style={{ width: '100%', borderRadius: '8px' }}
+                                    onClick={() => setSelectedWorkshop(selectedWorkshop === w.id ? null : w.id)}
+                                >
+                                    {selectedWorkshop === w.id ? 'Close' : 'Enroll Now'}
+                                </button>
+
+                                <AnimatePresence>
+                                    {selectedWorkshop === w.id && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            style={{ overflow: 'hidden' }}
+                                        >
+                                            <div style={{
+                                                marginTop: '1.5rem',
+                                                display: 'grid',
+                                                gridTemplateColumns: 'repeat(3, 1fr)',
+                                                gap: '0.5rem',
+                                                paddingTop: '1rem',
+                                                borderTop: '1px solid #f1f5f9'
+                                            }}>
+                                                {workshopTiers.map((tier) => (
+                                                    <div
+                                                        key={tier.days}
+                                                        className="tier-card"
+                                                        onClick={() => handleEnroll(w.title, tier)}
+                                                        style={{ padding: '0.75rem 0.25rem' }}
+                                                    >
+                                                        <span className="tier-days" style={{ fontSize: '0.75rem' }}>{tier.days} Day</span>
+                                                        <span className="tier-price" style={{ fontSize: '1rem' }}>₹{tier.price}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
-
-                            <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: 1.5, flex: 1, marginBottom: '1.5rem' }}>
-                                {w.desc}
-                            </p>
-
-                            <button
-                                className="btn-primary"
-                                style={{ width: '100%', borderRadius: '8px' }}
-                                onClick={() => navigate('/login')}
-                            >
-                                Enroll Now
-                            </button>
                         </motion.div>
                     ))}
                 </div>

@@ -37,8 +37,12 @@ const LandingFooter = () => {
             </div>
 
             <div className="footer-bottom">
-                <p>&copy; {new Date().getFullYear()} Hyperclass. All rights reserved.</p>
+                <div className="footer-bottom-info">
+                    <p>&copy; {new Date().getFullYear()} Hyperclass. All rights reserved.</p>
+                    <p className="msme-info">Adilitix MSME UDYAM-KL-06-0070364</p>
+                </div>
                 <div className="social-links">
+                    <a href="https://www.youtube.com/@RoboticsBro" target="_blank" rel="noopener noreferrer" aria-label="YouTube">🎬</a>
                     <a href="#" aria-label="Twitter">𝕏</a>
                     <a href="#" aria-label="LinkedIn">in</a>
                     <a href="#" aria-label="Instagram">📸</a>

@@ -8,91 +8,98 @@ import '../styles/landing.css';
 const PricingPage = () => {
     const navigate = useNavigate();
 
-    React.useEffect(() => {
+    useEffect(() => {
         document.body.classList.add('landing-mode');
         return () => document.body.classList.remove('landing-mode');
     }, []);
 
+    const handleEnroll = (planName) => {
+        const message = `HI im interested in the Hyperclass ${planName} plan`;
+        window.open(`https://wa.me/918075355024?text=${encodeURIComponent(message)}`, '_blank');
+    };
+
     return (
         <div className="landing-container pricing-page">
-            <nav className="landing-nav">
-                <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-                    <span className="rocket">🚀</span> Hyperclass
-                </div>
-                <div className="nav-actions">
-                    <button className="btn-ghost" onClick={() => navigate('/')}>Back to Home</button>
-                    <button className="btn-primary" onClick={() => navigate('/login')}>Start Free Trial</button>
-                </div>
-            </nav>
+            <LandingNavbar />
 
             <header className="pricing-header">
                 <motion.h1
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                 >
-                    Simple, transparent pricing
+                    Introductory Pricing & Bundles
                 </motion.h1>
-                <p>Choose the plan that's right for you</p>
+                <p>Start your engineering journey today with our flexible plans</p>
             </header>
 
             <div className="pricing-grid">
-                {/* Free Plan */}
+                {/* One Day Plan */}
                 <motion.div
                     className="pricing-card"
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.1 }}
                 >
-                    <div className="plan-name">Free</div>
-                    <div className="plan-price">$0<span>/mo</span></div>
-                    <p className="plan-desc">Perfect for getting started</p>
+                    <div className="plan-name">Introductory</div>
+                    <div className="plan-price">Rs 99<span>/Day</span></div>
+                    <p className="plan-desc">Perfect for a quick start</p>
                     <ul className="plan-features">
-                        <li>✅ Access to basic workshops</li>
-                        <li>✅ Community support</li>
-                        <li>✅ Limited execution time</li>
+                        <li>✅ Single Workshop Access</li>
+                        <li>✅ Community Support</li>
+                        <li>✅ Live Q&A session</li>
                     </ul>
-                    <button className="btn-secondary full-width" onClick={() => navigate('/login')}>Open</button>
+                    <button className="btn-secondary full-width" onClick={() => handleEnroll('1-Day Introductory')}>Join Now</button>
                 </motion.div>
 
-                {/* Pro Plan */}
+                {/* Most Popular plan - 3 Day */}
                 <motion.div
                     className="pricing-card featured"
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2 }}
                 >
-                    <div className="badge">Most Popular</div>
-                    <div className="plan-name">Hyperclass Pro</div>
-                    <div className="plan-price">$29<span>/mo</span></div>
+                    <div className="badge">Best Value</div>
+                    <div className="plan-name">Deep Dive</div>
+                    <div className="plan-price">Rs 299<span>/3 Days</span></div>
                     <p className="plan-desc">For serious learners</p>
                     <ul className="plan-features">
-                        <li>✅ Unlimited workshops</li>
-                        <li>✅ Priority support</li>
-                        <li>✅ Verified Certificates</li>
-                        <li>✅ Advanced AI Assistant</li>
+                        <li>✅ Intensive Workshop Series</li>
+                        <li>✅ Verified Certificate</li>
+                        <li>✅ Project-Based Learning</li>
+                        <li>✅ AI-Powered Debugging</li>
                     </ul>
-                    <button className="btn-primary full-width" onClick={() => navigate('/login')}>Try for free</button>
+                    <button className="btn-primary full-width" onClick={() => handleEnroll('3-Day Deep Dive')}>Try for free</button>
                 </motion.div>
 
-                {/* Enterprise Plan */}
+                {/* Five Day plan */}
                 <motion.div
                     className="pricing-card"
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.3 }}
                 >
-                    <div className="plan-name">Enterprise</div>
-                    <div className="plan-price">Custom</div>
-                    <p className="plan-desc">For organizations & schools</p>
+                    <div className="plan-name">Mastery</div>
+                    <div className="plan-price">Rs 499<span>/5 Days</span></div>
+                    <p className="plan-desc">Complete certification</p>
                     <ul className="plan-features">
-                        <li>✅ Custom learning paths</li>
-                        <li>✅ Dedicated account manager</li>
-                        <li>✅ SSO Integration</li>
-                        <li>✅ Analytics Dashboard</li>
+                        <li>✅ Full Curriculum Access</li>
+                        <li>✅ Advanced Project Build</li>
+                        <li>✅ Internship Opportunities</li>
+                        <li>✅ Life-time Community Access</li>
                     </ul>
-                    <button className="btn-secondary full-width" onClick={() => window.location.href = 'mailto:sales@hyperclass.com'}>Contact Us</button>
+                    <button className="btn-secondary full-width" onClick={() => handleEnroll('5-Day Mastery')}>Enroll Now</button>
                 </motion.div>
             </div>
+
+            <section className="pricing-bundles" style={{ background: 'transparent' }}>
+                <div className="bundle-offer">
+                    <div className="offer-badge">SPECIAL OFFER</div>
+                    <h3>Buy 2 workshops, get 1 FREE! 🎁</h3>
+                    <p>Expand your expertise across multiple domains with our limited-time bundle.</p>
+                </div>
+            </section>
+
+            <LandingFooter />
         </div>
     );
 };
