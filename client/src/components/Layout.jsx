@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import LeftPanel from './LeftPanel';
 import RightPanel from './RightPanel';
 import SuperAdminPanel from './SuperAdminPanel';
@@ -26,6 +27,7 @@ const hexToRgb = (hex) => {
 function Layout() {
     const { user, logout } = useAuth();
     const socket = useSocket();
+    const navigate = useNavigate();
     const scrollContainerRef = useRef(null);
 
     const [isChatOpen, setIsChatOpen] = useState(false);
@@ -216,7 +218,10 @@ function Layout() {
             {/* Left Sidebar */}
             <aside className={`app-sidebar ${isSidebarOpen ? 'open' : ''}`}>
                 <div style={{ padding: '0 0.75rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
+                        onClick={() => navigate('/')}
+                    >
                         <Logo size={28} />
                         <h2 className="app-title cine-text" style={{ fontSize: '1rem', margin: 0 }}>
                             Hyper<span className="mobile-hide">Class</span>
