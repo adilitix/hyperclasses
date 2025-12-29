@@ -20,21 +20,25 @@ const LandingNavbar = () => {
                 </div>
 
                 {/* Desktop Links */}
-                <div className="nav-links">
+                <div className="nav-links desktop-only">
                     <a onClick={() => navigate('/features')} style={{ cursor: 'pointer' }}>Features</a>
                     <a onClick={() => navigate('/workshops')} style={{ cursor: 'pointer' }}>Workshops</a>
                     <a onClick={() => navigate('/contact')} style={{ cursor: 'pointer' }}>Contact Us</a>
                 </div>
 
                 {/* Desktop Actions */}
-                <div className="nav-actions">
+                <div className="nav-actions desktop-only">
                     <button className="btn-secondary" onClick={() => navigate('/pricing')}>See Pricing</button>
                     <button className="btn-primary" onClick={() => navigate('/login')}>Start Free Trial</button>
                 </div>
 
                 {/* Mobile Menu Button */}
-                <button className="mobile-menu-btn" onClick={toggleMenu} aria-label="Toggle menu">
-                    {isMenuOpen ? '✕' : '☰'}
+                <button className={`mobile-menu-btn ${isMenuOpen ? 'open' : ''}`} onClick={toggleMenu} aria-label="Toggle menu">
+                    <div className="hamburger">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
                 </button>
             </nav>
 

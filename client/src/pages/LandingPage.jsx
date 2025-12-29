@@ -120,11 +120,14 @@ const LandingPage = () => {
                     <div className="youtube-text">
                         <h2>Learn with "Robotics Bro" 🤖</h2>
                         <p>Check out our YouTube channel for educational, amusing, and inspiring content that will motivate you to build the future.</p>
-                        <a href="https://www.youtube.com/@RoboticsBro" target="_blank" rel="noopener noreferrer" className="btn-secondary">Watch on YouTube</a>
+                        <a href="https://www.youtube.com/@RoboticsBro" target="_blank" rel="noopener noreferrer" className="btn-primary">Watch on YouTube</a>
                     </div>
                     <div className="youtube-preview">
-                        <div className="video-mock">
-                            <span className="play-btn">▶</span>
+                        <div className="video-mock" onClick={() => window.open('https://www.youtube.com/@RoboticsBro', '_blank')}>
+                            <img src="/assets/youtube_thumbnail.png" alt="Robotics Bro YouTube" className="youtube-thumb" />
+                            <div className="play-overlay">
+                                <span className="play-btn">▶</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -149,7 +152,7 @@ const LandingPage = () => {
                                     <h3>{workshop.name}</h3>
                                 </div>
                                 <button
-                                    className={`btn-primary ${selectedWorkshop === workshop.id ? 'active' : ''}`}
+                                    className={`btn-gradient-primary ${selectedWorkshop === workshop.id ? 'active' : ''}`}
                                     onClick={() => setSelectedWorkshop(selectedWorkshop === workshop.id ? null : workshop.id)}
                                 >
                                     {selectedWorkshop === workshop.id ? 'Close' : 'Enroll Now'}
