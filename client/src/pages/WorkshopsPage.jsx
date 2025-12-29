@@ -140,68 +140,68 @@ const WorkshopsPage = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.1 }}
                             className="workshop-card-container"
-                            style={{ margin: 0 }} /* Reset landing.css margin */
                         >
-                            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', height: '100%' }}>
-                                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                            <div className="workshop-card-content" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '380px' }}>
+                                <div style={{ display: 'flex', gap: '1.25rem', marginBottom: '1.25rem', alignItems: 'flex-start' }}>
                                     <div style={{
-                                        width: '60px', height: '60px', background: '#f8fafc',
-                                        borderRadius: '12px', display: 'flex', alignItems: 'center',
-                                        justifyContent: 'center', fontSize: '2rem'
+                                        width: '64px', height: '64px', background: '#f0f9ff',
+                                        borderRadius: '16px', display: 'flex', alignItems: 'center',
+                                        justifyContent: 'center', fontSize: '2.25rem', flexShrink: 0
                                     }}>
                                         {w.image}
                                     </div>
-                                    <div>
-                                        <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a' }}>{w.title}</h3>
-                                        <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.25rem' }}>
-                                            {w.duration} | {w.level} | {w.live ? '🔴 Live' : 'Recorded'}
+                                    <div style={{ flex: 1 }}>
+                                        <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#0f172a', fontWeight: 700, lineHeight: 1.3 }}>{w.title}</h3>
+                                        <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.5rem', fontWeight: 500 }}>
+                                            {w.duration} • {w.level} • <span style={{ color: w.live ? '#ef4444' : '#64748b' }}>{w.live ? '🔴 Live' : 'Recorded'}</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: 1.5, flex: 1, marginBottom: '1.5rem' }}>
+                                <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: 1.6, flex: 1, marginBottom: '2rem' }}>
                                     {w.desc}
                                 </p>
 
-                                <button
-                                    className={`btn-primary ${selectedWorkshop === w.id ? 'active' : ''}`}
-                                    style={{ width: '100%', borderRadius: '8px' }}
-                                    onClick={() => setSelectedWorkshop(selectedWorkshop === w.id ? null : w.id)}
-                                >
-                                    {selectedWorkshop === w.id ? 'Close' : 'Enroll Now'}
-                                </button>
+                                <div style={{ marginTop: 'auto' }}>
+                                    <button
+                                        className={`btn-gradient-primary ${selectedWorkshop === w.id ? 'active' : ''}`}
+                                        style={{ width: '100%', padding: '0.9rem' }}
+                                        onClick={() => setSelectedWorkshop(selectedWorkshop === w.id ? null : w.id)}
+                                    >
+                                        {selectedWorkshop === w.id ? 'Close' : 'Enroll Now'}
+                                    </button>
 
-                                <AnimatePresence>
-                                    {selectedWorkshop === w.id && (
-                                        <motion.div
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: 'auto', opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            style={{ overflow: 'hidden' }}
-                                        >
-                                            <div style={{
-                                                marginTop: '1.5rem',
-                                                display: 'grid',
-                                                gridTemplateColumns: 'repeat(3, 1fr)',
-                                                gap: '0.5rem',
-                                                paddingTop: '1rem',
-                                                borderTop: '1px solid #f1f5f9'
-                                            }}>
-                                                {workshopTiers.map((tier) => (
-                                                    <div
-                                                        key={tier.days}
-                                                        className="tier-card"
-                                                        onClick={() => handleEnroll(w.title, tier)}
-                                                        style={{ padding: '0.75rem 0.25rem' }}
-                                                    >
-                                                        <span className="tier-days" style={{ fontSize: '0.75rem' }}>{tier.days} Day</span>
-                                                        <span className="tier-price" style={{ fontSize: '1rem' }}>₹{tier.price}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
+                                    <AnimatePresence>
+                                        {selectedWorkshop === w.id && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                style={{ overflow: 'hidden' }}
+                                            >
+                                                <div className="tier-options" style={{
+                                                    marginTop: '1.5rem',
+                                                    gridTemplateColumns: 'repeat(3, 1fr)',
+                                                    gap: '0.75rem',
+                                                    paddingTop: '1rem',
+                                                    borderTop: '1px solid #f1f5f9'
+                                                }}>
+                                                    {workshopTiers.map((tier) => (
+                                                        <div
+                                                            key={tier.days}
+                                                            className="tier-card"
+                                                            onClick={() => handleEnroll(w.title, tier)}
+                                                            style={{ padding: '0.75rem 0.25rem', minWidth: 0 }}
+                                                        >
+                                                            <span className="tier-days" style={{ fontSize: '0.75rem' }}>{tier.days} Day</span>
+                                                            <span className="tier-price" style={{ fontSize: '1.1rem' }}>₹{tier.price}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
                             </div>
                         </motion.div>
                     ))}
