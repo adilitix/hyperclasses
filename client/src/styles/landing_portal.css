@@ -1,0 +1,216 @@
+.portal-container {
+    min-height: 100vh;
+    background: #000;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+.portal-header {
+    height: 100px;
+    padding: 0 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 100;
+}
+
+.portal-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.header-tag {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 4px;
+    opacity: 0.5;
+    border-left: 2px solid var(--primary);
+    padding-left: 15px;
+}
+
+.portal-main {
+    flex: 1;
+    display: flex;
+}
+
+.portal-split {
+    display: flex;
+    width: 100%;
+    gap: 2px;
+    background: rgba(255, 255, 255, 0.05);
+    /* Separator line */
+}
+
+.portal-card {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    overflow: hidden;
+    transition: all 0.5s ease;
+}
+
+.portal-card:hover {
+    flex: 1.2;
+}
+
+.card-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.9) 100%);
+    z-index: 2;
+}
+
+.card-content {
+    position: relative;
+    z-index: 10;
+    max-width: 500px;
+}
+
+.product-tag {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--primary);
+    margin-bottom: 15px;
+    text-transform: uppercase;
+}
+
+.product-name {
+    font-size: 4rem;
+    font-weight: 900;
+    margin: 0 0 20px 0;
+    line-height: 1;
+}
+
+.product-name span {
+    display: block;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+}
+
+.product-desc {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.6;
+    margin-bottom: 40px;
+}
+
+.card-actions {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+/* FLOW Styles */
+.flow-side {
+    background-image: url('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070&auto=format&fit=crop');
+    background-size: cover;
+}
+
+.btn-flow {
+    background: #00f0ff;
+    color: black;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 4px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-flow-outline {
+    background: transparent;
+    border: 1px solid #00f0ff;
+    color: #00f0ff;
+    padding: 16px 32px;
+    border-radius: 4px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+/* GO Styles */
+.go-side {
+    background-image: url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop');
+    background-size: cover;
+}
+
+.go-side .product-tag {
+    color: #ff7b00;
+}
+
+.btn-go {
+    background: #ff7b00;
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 4px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.btn-go-outline {
+    background: transparent;
+    border: 1px solid #ff7b00;
+    color: #ff7b00;
+    padding: 16px 32px;
+    border-radius: 4px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.bg-animation {
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    z-index: 1;
+    opacity: 0.1;
+    pointer-events: none;
+}
+
+.flow-bg {
+    background: radial-gradient(circle, #00f0ff 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+.go-bg {
+    background: radial-gradient(circle, #ff7b00 0%, transparent 70%);
+    animation: rotate 25s linear infinite reverse;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 900px) {
+    .portal-split {
+        flex-direction: column;
+    }
+
+    .portal-card {
+        padding: 40px 20px;
+    }
+
+    .product-name {
+        font-size: 2.5rem;
+    }
+}

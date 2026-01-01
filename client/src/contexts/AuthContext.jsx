@@ -21,10 +21,8 @@ export const AuthProvider = ({ children }) => {
             if (data.success) {
                 // Include eventId in the stored user data
                 const userData = {
-                    username: data.username,
-                    role: data.role,
-                    eventId: data.eventId, // Important: Student needs this to rejoin
-                    eventName: data.eventName
+                    ...data,
+                    success: undefined // Remove success flag from user data
                 };
                 setUser(userData);
                 localStorage.setItem('user', JSON.stringify(userData));

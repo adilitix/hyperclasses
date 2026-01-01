@@ -15,21 +15,23 @@ const LandingNavbar = () => {
     return (
         <React.Fragment>
             <nav className="landing-nav">
-                <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-                    <span className="rocket">🚀</span> Hyperclass
+                <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ background: '#0f172a', padding: '6px', borderRadius: '8px' }}>🚀</div>
+                    <span style={{ fontWeight: 900, fontSize: '1.2rem', color: '#0f172a' }}>Hyper<span style={{ color: '#00f0ff' }}>class</span></span>
                 </div>
 
                 {/* Desktop Links */}
                 <div className="nav-links desktop-only">
-                    <a onClick={() => navigate('/features')} style={{ cursor: 'pointer' }}>Features</a>
-                    <a onClick={() => navigate('/workshops')} style={{ cursor: 'pointer' }}>Workshops</a>
-                    <a onClick={() => navigate('/contact')} style={{ cursor: 'pointer' }}>Contact Us</a>
+                    <a onClick={() => navigate('/features')} style={{ cursor: 'pointer', fontWeight: 600 }}>Features</a>
+                    <a onClick={() => navigate('/login')} style={{ cursor: 'pointer', fontWeight: 700, color: '#0ea5e9' }}>Flow (Live)</a>
+                    <a onClick={() => navigate('/workshops')} style={{ cursor: 'pointer', fontWeight: 700, color: '#f59e0b' }}>Go (Workshops)</a>
+                    <a onClick={() => navigate('/contact')} style={{ cursor: 'pointer', fontWeight: 600 }}>Contact</a>
                 </div>
 
                 {/* Desktop Actions */}
                 <div className="nav-actions desktop-only">
-                    <button className="btn-secondary" onClick={() => navigate('/pricing')}>See Pricing</button>
-                    <button className="btn-primary" onClick={() => navigate('/login')}>Start Free Trial</button>
+                    <button className="btn-primary" onClick={() => navigate('/login')} style={{ borderRadius: '30px' }}>Join Session</button>
+                    <button className="btn-secondary" onClick={() => navigate('/go/login')} style={{ borderRadius: '30px', border: '1px solid #ff7b00', color: '#ff7b00' }}>Student Go</button>
                 </div>
 
                 {/* Mobile Menu Button */}

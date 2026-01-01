@@ -5,7 +5,11 @@ const supabase = require('./supabase');
 const DB_DIR = path.join(__dirname, '../database');
 const EVENTS_DIR = path.join(DB_DIR, 'events');
 const ADMINS_FILE = path.join(DB_DIR, 'admins.json');
-const SETTINGS_FILE = path.join(DB_DIR, 'settings.json');
+const SETTINGS_FILE = path.join(__dirname, '../data/settings.json');
+const WORKSHOP_PROGRESS_FILE = path.join(__dirname, '../data/workshop_progress.json');
+
+// --- DATABASE HELPERS ---
+const WORKSHOPS_FILE = path.join(DB_DIR, 'workshops.json');
 
 // Ensure database directories exist
 function initDatabase() {
@@ -30,7 +34,8 @@ function loadAdmins() {
     // Default admins if file doesn't exist
     return [
         { username: 'admin', password: 'Aadil@123' },
-        { username: 'admin2', password: 'mammoosashi' }
+        { username: 'admin2', password: 'mammoosashi' },
+        { username: 'admin@hyperclass', password: 'admin@123' }
     ];
 }
 
@@ -167,6 +172,102 @@ function deleteEvent(eventId) {
     }
 }
 
+// Restore data from Cloud if local is empty/outdated
+async function restoreFromCloud(globalState) {
+    try {
+        console.log('Restoring data from Supabase Cloud...');
+
+        // Restore Admins
+        const cloudAdmins = await supabase.getFromCloud('admins');
+        if (cloudAdmins && Array.isArray(cloudAdmins)) {
+            globalState.admins = cloudAdmins;
+            saveAdmins(cloudAdmins); // Sync to local
+            console.log('Admins restored from cloud.');
+        }
+
+        // Restore Settings
+        const cloudSettings = await supabase.getFromCloud('settings');
+        if (cloudSettings) {
+            globalState.settings = cloudSettings;
+            saveSettings(cloudSettings); // Sync to local
+            console.log('Settings restored from cloud.');
+        }
+
+        // Restore Events
+        const cloudEventsList = await supabase.listData('event_');
+        if (cloudEventsList && cloudEventsList.length > 0) {
+            for (const item of cloudEventsList) {
+                const eventId = item.name.replace('event_', '').replace('.json', '');
+                if (!globalState.events.has(eventId)) {
+                    const eventData = await supabase.getFromCloud(`event_${eventId}`);
+                    if (eventData) {
+                        globalState.events.set(eventId, eventData);
+                        saveEvent(eventData); // Sync to local
+                        console.log(`Event ${eventId} restored from cloud.`);
+                    }
+                }
+            }
+        }
+
+        // Restore Workshops
+        const cloudWorkshops = await supabase.getFromCloud('workshops');
+        if (cloudWorkshops && Array.isArray(cloudWorkshops)) {
+            globalState.workshops = cloudWorkshops;
+            saveWorkshops(cloudWorkshops);
+            console.log('Workshops restored from cloud.');
+        }
+    } catch (err) {
+        console.error('Failed to restore from cloud:', err);
+    }
+}
+
+// Workshop Management
+function loadWorkshops() {
+    try {
+        if (fs.existsSync(WORKSHOPS_FILE)) {
+            const data = fs.readFileSync(WORKSHOPS_FILE, 'utf8');
+            return JSON.parse(data);
+        }
+    } catch (err) {
+        console.error('Error loading workshops:', err);
+    }
+    // Default workshops if file doesn't exist
+    return [
+        {
+            id: '1',
+            title: "Robotics Masterclass",
+            category: "Robotics",
+            image: "🤖",
+            desc: "Master the art of building autonomous robots.",
+            pages: [
+                { id: 'intro', type: 'notes', title: 'Introduction', content: '<h1>Welcome to Robotics</h1><p>In this workshop, you will learn the <b>basics</b> of hardware and microcontroller programming.</p>' },
+                { id: 'code1', type: 'code', title: 'Blinky Script', content: 'void setup() {\n  pinMode(LED_BUILTIN, OUTPUT);\n}\nvoid loop() {\n  digitalWrite(LED_BUILTIN, HIGH);\n  delay(1000);\n  digitalWrite(LED_BUILTIN, LOW);\n  delay(1000);\n}', language: 'cpp' },
+                { id: 'quiz1', type: 'quiz', title: 'Hardware Quiz', content: 'What does LED stand for?', options: ['Light Emitting Diode', 'Low Energy Device', 'Liquid Electric Display', 'Laser Engine Driver'], correctOption: 0 }
+            ]
+        },
+        {
+            id: '2',
+            title: "OpenCV Workshop",
+            category: "AI",
+            image: "👁️",
+            desc: "Computer Vision with Python and OpenCV.",
+            pages: [
+                { id: 'intro', type: 'notes', title: 'Vision Basics', content: '<h1>Computer Vision</h1><p>OpenCV is the industry standard for <b>AI-powered</b> vision systems.</p>' }
+            ]
+        }
+    ];
+}
+
+function saveWorkshops(workshops) {
+    try {
+        fs.writeFileSync(WORKSHOPS_FILE, JSON.stringify(workshops, null, 2));
+    } catch (err) {
+        console.error('Error saving workshops:', err);
+    }
+    // Sync to Cloud
+    supabase.syncToCloud('workshops', workshops).catch(console.error);
+}
+
 module.exports = {
     initDatabase,
     loadAdmins,
@@ -175,8 +276,37 @@ module.exports = {
     saveEvent,
     deleteEvent,
     loadSettings,
-    saveSettings
+    saveSettings,
+    loadWorkshops,
+    saveWorkshops,
+    loadWorkshopProgress,
+    saveWorkshopProgress,
+    restoreFromCloud,
+    syncLocalToCloud
 };
+
+// Push all local data to cloud (Primary sync)
+async function syncLocalToCloud(globalState) {
+    try {
+        console.log('Pushing local data to Supabase Cloud...');
+        // Sync Admins
+        saveAdmins(globalState.admins);
+        // Sync Settings
+        saveSettings(globalState.settings);
+        // Sync Workshops
+        saveWorkshops(globalState.workshops);
+        // Sync Workshop Progress
+        saveWorkshopProgress(globalState.workshop_progress);
+        // Sync Events
+        for (const [id, event] of globalState.events) {
+            saveEvent(event);
+            console.log(`Event ${id} synced to cloud.`);
+        }
+        console.log('All local data synced to cloud.');
+    } catch (err) {
+        console.error('Failed to sync local data to cloud:', err);
+    }
+}
 
 function loadSettings() {
     try {
@@ -216,4 +346,23 @@ function saveSettings(settings) {
     }
     // Sync to Cloud
     supabase.syncToCloud('settings', settings).catch(console.error);
+}
+
+function loadWorkshopProgress() {
+    try {
+        if (fs.existsSync(WORKSHOP_PROGRESS_FILE)) {
+            return JSON.parse(fs.readFileSync(WORKSHOP_PROGRESS_FILE, 'utf8'));
+        }
+    } catch (err) { console.error(err); }
+    return {};
+}
+
+function saveWorkshopProgress(progress) {
+    try {
+        if (!fs.existsSync(path.dirname(WORKSHOP_PROGRESS_FILE))) {
+            fs.mkdirSync(path.dirname(WORKSHOP_PROGRESS_FILE), { recursive: true });
+        }
+        fs.writeFileSync(WORKSHOP_PROGRESS_FILE, JSON.stringify(progress, null, 2));
+    } catch (err) { console.error(err); }
+    supabase.syncToCloud('workshop_progress', progress).catch(console.error);
 }

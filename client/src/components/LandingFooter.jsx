@@ -11,7 +11,7 @@ const LandingFooter = () => {
                     <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
                         <span className="rocket">🚀</span> Hyperclass
                     </div>
-                    <p>Empowering the next generation of tech leaders with interactive, hands-on learning experiences.</p>
+                    <p>Elevating engineering education through <b>Flow</b> (Live Learning) and <b>Go</b> (Elite Workshops).</p>
                 </div>
 
                 <div className="footer-links">

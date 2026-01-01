@@ -80,9 +80,17 @@ function EventsPanel({ onEnterEvent }) {
                     flexWrap: 'wrap',
                     gap: '1rem'
                 }}>
-                    <h2 className="cine-text" style={{ margin: 0, fontSize: 'clamp(1rem, 4vw, 1.3rem)', fontWeight: 700 }}>Workshop Management</h2>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                        <span style={{ color: 'var(--primary)', fontWeight: 800 }}>{events.length}</span> Active Sessions
+                    <h2 className="cine-text" style={{ margin: 0, fontSize: 'clamp(1rem, 4vw, 1.3rem)', fontWeight: 700 }}>Management Dashboard</h2>
+                    <div style={{
+                        fontSize: '0.9rem',
+                        color: 'white',
+                        background: 'rgba(56, 189, 248, 0.2)',
+                        padding: '8px 20px',
+                        borderRadius: '30px',
+                        fontWeight: 700,
+                        border: '1px solid var(--primary)'
+                    }}>
+                        ACTIVE EVENTS: <span style={{ color: 'var(--primary)', marginLeft: '10px' }}>{events.length}</span>
                     </div>
                 </div>
 
@@ -98,11 +106,11 @@ function EventsPanel({ onEnterEvent }) {
                     <h4 className="cine-text" style={{ margin: '0 0 1.25rem 0', fontSize: '0.75rem', color: 'var(--primary)' }}>Create New Session</h4>
                     <form onSubmit={handleCreateEvent} style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                         <div style={{ flex: '1 1 300px' }}>
-                            <div style={{ fontSize: '0.8rem', marginBottom: '0.4rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Event Title</div>
+                            <div style={{ fontSize: '0.8rem', marginBottom: '0.4rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Event Name</div>
                             <input
                                 type="text"
                                 className="input-field"
-                                placeholder="e.g. Advanced Python Patterns"
+                                placeholder="e.g. Master Robotics Session"
                                 value={newEventName}
                                 onChange={(e) => setNewEventName(e.target.value)}
                                 style={{ width: '100%' }}
@@ -110,11 +118,11 @@ function EventsPanel({ onEnterEvent }) {
                             />
                         </div>
                         <div style={{ flex: '1 1 220px' }}>
-                            <div style={{ fontSize: '0.8rem', marginBottom: '0.4rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Custom Event ID (Optional)</div>
+                            <div style={{ fontSize: '0.8rem', marginBottom: '0.4rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Event ID</div>
                             <input
                                 type="text"
                                 className="input-field"
-                                placeholder="e.g. pycourse-01"
+                                placeholder="e.g. robo-001"
                                 value={customEventId}
                                 onChange={(e) => setCustomEventId(e.target.value)}
                                 style={{ width: '100%', fontFamily: "'Fira Code', monospace" }}

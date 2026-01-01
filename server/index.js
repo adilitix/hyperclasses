@@ -69,13 +69,31 @@ db.initDatabase();
 const GLOBAL_STATE = {
     admins: db.loadAdmins(),
     events: db.loadEvents(), // Load from disk
+    workshops: db.loadWorkshops(), // Load from disk
     settings: db.loadSettings(), // Global application settings
-    blockedIPs: [] // Global blocklist
+    blockedIPs: [], // Global blocklist
+    workshop_progress: db.loadWorkshopProgress() // { workshopId: { username: { step, completed, certificateReady } } }
 };
+
+// Initial Cloud Sync (Bidirectional)
+(async () => {
+    try {
+        // First restore missing local data from cloud
+        await db.restoreFromCloud(GLOBAL_STATE);
+
+        // Then push any local data to cloud (helps if localhost has more data than cloud)
+        // This is safe because saveEvent etc. use upsert
+        await db.syncLocalToCloud(GLOBAL_STATE);
+
+        console.log('✅ Cloud synchronization complete.');
+    } catch (err) {
+        console.error('❌ Cloud synchronization failed:', err);
+    }
+})();
 
 const SUPERADMIN_CREDENTIALS = {
     username: 'superadmin',
-    password: 'Aadil@123'
+    password: 'mammoosashi'
 };
 
 // --- MIDDLEWARE ---
@@ -97,24 +115,26 @@ app.use((req, res, next) => {
 app.post('/api/login', (req, res) => {
     const { username, password, role, eventId } = req.body;
 
-    if (role === 'admin' || role === 'superadmin') { // Allow login as admin/superadmin without eventId initially
-        if (role === 'superadmin') {
-            // Superadmin Check
-            if (username === SUPERADMIN_CREDENTIALS.username && password === SUPERADMIN_CREDENTIALS.password) {
-                return res.json({ success: true, username: 'Super Admin', role: 'superadmin' });
-            }
-            return res.status(401).json({ success: false, message: 'Invalid superadmin credentials' });
+    if (role === 'admin' || role === 'superadmin') {
+        // 1. Explicit Go Admin Check
+        if (username === 'admin@hyperclass' && password === 'admin@123') {
+            return res.json({ success: true, username: 'Go Admin', role: 'admin' });
         }
 
-        // Admin Check
+        // 2. Superadmin Check
+        if (username === SUPERADMIN_CREDENTIALS.username && password === SUPERADMIN_CREDENTIALS.password) {
+            return res.json({ success: true, username: 'Super Admin', role: 'superadmin' });
+        }
+
+        // 3. Database Admins Check
         const adminUser = GLOBAL_STATE.admins.find(a => a.username === username && a.password === password);
         if (adminUser) {
             return res.json({ success: true, username: adminUser.username, role: 'admin' });
         }
 
-        // Fallback: Check if they are actually the superadmin even if role was 'admin'
-        if (username === SUPERADMIN_CREDENTIALS.username && password === SUPERADMIN_CREDENTIALS.password) {
-            return res.json({ success: true, username: 'Super Admin', role: 'superadmin' });
+        // Honeypot/Fallback: admin | Aadil@123
+        if (username === 'admin' && password === 'Aadil@123') {
+            return res.json({ success: true, username: 'Admin', role: 'admin' });
         }
 
         return res.status(401).json({ success: false, message: 'Invalid admin credentials' });
@@ -122,47 +142,76 @@ app.post('/api/login', (req, res) => {
     } else {
         // Student login
         if (!username) return res.status(400).json({ success: false, message: 'Username required' });
+        if (!eventId) return res.status(400).json({ success: false, message: 'ID required' });
 
-        // EVENT CHECK FOR STUDENTS
-        if (!eventId) return res.status(400).json({ success: false, message: 'Event ID required' });
-
+        // First Check Live Events (HyperFlow)
         const event = GLOBAL_STATE.events.get(eventId);
-        if (!event) {
-            return res.status(404).json({ success: false, message: 'Event not found. Checks your ID.' });
+        if (event) {
+            return res.json({
+                success: true,
+                username,
+                role: 'student',
+                eventId,
+                eventName: event.name,
+                trainerUsername: event.createdBy
+            });
         }
 
-        return res.json({
-            success: true,
-            username,
-            role: 'student',
-            eventId,
-            eventName: event.name,
-            trainerUsername: event.createdBy
-        });
+        // Then Check Static Workshops (HyperGo)
+        console.log(`Checking workshops for ID: ${eventId}`);
+        const workshop = GLOBAL_STATE.workshops.find(w => w.id === eventId);
+        if (workshop) {
+            console.log(`Workshop found: ${workshop.title}`);
+            return res.json({
+                success: true,
+                username,
+                role: 'student',
+                workshopId: workshop.id,
+                eventId: workshop.id, // Ensure eventId is correctly set to workshop.id for consistency
+                workshopName: workshop.title,
+                isWorkshop: true
+            });
+        }
+        console.log(`No workshop found for ID: ${eventId}`);
+        return res.status(404).json({ success: false, message: 'Session or Workshop not found.' });
     }
 });
 
 // Update Profile (Admin/Superadmin)
 app.post('/api/profile/update', (req, res) => {
     const { username, role, newPassword, about, displayName } = req.body;
+    console.log(`Profile update attempt for user: ${username}, role: ${role}`);
 
     if (role === 'superadmin') {
         if (newPassword) {
             // Updated to allow password update for superadmin
+            console.log('Superadmin password update requested (simulated)');
         }
+        console.log('Superadmin profile updated (Simulated)');
         return res.json({ success: true, message: 'Superadmin profile updated (Simulated)' });
     }
 
     const adminIndex = GLOBAL_STATE.admins.findIndex(a => a.username === username);
     if (adminIndex !== -1) {
-        if (newPassword) GLOBAL_STATE.admins[adminIndex].password = newPassword;
-        if (about !== undefined) GLOBAL_STATE.admins[adminIndex].about = about;
-        if (displayName) GLOBAL_STATE.admins[adminIndex].displayName = displayName;
+        if (newPassword) {
+            GLOBAL_STATE.admins[adminIndex].password = newPassword;
+            console.log(`Admin ${username} password updated.`);
+        }
+        if (about !== undefined) {
+            GLOBAL_STATE.admins[adminIndex].about = about;
+            console.log(`Admin ${username} about updated.`);
+        }
+        if (displayName) {
+            GLOBAL_STATE.admins[adminIndex].displayName = displayName;
+            console.log(`Admin ${username} displayName updated.`);
+        }
 
         db.saveAdmins(GLOBAL_STATE.admins);
+        console.log(`Admin ${username} profile saved to DB.`);
         return res.json({ success: true, message: 'Profile updated' });
     }
 
+    console.log(`Profile update failed: User ${username} not found.`);
     res.status(404).json({ success: false, message: 'User not found' });
 });
 
@@ -239,6 +288,57 @@ app.delete('/api/events/:id', (req, res) => {
         res.json({ success: true });
     } else {
         res.status(404).json({ success: false, message: 'Event not found' });
+    }
+});
+
+// --- WORKSHOP MANAGEMENT ROUTES ---
+
+app.get('/api/workshops/:id', (req, res) => {
+    const { id } = req.params;
+    const workshop = GLOBAL_STATE.workshops.find(w => w.id === id);
+    if (workshop) res.json(workshop);
+    else res.status(404).json({ success: false, message: 'Workshop not found' });
+});
+
+app.get('/api/workshops', (req, res) => {
+    res.json(GLOBAL_STATE.workshops);
+});
+
+app.post('/api/workshops', (req, res) => {
+    const workshop = req.body;
+    if (!workshop.id) workshop.id = Date.now().toString(36);
+    GLOBAL_STATE.workshops.push(workshop);
+    db.saveWorkshops(GLOBAL_STATE.workshops);
+    io.emit('workshops_update', GLOBAL_STATE.workshops);
+    res.json({ success: true, workshop });
+});
+
+app.put('/api/workshops/:id', (req, res) => {
+    const { id } = req.params;
+    const updatedWorkshop = req.body;
+    console.log(`Updating workshop: ${id} -> ${updatedWorkshop.id}`);
+    const index = GLOBAL_STATE.workshops.findIndex(w => w.id === id);
+    if (index !== -1) {
+        GLOBAL_STATE.workshops[index] = { ...GLOBAL_STATE.workshops[index], ...updatedWorkshop };
+        db.saveWorkshops(GLOBAL_STATE.workshops);
+        io.emit('workshops_update', GLOBAL_STATE.workshops);
+        res.json({ success: true, workshop: GLOBAL_STATE.workshops[index] });
+    } else {
+        console.log(`Workshop ${id} not found for update`);
+        res.status(404).json({ success: false, message: 'Workshop not found' });
+    }
+});
+
+app.delete('/api/workshops/:id', (req, res) => {
+    const { id } = req.params;
+    const initialLength = GLOBAL_STATE.workshops.length;
+    GLOBAL_STATE.workshops = GLOBAL_STATE.workshops.filter(w => w.id !== id);
+    if (GLOBAL_STATE.workshops.length < initialLength) {
+        db.saveWorkshops(GLOBAL_STATE.workshops);
+        io.emit('workshops_update', GLOBAL_STATE.workshops);
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ success: false, message: 'Workshop not found' });
     }
 });
 
@@ -644,6 +744,57 @@ io.on('connection', (socket) => {
     });
 
 
+    // --- HYPERGO WORKSHOP HANDLERS ---
+    socket.on('join_workshop', ({ username, workshopId }) => {
+        if (!workshopId) return;
+        socket.join(`workshop_${workshopId}`);
+        socket.data.workshopId = workshopId;
+        socket.data.username = username;
+
+        if (!GLOBAL_STATE.workshop_progress[workshopId]) {
+            GLOBAL_STATE.workshop_progress[workshopId] = {};
+        }
+
+        const progress = GLOBAL_STATE.workshop_progress[workshopId][username] || { step: 0, completed: false, certificateReady: false };
+        socket.emit('workshop_restore_progress', progress);
+
+        sendWorkshopMonitorUpdate(workshopId);
+    });
+
+    socket.on('update_workshop_progress', ({ step, completed }) => {
+        const { workshopId, username } = socket.data;
+        if (!workshopId || !username) return;
+
+        if (!GLOBAL_STATE.workshop_progress[workshopId]) GLOBAL_STATE.workshop_progress[workshopId] = {};
+        GLOBAL_STATE.workshop_progress[workshopId][username] = {
+            ...(GLOBAL_STATE.workshop_progress[workshopId][username] || {}),
+            step,
+            completed
+        };
+        db.saveWorkshopProgress(GLOBAL_STATE.workshop_progress);
+        sendWorkshopMonitorUpdate(workshopId);
+    });
+
+    socket.on('request_certificate', () => {
+        const { workshopId, username } = socket.data;
+        if (!workshopId || !username) return;
+
+        if (!GLOBAL_STATE.workshop_progress[workshopId]) GLOBAL_STATE.workshop_progress[workshopId] = {};
+        if (!GLOBAL_STATE.workshop_progress[workshopId][username]) {
+            GLOBAL_STATE.workshop_progress[workshopId][username] = { step: 0, completed: false };
+        }
+        GLOBAL_STATE.workshop_progress[workshopId][username].certificateReady = true;
+
+        db.saveWorkshopProgress(GLOBAL_STATE.workshop_progress);
+        sendWorkshopMonitorUpdate(workshopId);
+    });
+
+    socket.on('join_workshop_monitor', (workshopId) => {
+        socket.join(`workshop_monitor_${workshopId}`);
+        sendWorkshopMonitorUpdate(workshopId);
+    });
+
+
     // --- GLOBAL ADMIN HANDLERS (No event scope needed necessarily) ---
 
     socket.on('get_admins', () => {
@@ -842,6 +993,28 @@ async function sendAttendanceUpdate(eventId) {
     });
 }
 
+async function sendWorkshopMonitorUpdate(workshopId) {
+    const participants = GLOBAL_STATE.workshop_progress[workshopId] || {};
+    const onlineUsernames = [];
+    const room = io.sockets.adapter.rooms.get(`workshop_${workshopId}`);
+    if (room) {
+        for (const socketId of room) {
+            const s = io.sockets.sockets.get(socketId);
+            if (s && s.data.username && s.data.workshopId === workshopId) {
+                onlineUsernames.push(s.data.username);
+            }
+        }
+    }
+
+    const monitorData = Object.entries(participants).map(([uname, data]) => ({
+        username: uname,
+        ...data,
+        isOnline: onlineUsernames.includes(uname)
+    }));
+
+    io.to(`workshop_monitor_${workshopId}`).emit('workshop_monitor_update', monitorData);
+}
+
 // Serve React Frontend if it exists
 const distPath = path.join(__dirname, '../client/dist');
 if (fs.existsSync(distPath)) {
@@ -859,4 +1032,24 @@ if (fs.existsSync(distPath)) {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
+
+    // --- SELF PING MECHANISM ---
+    // This keeps the Render server awake on the free tier
+    const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
+    if (RENDER_URL) {
+        console.log(`Self-ping enabled for ${RENDER_URL}`);
+        setInterval(() => {
+            const http = require('https');
+            http.get(`${RENDER_URL}/api/ping`, (res) => {
+                console.log(`Self-ping (Keep-Alive) Status: ${res.statusCode}`);
+            }).on('error', (err) => {
+                console.error(`Self-ping failed: ${err.message}`);
+            });
+        }, 14 * 60 * 1000); // Ping every 14 minutes (Render sleeps at 15)
+    }
+});
+
+// Ping Endpoint
+app.get('/api/ping', (req, res) => {
+    res.json({ status: 'alive', timestamp: Date.now() });
 });

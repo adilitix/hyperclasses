@@ -9,6 +9,17 @@ import PricingPage from './pages/PricingPage';
 import FeaturesPage from './pages/FeaturesPage';
 import WorkshopsPage from './pages/WorkshopsPage';
 import ContactPage from './pages/ContactPage';
+import GoLogin from './pages/GoLogin';
+import GoPortal from './pages/GoPortal';
+import GoStudentWorkshop from './pages/GoStudentWorkshop';
+
+const ComingSoon = ({ title }) => (
+    <div style={{ height: '100vh', background: '#050505', color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif' }}>
+        <h1 style={{ fontSize: '3.5rem', fontWeight: 900, letterSpacing: '-2px', color: '#ff7b00' }}>{title}</h1>
+        <p style={{ opacity: 0.5, fontSize: '1.2rem' }}>COMING SOON</p>
+        <button onClick={() => window.history.back()} style={{ marginTop: '30px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer' }}>← GO BACK</button>
+    </div>
+);
 
 function ProtectedRoute({ children }) {
     const { user } = useAuth();
@@ -38,6 +49,10 @@ function App() {
                         <Route path="/workshops" element={<WorkshopsPage />} />
                         <Route path="/contact" element={<ContactPage />} />
                         <Route path="/login" element={<LoginWrapper />} />
+                        <Route path="/go/login" element={<GoLogin />} />
+                        <Route path="/go/portal" element={<GoPortal />} />
+                        <Route path="/go/admin/classroom" element={<ComingSoon title="Admin Control" />} />
+                        <Route path="/go/student/classroom" element={<GoStudentWorkshop />} />
                         <Route path="/app/*" element={
                             <ProtectedRoute>
                                 <Layout />

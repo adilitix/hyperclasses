@@ -58,25 +58,43 @@ class SupabaseService {
     // Mirror JSON data to a simple key-value table
     async syncToCloud(key, value) {
         try {
-            // We use a simple 'project_data' table with columns: 'key' (primary) and 'data' (jsonb)
-            const { error } = await this.client
-                .from('project_data')
-                .upsert({ key: key, data: value });
-
-            if (error) {
-                // If table doesn't exist, we might need to inform user, 
-                // but for now we'll just log it. 
-                // Most users will have this table or I can use bucket storage for JSONs too.
-                // Let's use bucket storage for JSONs to be TRULY hassle-free (no table config needed).
-                await this.client.storage
-                    .from(this.bucketName)
-                    .upload(`_data/${key}.json`, JSON.stringify(value, null, 2), {
-                        contentType: 'application/json',
-                        upsert: true
-                    });
-            }
+            await this.client.storage
+                .from(this.bucketName)
+                .upload(`_data/${key}.json`, JSON.stringify(value, null, 2), {
+                    contentType: 'application/json',
+                    upsert: true
+                });
         } catch (e) {
             console.error(`Supabase Sync failed for ${key}:`, e.message);
+        }
+    }
+
+    async getFromCloud(key) {
+        try {
+            const { data, error } = await this.client.storage
+                .from(this.bucketName)
+                .download(`_data/${key}.json`);
+
+            if (error) return null;
+            const text = await data.text();
+            return JSON.parse(text);
+        } catch (e) {
+            console.error(`Supabase Pull failed for ${key}:`, e.message);
+            return null;
+        }
+    }
+
+    async listData(prefix) {
+        try {
+            const { data, error } = await this.client.storage
+                .from(this.bucketName)
+                .list('_data', { search: prefix });
+
+            if (error) throw error;
+            return data;
+        } catch (e) {
+            console.error('Supabase List failed:', e.message);
+            return [];
         }
     }
 }

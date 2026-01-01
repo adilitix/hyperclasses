@@ -8,6 +8,7 @@ import ChatHistoryPanel from './ChatHistoryPanel';
 import AttendancePanel from './AttendancePanel';
 import SettingsPanel from './SettingsPanel';
 import AboutPanel from './AboutPanel';
+import WorkshopsPanel from './WorkshopsPanel';
 import { useAuth } from '../contexts/AuthContext';
 
 function AdminDashboard({ activeTab, currentEvent, onEnterEvent, viewingSnapshot, setViewingSnapshot, theme, setTheme, primaryColor, setPrimaryColor, downloadPath, setDownloadPath, downloadFormat, setDownloadFormat, messages, setMessages }) {

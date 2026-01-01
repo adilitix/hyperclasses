@@ -110,6 +110,7 @@ function Layout() {
 
     // Timeline / History State
     const [history, setHistory] = useState([]);
+    const [workshops, setWorkshops] = useState([]);
     const [viewingSnapshot, setViewingSnapshot] = useState(null);
     const [showTimeline, setShowTimeline] = useState(false);
     const [storageActive, setStorageActive] = useState(false);
@@ -146,6 +147,16 @@ function Layout() {
 
         // Request initial history
         socket.emit('get_history');
+
+        socket.on('workshops_update', (data) => {
+            setWorkshops(data);
+        });
+
+        // Initial fetch for workshops
+        fetch(`${import.meta.env.VITE_SERVER_URL || ''}/api/workshops`)
+            .then(res => res.json())
+            .then(data => setWorkshops(data))
+            .catch(console.error);
 
         return () => {
             socket.off('poll_update');
@@ -224,7 +235,7 @@ function Layout() {
                     >
                         <Logo size={28} />
                         <h2 className="app-title cine-text" style={{ fontSize: '1rem', margin: 0 }}>
-                            Hyper<span className="mobile-hide">Class</span>
+                            Hyper<span>Flow</span>
                         </h2>
                     </div>
                     {/* Mobile Close Button */}
@@ -525,7 +536,7 @@ function Layout() {
                                 textTransform: 'uppercase',
                                 letterSpacing: '2px'
                             }}>
-                                <span className="mobile-hide" style={{ opacity: 0.6 }}>LIVE SESSION:</span>
+                                <span className="mobile-hide" style={{ opacity: 0.6 }}>FLOW SESSION:</span>
                                 <span>{currentEvent?.name || user.eventName}</span>
                             </div>
                         )}

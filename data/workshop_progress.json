@@ -1,0 +1,13 @@
+{
+  "1": {
+    "stuu": {
+      "step": 3,
+      "completed": true,
+      "certificateReady": true
+    },
+    "aadil": {
+      "step": 2,
+      "completed": false
+    }
+  }
+}
