@@ -1,204 +1,304 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { motion } from 'framer-motion';
+import { useAuth, API_BASE_URL } from '../contexts/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import '../styles/landing.css';
+import '../styles/landing_split.css'; // Reuse portal aesthetics
+import '../styles/go_login_unified.css'; // Reuse Go login aesthetics for the form components
 
 function Login() {
     const { login } = useAuth();
     const navigate = useNavigate();
-    const [role, setRole] = useState('student');
     const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
     const [eventId, setEventId] = useState('');
     const [error, setError] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [detectedType, setDetectedType] = useState(null); // 'flow' or 'go'
 
     useEffect(() => {
         document.body.classList.add('landing-mode');
         return () => document.body.classList.remove('landing-mode');
     }, []);
 
+    // Dynamic type detection while typing
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (eventId.trim().length >= 1) {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/api/check-event/${eventId.trim()}`);
+                    const data = await res.json();
+                    if (data.success) {
+                        setDetectedType(data.type);
+                    } else {
+                        setDetectedType(null);
+                    }
+                } catch (err) {
+                    setDetectedType(null);
+                }
+            } else {
+                setDetectedType(null);
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [eventId]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        const res = await login(username.trim(), role === 'student' ? null : password.trim(), role, eventId.trim());
+        setLoading(true);
+        const res = await login(username.trim(), null, 'student', eventId.trim());
+        setLoading(false);
         if (!res.success) {
             setError(res.message);
         }
     };
 
+    const { user } = useAuth();
+    useEffect(() => {
+        if (user && user.role === 'student') {
+            if (user.isWorkshop) {
+                navigate('/go/student/classroom');
+            } else {
+                navigate('/app');
+            }
+        }
+    }, [user, navigate]);
+
+    // Visual configuration based on detected type
+    const isGo = detectedType === 'go';
+    const primaryColor = isGo ? '#ff7b00' : '#3b82f6';
+    const secondaryColor = isGo ? '#ffc107' : '#00f0ff';
+    const brandName = isGo ? 'HyperGo' : 'HyperFlow';
+    const hubTitle = isGo ? 'Workshop Project' : 'Live Engineering';
+
     return (
-        <div className="landing-container login-split-container">
-            {/* Left Side - Marketing */}
-            <div className="login-left" style={{ position: 'relative' }}>
-                <div style={{ position: 'absolute', top: '2rem', left: '2rem' }}>
-                    <button
-                        className="btn-ghost"
-                        onClick={() => navigate('/')}
+        <div className="landing-portal admin-login-portal">
+            <header className="absolute-header">
+                <div className="header-left">
+                    <div className="portal-logo" onClick={() => navigate('/')}>
+                        <div className="logo-symbol">H</div>
+                        <span className="logo-text">Hyper<span>class</span> Student</span>
+                    </div>
+                </div>
+            </header>
+
+            <main className="portal-grid" style={{
+                minHeight: '100vh',
+                width: '100vw',
+                display: 'flex',
+                flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+                overflowY: 'auto'
+            }}>
+                {/* Left Side: Information */}
+                <div className="login-info-side" style={{
+                    flex: window.innerWidth < 768 ? 'none' : '1.2',
+                    padding: window.innerWidth < 768 ? '100px 6% 40px' : '8% 6%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    background: '#050505',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    minHeight: window.innerWidth < 768 ? 'auto' : '100vh'
+                }}>
+                    <div className="info-content" style={{ position: 'relative', zIndex: 10 }}>
+                        <span className="side-badge" style={{
+                            marginBottom: '20px',
+                            background: isGo ? 'rgba(255,123,0,0.1)' : 'rgba(59,130,246,0.1)',
+                            color: primaryColor,
+                            border: `1px solid ${primaryColor}`,
+                            transition: 'all 0.5s'
+                        }}>STUDENT ACCESS</span>
+
+                        <h1 style={{ fontSize: '3.5rem', fontWeight: 900, marginBottom: '2rem', lineHeight: 1.1, color: '#fff' }}>
+                            Students <br />
+                            <span style={{ color: primaryColor, transition: 'color 0.5s' }}>Command Center</span>
+                        </h1>
+
+                        <div className="choice-cards" style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '500px' }}>
+                            <motion.div
+                                animate={{
+                                    border: !isGo ? `1px solid ${primaryColor}` : '1px solid rgba(255,255,255,0.1)',
+                                    background: !isGo ? 'rgba(59,130,246,0.05)' : 'rgba(255,255,255,0.02)'
+                                }}
+                                style={{
+                                    padding: '24px',
+                                    borderRadius: '16px',
+                                    transition: 'all 0.3s'
+                                }}
+                            >
+                                <h3 style={{ margin: '0 0 10px 0', color: !isGo ? primaryColor : '#fff', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <span style={{ fontSize: '1.2rem' }}>⚡</span> HyperFlow
+                                </h3>
+                                <p style={{ margin: 0, opacity: 0.7, fontSize: '0.9rem', color: '#fff', lineHeight: 1.5 }}>
+                                    Live classroom engine with real-time code broadcasting and interactive polling systems.
+                                </p>
+                            </motion.div>
+
+                            <motion.div
+                                animate={{
+                                    border: isGo ? `1px solid ${primaryColor}` : '1px solid rgba(255,255,255,0.1)',
+                                    background: isGo ? 'rgba(255,123,0,0.05)' : 'rgba(255,255,255,0.02)'
+                                }}
+                                style={{
+                                    padding: '24px',
+                                    borderRadius: '16px',
+                                    transition: 'all 0.3s'
+                                }}
+                            >
+                                <h3 style={{ margin: '0 0 10px 0', color: isGo ? primaryColor : '#fff', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <span style={{ fontSize: '1.2rem' }}>🚀</span> HyperGo
+                                </h3>
+                                <p style={{ margin: 0, opacity: 0.7, fontSize: '0.9rem', color: '#fff', lineHeight: 1.5 }}>
+                                    Self-paced workshop manager for structured curriculum, tracking progress, and certification.
+                                </p>
+                            </motion.div>
+                        </div>
+                    </div>
+
+                    {/* Dynamic Radial Glow Background */}
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={detectedType || 'default'}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 0.15 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.8 }}
+                            style={{
+                                position: 'absolute',
+                                inset: 0,
+                                background: `radial-gradient(circle at center, ${primaryColor}, transparent)`,
+                                filter: 'blur(100px)',
+                                zIndex: 1
+                            }}
+                        />
+                    </AnimatePresence>
+                </div>
+
+                {/* Right Side: Login Form */}
+                <div className="login-form-side" style={{
+                    flex: window.innerWidth < 768 ? 'none' : '0.8',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: '#000', // Solid black like the image
+                    position: 'relative',
+                    padding: window.innerWidth < 768 ? '40px 20px 100px' : '0'
+                }}>
+                    <motion.div
+                        className="go-glass-card"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
                         style={{
-                            fontSize: '1rem',
-                            color: '#334155',
-                            fontWeight: 600,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            padding: '0.5rem 1rem',
-                            background: 'rgba(255,255,255,0.5)',
-                            backdropFilter: 'blur(4px)',
-                            borderRadius: '30px',
-                            border: '1px solid #e2e8f0'
+                            width: '100%',
+                            maxWidth: '420px',
+                            padding: '50px 40px',
+                            background: 'rgba(20,20,20,0.4)',
+                            border: `1px solid ${isGo ? 'rgba(255,123,0,0.15)' : 'rgba(59,130,246,0.15)'}`,
+                            borderRadius: '32px',
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
                         }}
                     >
-                        <span>🏠</span> Home
-                    </button>
-                </div>
+                        <h2 className="go-card-title" style={{ color: '#fff', textAlign: 'center', fontSize: '1.8rem', letterSpacing: '2px' }}>STUDENT LOGIN</h2>
+                        <motion.div
+                            className="go-underline"
+                            animate={{ backgroundColor: primaryColor }}
+                            style={{ width: '40px', margin: '15px auto 40px' }}
+                        />
 
-                <motion.div
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6 }}
-                >
-                    <h1 style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '0.5rem', color: '#0f172a' }}>
-                        HyperFlow
-                    </h1>
-                    <p style={{ fontSize: '1.5rem', color: '#475569', marginBottom: '2.5rem' }}>
-                        Join the Flow. Real-time engineering collaboration.
-                    </p>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
-                        {[
-                            { icon: '⚡', title: 'Real-time', desc: 'Instant code syncing' },
-                            { icon: '🛰️', title: 'Global', desc: 'Connect from anywhere' },
-                            { icon: '🛡️', title: 'Secure', desc: 'Encrypted communication' }
-                        ].map((feature, i) => (
-                            <motion.div
-                                key={i}
-                                className="mini-feature-card"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.2 + (i * 0.1) }}
-                            >
-                                <div style={{ fontSize: '1.5rem', background: '#0f172a', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-                                    {feature.icon}
-                                </div>
-                                <div>
-                                    <div style={{ fontWeight: 700, color: '#0f172a' }}>{feature.title}</div>
-                                    <div style={{ fontSize: '0.9rem', color: '#64748b' }}>{feature.desc}</div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </motion.div>
-            </div>
-
-            {/* Right Side - Form */}
-            <div className="login-right">
-                <div className="login-form-container">
-                    <div style={{ textAlign: 'center', marginBottom: '2rem', cursor: 'pointer' }} onClick={() => navigate('/')}>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                            <span className="rocket" style={{ fontSize: '1.8rem' }}>🛰️</span>
-                            <span>HyperFlow Login</span>
-                        </div>
-                    </div>
-
-                    <div className="role-switcher-custom">
-                        <button
-                            className={`role-btn-custom ${role === 'student' ? 'student-active' : ''}`}
-                            onClick={() => setRole('student')}
-                        >
-                            Student
-                        </button>
-                        <button
-                            className={`role-btn-custom ${role === 'admin' ? 'admin-active' : ''}`}
-                            onClick={() => setRole('admin')}
-                        >
-                            Admin
-                        </button>
-                    </div>
-
-                    <form onSubmit={handleSubmit}>
-                        <div>
-                            <label className="input-label">Username</label>
-                            <input
-                                type="text"
-                                className="modern-input"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                placeholder={role === 'student' ? 'e.g. Aadil' : 'Admin Username'}
-                                required
-                            />
-                        </div>
-
-                        {role === 'student' && (
-                            <div>
-                                <label className="input-label">Event ID</label>
+                        <form className="go-form" onSubmit={handleSubmit}>
+                            <div className="go-input-group" style={{ marginBottom: '10px' }}>
+                                <span className="go-icon" style={{ fontSize: '1.2rem', opacity: 0.7 }}>👤</span>
                                 <input
                                     type="text"
-                                    className="modern-input"
+                                    placeholder="Your Name (e.g. Aadil)"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    style={{
+                                        background: 'rgba(0,0,0,0.8)',
+                                        border: '1px solid rgba(255,255,255,0.05)',
+                                        color: '#fff',
+                                        fontSize: '0.95rem'
+                                    }}
+                                    required
+                                />
+                            </div>
+
+                            <div className="go-input-group">
+                                <span className="go-icon" style={{ fontSize: '1.2rem', opacity: 0.7 }}>🔑</span>
+                                <input
+                                    type="text"
+                                    placeholder="Access Code / Event ID"
                                     value={eventId}
                                     onChange={(e) => setEventId(e.target.value)}
-                                    placeholder="Enter event ID provided"
-                                    required
-                                />
-                            </div>
-                        )}
-
-                        {role === 'admin' && (
-                            <div style={{ position: 'relative' }}>
-                                <label className="input-label">Password</label>
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    className="modern-input"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                    required
-                                />
-                                <button
-                                    type="button"
-                                    className="eye-btn"
-                                    onClick={() => setShowPassword(!showPassword)}
                                     style={{
-                                        position: 'absolute',
-                                        right: '12px',
-                                        top: '38px',
-                                        background: 'none',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        fontSize: '1.2rem',
-                                        opacity: 0.5
+                                        background: 'rgba(0,0,0,0.8)',
+                                        border: '1px solid rgba(255,255,255,0.05)',
+                                        color: isGo ? primaryColor : '#fff',
+                                        fontSize: '1rem',
+                                        fontFamily: 'monospace'
                                     }}
-                                >
-                                    {showPassword ? '👁️' : '👁️‍🗨️'}
-                                </button>
+                                    required
+                                />
                             </div>
-                        )}
 
-                        {error && (
-                            <div style={{ color: '#ef4444', fontSize: '0.9rem', textAlign: 'center', marginBottom: '1.5rem', background: '#fef2f2', padding: '0.75rem', borderRadius: '12px' }}>
-                                {error}
-                            </div>
-                        )}
+                            <AnimatePresence>
+                                {error && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="go-error"
+                                        style={{ marginTop: '10px', padding: '12px', background: 'rgba(255,68,68,0.1)', color: '#ff4444', borderRadius: '8px', fontSize: '0.85rem', textAlign: 'center' }}
+                                    >
+                                        {error}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
-                        <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            type="submit"
-                            className="btn-gradient-primary"
-                            style={{ width: '100%' }}
+                            <button
+                                type="submit"
+                                className="go-submit"
+                                disabled={loading}
+                                style={{
+                                    marginTop: '25px',
+                                    background: isGo ? 'linear-gradient(135deg, #ff7b00, #ffc107)' : 'linear-gradient(135deg, #3b82f6, #00f0ff)',
+                                    color: '#000',
+                                    padding: '20px',
+                                    fontSize: '1rem',
+                                    borderRadius: '16px',
+                                    fontWeight: 900,
+                                    boxShadow: isGo ? '0 10px 20px rgba(255,123,0,0.3)' : '0 10px 20px rgba(59,130,246,0.3)',
+                                    letterSpacing: '1px'
+                                }}
+                            >
+                                {loading ? 'JOINING...' : 'ENTER LEARNING HUB'}
+                            </button>
+                        </form>
+
+                        <button
+                            className="back-portal"
+                            onClick={() => navigate('/')}
+                            style={{
+                                marginTop: '35px',
+                                alignSelf: 'center',
+                                opacity: 0.4,
+                                fontSize: '0.75rem',
+                                fontWeight: 800,
+                                background: 'none',
+                                border: 'none',
+                                color: '#fff',
+                                cursor: 'pointer',
+                                letterSpacing: '2px',
+                                transition: 'opacity 0.3s'
+                            }}
+                            onMouseEnter={(e) => e.target.style.opacity = '1'}
+                            onMouseLeave={(e) => e.target.style.opacity = '0.4'}
                         >
-                            Join Flow Session
-                        </motion.button>
-                    </form>
-
-                    <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-                        <button className="btn-ghost" onClick={() => navigate('/')} style={{ fontSize: '0.9rem' }}>
-                            ← Back to Portal
+                            ← BACK TO PORTAL
                         </button>
-                    </div>
+                    </motion.div>
                 </div>
-            </div>
+            </main>
         </div>
     );
 }

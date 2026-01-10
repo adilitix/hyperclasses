@@ -1,3 +1,9 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
 .go-login-container {
     width: 100vw;
     height: 100vh;
@@ -211,12 +217,46 @@
 }
 
 @media (max-width: 600px) {
+    .go-login-header {
+        padding: 0 20px;
+        height: 70px;
+    }
+
+    .logo-text {
+        font-size: 1.2rem;
+    }
+
+    .logo-symbol {
+        width: 30px;
+        height: 30px;
+        font-size: 1.1rem;
+    }
+
+    .admin-login-btn {
+        padding: 6px 10px;
+        font-size: 0.7rem;
+    }
+
     .login-glass-card {
-        padding: 40px 25px;
-        margin: 0 20px;
+        padding: 40px 20px;
+        margin: 0 15px;
     }
 
     .login-title {
         font-size: 1.8rem;
+    }
+
+    .input-group input {
+        padding: 14px 45px;
+    }
+}
+
+@media (max-height: 700px) {
+    .login-glass-card {
+        padding: 30px 20px;
+    }
+
+    .title-underline {
+        margin: 10px 0 20px;
     }
 }

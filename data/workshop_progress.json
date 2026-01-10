@@ -5,9 +5,14 @@
       "completed": true,
       "certificateReady": true
     },
-    "aadil": {
-      "step": 2,
-      "completed": false
+    "adil2": {
+      "step": 4,
+      "completed": true
+    },
+    "aadiil": {
+      "step": 4,
+      "completed": true,
+      "certificateReady": true
     }
   }
 }

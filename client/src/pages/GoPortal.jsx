@@ -7,7 +7,7 @@ import { useSocket } from '../contexts/SocketContext';
 import '../styles/go_portal.css';
 
 const GoPortal = () => {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
     const socket = useSocket();
 
@@ -17,10 +17,12 @@ const GoPortal = () => {
     const [originalWsId, setOriginalWsId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('manager'); // manager, monitor
+    const [workshopGate, setWorkshopGate] = useState(0); // 0 means unlimited
 
     // Monitoring state
     const [monitorId, setMonitorId] = useState('');
     const [monitorResults, setMonitorResults] = useState([]);
+    const [monitorActiveTab, setMonitorActiveTab] = useState('live'); // live, history
 
     // Form states for Workshop
     const [wsName, setWsName] = useState('');
@@ -53,6 +55,10 @@ const GoPortal = () => {
 
             socket.on('workshop_monitor_update', data => {
                 setMonitorResults(data);
+            });
+
+            socket.on('workshop_gate_update', gate => {
+                setWorkshopGate(gate);
             });
 
             return () => {
@@ -192,7 +198,7 @@ const GoPortal = () => {
 
                 <div className="portal-tabs">
                     <button className={`p-tab ${activeTab === 'manager' ? 'active' : ''}`} onClick={() => setActiveTab('manager')}>CONTENT MANAGER</button>
-                    <button className={`p-tab ${activeTab === 'monitor' ? 'active' : ''}`} onClick={() => setActiveTab('manager')}>LIVE MONITOR</button>
+                    <button className={`p-tab ${activeTab === 'monitor' ? 'active' : ''}`} onClick={() => setActiveTab('monitor')}>LIVE MONITOR</button>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -200,7 +206,7 @@ const GoPortal = () => {
                         <span style={{ fontSize: '0.85rem', fontWeight: 700, opacity: 0.9 }}>{user?.username}</span>
                         <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Trainer Access</span>
                     </div>
-                    <button onClick={() => navigate('/')} className="exit-btn">EXIT PORTAL</button>
+                    <button onClick={() => { logout(); navigate('/go/login'); }} className="exit-btn">LOGOUT</button>
                 </div>
             </header>
 
@@ -343,28 +349,87 @@ const GoPortal = () => {
                 ) : (
                     <div className="monitor-view">
                         <section className="monitor-header">
-                            <h1>Live Monitor: {monitorId}</h1>
+                            <div>
+                                <h1>Live Monitor: {monitorId}</h1>
+                                <p style={{ fontSize: '0.8rem', opacity: 0.6, fontWeight: 700 }}>Active Workshop Session</p>
+                            </div>
+
+                            <div className="gate-control-panel">
+                                <div className="gate-info">
+                                    <span className="gate-label">STEP APPROVAL GATE</span>
+                                    <span className="gate-status">{workshopGate === 0 ? 'FREE FLOW' : `LOCKED AT STEP ${workshopGate}`}</span>
+                                </div>
+                                <div className="gate-actions">
+                                    <select
+                                        className="gate-select"
+                                        value={workshopGate}
+                                        onChange={(e) => {
+                                            const val = parseInt(e.target.value);
+                                            socket.emit('set_workshop_gate', { workshopId: monitorId, maxStep: val });
+                                        }}
+                                    >
+                                        <option value={0}>Free Flow (No Limit)</option>
+                                        {workshops.find(w => w.id === monitorId)?.pages?.map((p, i) => (
+                                            <option key={i} value={i + 1}>Stop at Step {i + 1}: {p.title}</option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        className="gate-release-btn"
+                                        onClick={() => socket.emit('set_workshop_gate', { workshopId: monitorId, maxStep: 0 })}
+                                    >
+                                        RELEASE ALL
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="monitor-sub-tabs">
+                                <button className={`sub-tab ${monitorActiveTab === 'live' ? 'active' : ''}`} onClick={() => setMonitorActiveTab('live')}>Active Students</button>
+                                <button className={`sub-tab ${monitorActiveTab === 'history' ? 'active' : ''}`} onClick={() => setMonitorActiveTab('history')}>Completion History</button>
+                            </div>
+
                             <button className="back-btn" onClick={() => setActiveTab('manager')}>BACK TO CONTENT</button>
                         </section>
                         <div className="monitor-grid">
-                            {monitorResults.length === 0 ? (
-                                <p className="no-students">No students currently in this workshop.</p>
+                            {(monitorActiveTab === 'live'
+                                ? monitorResults.filter(r => !r.completed)
+                                : monitorResults.filter(r => r.completed)).length === 0 ? (
+                                <p className="no-students">No {monitorActiveTab === 'live' ? 'active' : 'completed'} students records found.</p>
                             ) : (
-                                monitorResults.map(res => (
-                                    <div key={res.username} className="monitor-card">
-                                        <div className="mon-header">
-                                            <span className="mon-user">{res.username}</span>
-                                            <span className={`mon-status ${res.isOnline ? 'online' : 'offline'}`}>{res.isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+                                (monitorActiveTab === 'live'
+                                    ? monitorResults.filter(r => !r.completed)
+                                    : monitorResults.filter(r => r.completed)
+                                ).map(res => {
+                                    const totalSteps = workshops.find(w => w.id === monitorId)?.pages?.length || 1;
+                                    const perc = Math.round(((res.step + 1) / totalSteps) * 100);
+                                    return (
+                                        <div key={res.username} className="monitor-card">
+                                            <div className="mon-header">
+                                                <div className="mon-user-info">
+                                                    <span className="mon-username">{res.username}</span>
+                                                    <span className={`mon-dot ${res.isOnline ? 'online' : 'offline'}`}></span>
+                                                </div>
+                                                <button className="mon-remove-btn" onClick={() => {
+                                                    if (confirm(`Remove ${res.username} from workshop?`)) {
+                                                        socket.emit('remove_student_progress', { workshopId: monitorId, username: res.username });
+                                                    }
+                                                }}>REMOVE</button>
+                                            </div>
+                                            <div className="mon-body" onClick={() => alert(`${res.username} is at ${perc}% completion.`)}>
+                                                <div className="mon-progress-labels">
+                                                    <span>Step {res.step + 1} of {totalSteps}</span>
+                                                    <span>{perc}%</span>
+                                                </div>
+                                                <div className="mon-progress-bar">
+                                                    <div className="mon-fill" style={{ width: `${perc}%` }}></div>
+                                                </div>
+                                            </div>
+                                            <div className="mon-footer">
+                                                {res.completed ? <span className="mon-tag completed">COMPLETED</span> : <span className="mon-tag active">IN PROGRESS</span>}
+                                                {res.certificateReady && <span className="mon-tag cert">📜 CERT READY</span>}
+                                            </div>
                                         </div>
-                                        <div className="mon-progress-bar">
-                                            <div className="mon-fill" style={{ width: `${Math.round(((res.step + 1) / (workshops.find(w => w.id === monitorId)?.pages?.length || 1)) * 100)}%` }}></div>
-                                        </div>
-                                        <div className="mon-footer">
-                                            <span>Step {res.step + 1}</span>
-                                            {res.certificateReady && <span className="mon-cert">📜 READY TO PRINT</span>}
-                                        </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                             )}
                         </div>
                     </div>

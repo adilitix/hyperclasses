@@ -13,7 +13,9 @@ import { useSocket } from '../contexts/SocketContext';
 import AboutPanel from './AboutPanel';
 import Logo from './Logo';
 import { motion, AnimatePresence } from 'framer-motion';
+import GoDashboard from './GoDashboard';
 import '../styles/mobile.css';
+import '../styles/landing_v2.css'; // For some shared styles
 
 // Simple notification sound (Beep)
 const NOTIFICATION_SOUND = "data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"; // Truncated for brevity
@@ -54,7 +56,8 @@ function Layout() {
     const [theme, setTheme] = useState('dark');
     const [primaryColor, setPrimaryColor] = useState('#00f0ff');
 
-    // Admin State (Lifted for sidebar consistency)
+    // Unified Platform State
+    const [activeApp, setActiveApp] = useState('flow'); // 'flow' or 'go'
     const [adminActiveTab, setAdminActiveTab] = useState('events');
     const [currentEvent, setCurrentEvent] = useState(null);
 
@@ -97,6 +100,18 @@ function Layout() {
     useEffect(() => {
         localStorage.setItem('downloadFormat', downloadFormat);
     }, [downloadFormat]);
+
+    // Dynamic Theming based on activeApp
+    useEffect(() => {
+        const root = document.documentElement;
+        if (activeApp === 'go') {
+            root.style.setProperty('--primary', '#ff7b00');
+            root.style.setProperty('--primary-blue', '#ff7b00'); // Override for shared components
+        } else {
+            root.style.setProperty('--primary', primaryColor);
+            root.style.setProperty('--primary-blue', '#0066ff');
+        }
+    }, [activeApp, primaryColor]);
 
     const [unreadCount, setUnreadCount] = useState(0);
     const [toast, setToast] = useState(null); // { username, text }
@@ -234,8 +249,8 @@ function Layout() {
                         onClick={() => navigate('/')}
                     >
                         <Logo size={28} />
-                        <h2 className="app-title cine-text" style={{ fontSize: '1rem', margin: 0 }}>
-                            Hyper<span>Flow</span>
+                        <h2 className="app-title cine-text" style={{ fontSize: '1rem', margin: 0, letterSpacing: '2px' }}>
+                            HYPER <span>{activeApp === 'flow' ? 'FLOW' : 'GO'}</span>
                         </h2>
                     </div>
                     {/* Mobile Close Button */}
@@ -303,141 +318,169 @@ function Layout() {
                         </>
                     ) : (
                         <>
-                            {/* Admin Navigation */}
-                            {(user.role === 'admin' || user.role === 'superadmin') && !showSuperAdmin && (
+                            {activeApp === 'flow' ? (
                                 <>
-                                    <div style={{ padding: '0 0.75rem 0.5rem', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
-                                        Management
-                                    </div>
-                                    <button
-                                        onClick={() => setAdminActiveTab('events')}
-                                        className="btn btn-ghost"
-                                        style={{
-                                            justifyContent: 'flex-start',
-                                            border: 'none',
-                                            color: adminActiveTab === 'events' ? 'var(--primary)' : 'var(--text-secondary)',
-                                            background: adminActiveTab === 'events' ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
-                                            width: '100%',
-                                            marginBottom: '0.25rem'
-                                        }}
-                                    >
-                                        <span style={{ minWidth: '24px' }}>📅</span> Events
-                                    </button>
-
-                                    {currentEvent && (
+                                    {/* Admin Navigation - FLOW */}
+                                    {(user.role === 'admin' || user.role === 'superadmin') && !showSuperAdmin && (
                                         <>
-                                            <div style={{ margin: '1rem 0.75rem 0.5rem', paddingTop: '1rem', borderTop: '1px solid var(--glass-border)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
-                                                Active Session
+                                            <div style={{ padding: '0 0.75rem 0.5rem', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', marginBottom: '10px' }}>
+                                                MANAGEMENT
                                             </div>
-                                            {[
-                                                { id: 'classroom', icon: '🖥️', label: 'Classroom' },
-                                                { id: 'students', icon: '👥', label: 'Students' },
-                                                { id: 'tickets', icon: '🎫', label: 'Tickets' },
-                                                { id: 'chat-history', icon: '💬', label: 'Chat History' },
-                                                { id: 'attendance', icon: '📊', label: 'Attendance' }
-                                            ].map(tab => (
-                                                <button
-                                                    key={tab.id}
-                                                    onClick={() => setAdminActiveTab(tab.id)}
-                                                    className="btn btn-ghost"
-                                                    style={{
-                                                        justifyContent: 'flex-start',
-                                                        border: 'none',
-                                                        color: adminActiveTab === tab.id ? 'var(--primary)' : 'var(--text-secondary)',
-                                                        background: adminActiveTab === tab.id ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
-                                                        width: '100%',
-                                                        marginBottom: '0.25rem'
-                                                    }}
-                                                >
-                                                    <span style={{ minWidth: '24px' }}>{tab.icon}</span> {tab.label}
-                                                </button>
-                                            ))}
                                             <button
-                                                onClick={() => setAdminActiveTab('about')}
+                                                onClick={() => setAdminActiveTab('events')}
                                                 className="btn btn-ghost"
                                                 style={{
                                                     justifyContent: 'flex-start',
                                                     border: 'none',
-                                                    color: adminActiveTab === 'about' ? 'var(--primary)' : 'var(--text-secondary)',
-                                                    background: adminActiveTab === 'about' ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
+                                                    color: adminActiveTab === 'events' ? 'var(--primary)' : 'var(--text-secondary)',
+                                                    background: adminActiveTab === 'events' ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
                                                     width: '100%',
                                                     marginBottom: '0.25rem'
                                                 }}
                                             >
-                                                <span style={{ minWidth: '24px' }}>ℹ️</span> About Website
+                                                <span style={{ minWidth: '24px' }}>📅</span> Events
+                                            </button>
+
+                                            {currentEvent && (
+                                                <>
+                                                    <div style={{ margin: '1rem 0.75rem 0.5rem', paddingTop: '1rem', borderTop: '1px solid var(--glass-border)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
+                                                        Active Session
+                                                    </div>
+                                                    {[
+                                                        { id: 'classroom', icon: '🖥️', label: 'Classroom' },
+                                                        { id: 'students', icon: '👥', label: 'Students' },
+                                                        { id: 'tickets', icon: '🎫', label: 'Tickets' },
+                                                        { id: 'chat-history', icon: '💬', label: 'Chat History' },
+                                                        { id: 'attendance', icon: '📊', label: 'Attendance' }
+                                                    ].map(tab => (
+                                                        <button
+                                                            key={tab.id}
+                                                            onClick={() => setAdminActiveTab(tab.id)}
+                                                            className="btn btn-ghost"
+                                                            style={{
+                                                                justifyContent: 'flex-start',
+                                                                border: 'none',
+                                                                color: adminActiveTab === tab.id ? 'var(--primary)' : 'var(--text-secondary)',
+                                                                background: adminActiveTab === tab.id ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
+                                                                width: '100%',
+                                                                marginBottom: '0.25rem'
+                                                            }}
+                                                        >
+                                                            <span style={{ minWidth: '24px' }}>{tab.icon}</span> {tab.label}
+                                                        </button>
+                                                    ))}
+                                                    <button
+                                                        onClick={() => setAdminActiveTab('about')}
+                                                        className="btn btn-ghost"
+                                                        style={{
+                                                            justifyContent: 'flex-start',
+                                                            border: 'none',
+                                                            color: adminActiveTab === 'about' ? 'var(--primary)' : 'var(--text-secondary)',
+                                                            background: adminActiveTab === 'about' ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
+                                                            width: '100%',
+                                                            marginBottom: '0.25rem'
+                                                        }}
+                                                    >
+                                                        <span style={{ minWidth: '24px' }}>ℹ️</span> About Website
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setAdminActiveTab('classroom');
+                                                            setShowTimeline(true);
+                                                        }}
+                                                        className="btn btn-ghost"
+                                                        style={{
+                                                            justifyContent: 'flex-start',
+                                                            border: 'none',
+                                                            color: 'var(--text-secondary)',
+                                                            width: '100%',
+                                                            marginBottom: '0.25rem'
+                                                        }}
+                                                    >
+                                                        <span style={{ minWidth: '24px' }}>🕒</span> Timeline
+                                                    </button>
+                                                    <button
+                                                        onClick={handleExitEvent}
+                                                        className="btn btn-ghost"
+                                                        style={{
+                                                            justifyContent: 'flex-start',
+                                                            border: 'none',
+                                                            color: 'var(--danger)',
+                                                            width: '100%',
+                                                            marginTop: '0.5rem'
+                                                        }}
+                                                    >
+                                                        <span style={{ minWidth: '24px' }}>🚪</span> Leave Session
+                                                    </button>
+                                                </>
+                                            )}
+                                        </>
+                                    )}
+
+                                    {/* Student Navigation */}
+                                    {user.role === 'student' && (
+                                        <>
+                                            <div style={{ padding: '0 0.75rem 0.5rem', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
+                                                Workshop
+                                            </div>
+                                            <button
+                                                onClick={() => setShowTicketManager(true)}
+                                                className="btn btn-ghost"
+                                                style={{
+                                                    justifyContent: 'flex-start',
+                                                    border: 'none',
+                                                    background: 'rgba(245, 158, 11, 0.05)',
+                                                    color: '#f59e0b',
+                                                    width: '100%',
+                                                    marginBottom: '0.5rem'
+                                                }}
+                                            >
+                                                <span style={{ minWidth: '24px' }}>🎫</span> Raise Ticket
                                             </button>
                                             <button
                                                 onClick={() => {
-                                                    setAdminActiveTab('classroom');
                                                     setShowTimeline(true);
+                                                    setShowAbout(false);
+                                                    setIsSidebarOpen(false);
                                                 }}
                                                 className="btn btn-ghost"
                                                 style={{
                                                     justifyContent: 'flex-start',
                                                     border: 'none',
-                                                    color: 'var(--text-secondary)',
+                                                    color: showTimeline ? 'var(--primary)' : 'var(--text-secondary)',
+                                                    background: showTimeline ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
                                                     width: '100%',
-                                                    marginBottom: '0.25rem'
+                                                    marginBottom: '0.5rem'
                                                 }}
                                             >
-                                                <span style={{ minWidth: '24px' }}>🕒</span> Timeline
-                                            </button>
-                                            <button
-                                                onClick={handleExitEvent}
-                                                className="btn btn-ghost"
-                                                style={{
-                                                    justifyContent: 'flex-start',
-                                                    border: 'none',
-                                                    color: 'var(--danger)',
-                                                    width: '100%',
-                                                    marginTop: '0.5rem'
-                                                }}
-                                            >
-                                                <span style={{ minWidth: '24px' }}>🚪</span> Leave Session
+                                                <span style={{ minWidth: '24px' }}>🕒</span> History
                                             </button>
                                         </>
                                     )}
                                 </>
-                            )}
-
-                            {/* Student Navigation */}
-                            {user.role === 'student' && (
+                            ) : (
                                 <>
-                                    <div style={{ padding: '0 0.75rem 0.5rem', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
-                                        Workshop
+                                    {/* Admin Navigation - GO */}
+                                    <div style={{ padding: '0 0.75rem 0.5rem', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', marginBottom: '10px' }}>
+                                        WORKSHOP MGMT
                                     </div>
                                     <button
-                                        onClick={() => setShowTicketManager(true)}
+                                        onClick={() => setAdminActiveTab('go-engine')}
                                         className="btn btn-ghost"
                                         style={{
                                             justifyContent: 'flex-start',
                                             border: 'none',
-                                            background: 'rgba(245, 158, 11, 0.05)',
-                                            color: '#f59e0b',
+                                            color: adminActiveTab === 'go-engine' ? 'var(--primary-orange, #ff7b00)' : 'var(--text-secondary)',
+                                            background: adminActiveTab === 'go-engine' ? 'rgba(255, 123, 0, 0.1)' : 'transparent',
                                             width: '100%',
-                                            marginBottom: '0.5rem'
+                                            marginBottom: '0.25rem'
                                         }}
                                     >
-                                        <span style={{ minWidth: '24px' }}>🎫</span> Raise Ticket
+                                        <span style={{ minWidth: '24px' }}>🚀</span> Workshop Engine
                                     </button>
-                                    <button
-                                        onClick={() => {
-                                            setShowTimeline(true);
-                                            setShowAbout(false);
-                                            setIsSidebarOpen(false);
-                                        }}
-                                        className="btn btn-ghost"
-                                        style={{
-                                            justifyContent: 'flex-start',
-                                            border: 'none',
-                                            color: showTimeline ? 'var(--primary)' : 'var(--text-secondary)',
-                                            background: showTimeline ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
-                                            width: '100%',
-                                            marginBottom: '0.5rem'
-                                        }}
-                                    >
-                                        <span style={{ minWidth: '24px' }}>🕒</span> History
-                                    </button>
+                                    <p style={{ padding: '0 0.75rem', fontSize: '0.75rem', opacity: 0.5, lineHeight: 1.4 }}>
+                                        Use the top toggle to switch back to Live Sessions.
+                                    </p>
                                 </>
                             )}
                         </>
@@ -490,13 +533,16 @@ function Layout() {
                     </div>
                     <button
                         onClick={logout}
-                        className="btn btn-ghost"
+                        className="btn btn-ghost logout-btn"
                         style={{
                             justifyContent: 'flex-start',
                             border: 'none',
-                            color: 'var(--danger)',
+                            color: '#ff5252',
                             width: '100%',
-                            background: 'rgba(239, 68, 68, 0.05)'
+                            background: 'rgba(255, 82, 82, 0.05)',
+                            padding: '12px 15px',
+                            borderRadius: '12px',
+                            fontWeight: 700
                         }}
                     >
                         <span style={{ minWidth: '24px', marginRight: '0.5rem' }}>🚪</span> Logout
@@ -504,18 +550,94 @@ function Layout() {
                 </div>
             </aside >
 
-            <div className="app-main" ref={scrollContainerRef}>
+            <div className="app-main">
                 {/* Header */}
                 <header className="app-header" style={{ padding: '0.75rem 1.25rem' }}>
                     {/* Hamburger removed for mobile as we have bottom nav */}
-                    {!isMobile && (
-                        <button
-                            className="btn btn-ghost hamburger-btn"
-                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                            style={{ display: 'none', padding: '0.5rem', minWidth: '40px' }}
-                        >
-                            {isSidebarOpen ? '✕' : '☰'}
-                        </button>
+                    {/* Unified Toggle Bar */}
+                    {(user.role === 'admin' || user.role === 'superadmin') && (
+                        <div className="unified-toggle-bar" style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            padding: '3px',
+                            borderRadius: '30px',
+                            display: 'flex',
+                            gap: '3px',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            marginLeft: isMobile ? '5px' : '20px'
+                        }}>
+                            <button
+                                onClick={() => {
+                                    setActiveApp('flow');
+                                    setAdminActiveTab('events');
+                                }}
+                                style={{
+                                    padding: isMobile ? '6px 12px' : '6px 20px',
+                                    borderRadius: '25px',
+                                    border: 'none',
+                                    fontSize: isMobile ? '0.65rem' : '0.75rem',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s',
+                                    background: 'transparent',
+                                    color: activeApp === 'flow' ? 'white' : 'rgba(255,255,255,0.4)',
+                                    position: 'relative',
+                                    zIndex: 2,
+                                    minWidth: isMobile ? '80px' : 'auto'
+                                }}
+                            >
+                                {activeApp === 'flow' && (
+                                    <motion.div
+                                        layoutId="toggle-bg"
+                                        className="toggle-bg-pill"
+                                        style={{
+                                            position: 'absolute',
+                                            inset: 0,
+                                            background: 'var(--primary-blue, #0066ff)',
+                                            borderRadius: '25px',
+                                            zIndex: -1,
+                                            boxShadow: '0 4px 15px rgba(0,102,255,0.3)'
+                                        }}
+                                    />
+                                )}
+                                HYPERFLOW
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setActiveApp('go');
+                                    setAdminActiveTab('go-engine');
+                                }}
+                                style={{
+                                    padding: isMobile ? '6px 12px' : '6px 20px',
+                                    borderRadius: '25px',
+                                    border: 'none',
+                                    fontSize: isMobile ? '0.65rem' : '0.75rem',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s',
+                                    background: 'transparent',
+                                    color: activeApp === 'go' ? 'white' : 'rgba(255,255,255,0.4)',
+                                    position: 'relative',
+                                    zIndex: 2,
+                                    minWidth: isMobile ? '80px' : 'auto'
+                                }}
+                            >
+                                {activeApp === 'go' && (
+                                    <motion.div
+                                        layoutId="toggle-bg"
+                                        className="toggle-bg-pill"
+                                        style={{
+                                            position: 'absolute',
+                                            inset: 0,
+                                            background: 'var(--primary-orange, #ff7b00)',
+                                            borderRadius: '25px',
+                                            zIndex: -1,
+                                            boxShadow: '0 4px 15px rgba(255,123,0,0.3)'
+                                        }}
+                                    />
+                                )}
+                                HYPERGO
+                            </button>
+                        </div>
                     )}
 
                     {/* Active Event Indicator */}
@@ -523,21 +645,26 @@ function Layout() {
                         {(currentEvent || user.eventName) && (
                             <div className="event-name-display" style={{
                                 background: 'rgba(56, 189, 248, 0.05)',
-                                border: '1px solid rgba(56, 189, 248, 0.3)',
-                                padding: '0.4rem 1rem',
+                                border: '1px solid rgba(56, 189, 248, 0.2)',
+                                padding: isMobile ? '0.3rem 0.6rem' : '0.4rem 1rem',
                                 borderRadius: '30px',
-                                fontSize: '0.75rem',
+                                fontSize: isMobile ? '0.6rem' : '0.75rem',
                                 color: 'var(--primary)',
                                 fontWeight: 800,
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '0.5rem',
-                                boxShadow: 'inset 0 0 10px rgba(56, 189, 248, 0.1)',
+                                gap: '0.4rem',
+                                boxShadow: 'inset 0 0 5px rgba(56, 189, 248, 0.1)',
                                 textTransform: 'uppercase',
-                                letterSpacing: '2px'
+                                letterSpacing: isMobile ? '1px' : '2px',
+                                borderLeft: `3px solid ${activeApp === 'flow' ? 'var(--primary-blue, #0066ff)' : 'var(--primary-orange, #ff7b00)'}`,
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                maxWidth: isMobile ? '120px' : 'auto'
                             }}>
-                                <span className="mobile-hide" style={{ opacity: 0.6 }}>FLOW SESSION:</span>
-                                <span>{currentEvent?.name || user.eventName}</span>
+                                {!isMobile && <span style={{ opacity: 0.6 }}>{activeApp === 'flow' ? 'FLOW' : 'GO'} SESSION:</span>}
+                                <span>{activeApp === 'flow' ? (currentEvent?.name || user.eventName) : 'MGMT'}</span>
                             </div>
                         )}
                         {showSuperAdmin && (
@@ -555,9 +682,12 @@ function Layout() {
                                     if (isMobile) setActiveMobileTab('classroom');
                                 }}
                                 className={`btn ${showSuperAdmin ? 'btn-primary' : 'btn-ghost'}`}
-                                style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                                style={{
+                                    padding: isMobile ? '0.3rem 0.6rem' : '0.4rem 0.8rem',
+                                    fontSize: isMobile ? '0.65rem' : '0.85rem'
+                                }}
                             >
-                                {showSuperAdmin ? 'Exit Config' : 'Admin Panel'}
+                                {showSuperAdmin ? 'Exit' : 'Admin'}
                             </button>
                         )}
 
@@ -617,7 +747,7 @@ function Layout() {
                 </header>
 
                 {/* Main Content */}
-                <div className="app-content">
+                <div className="app-content" ref={scrollContainerRef}>
                     {showSuperAdmin ? (
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
@@ -634,11 +764,12 @@ function Layout() {
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.5 }}
                             className="glass-panel"
-                            style={{ display: 'flex', flexDirection: 'column' }}
+                            style={{ display: 'flex', flexDirection: 'column', flex: 1 }}
                         >
-                            {(isMobile && activeMobileTab === 'events' && !currentEvent) || !isMobile || (isMobile && activeMobileTab !== 'classroom') ? (
+                            {adminActiveTab === 'settings' || adminActiveTab === 'about' ? (
                                 <AdminDashboard
-                                    activeTab={isMobile ? activeMobileTab : adminActiveTab}
+                                    activeTab={adminActiveTab}
+                                    onClose={() => setAdminActiveTab(activeApp === 'flow' ? 'events' : 'go-engine')}
                                     currentEvent={currentEvent}
                                     onEnterEvent={handleEnterEvent}
                                     viewingSnapshot={viewingSnapshot}
@@ -654,9 +785,31 @@ function Layout() {
                                     messages={messages}
                                     setMessages={setMessages}
                                 />
-                            ) : null}
+                            ) : activeApp === 'flow' ? (
+                                ((isMobile && activeMobileTab === 'events' && !currentEvent) || !isMobile || (isMobile && activeMobileTab !== 'classroom')) ? (
+                                    <AdminDashboard
+                                        activeTab={isMobile ? activeMobileTab : adminActiveTab}
+                                        currentEvent={currentEvent}
+                                        onEnterEvent={handleEnterEvent}
+                                        viewingSnapshot={viewingSnapshot}
+                                        setViewingSnapshot={setViewingSnapshot}
+                                        theme={theme}
+                                        setTheme={setTheme}
+                                        primaryColor={primaryColor}
+                                        setPrimaryColor={setPrimaryColor}
+                                        downloadPath={downloadPath}
+                                        setDownloadPath={setDownloadPath}
+                                        downloadFormat={downloadFormat}
+                                        setDownloadFormat={setDownloadFormat}
+                                        messages={messages}
+                                        setMessages={setMessages}
+                                    />
+                                ) : null
+                            ) : (
+                                <GoDashboard />
+                            )}
 
-                            {isMobile && activeMobileTab === 'classroom' && currentEvent && (
+                            {activeApp === 'flow' && isMobile && activeMobileTab === 'classroom' && currentEvent && (
                                 <LeftPanel viewingSnapshot={viewingSnapshot} setViewingSnapshot={setViewingSnapshot} />
                             )}
                         </motion.div>
@@ -705,11 +858,18 @@ function Layout() {
 
                         {(user.role === 'admin' || user.role === 'superadmin') && (
                             <button
-                                className={`mobile-nav-item ${activeMobileTab === 'events' ? 'active' : ''}`}
-                                onClick={() => setActiveMobileTab('events')}
+                                className={`mobile-nav-item ${activeMobileTab === 'events' || adminActiveTab === 'go-engine' ? 'active' : ''}`}
+                                onClick={() => {
+                                    if (activeApp === 'flow') {
+                                        setActiveMobileTab('events');
+                                        setAdminActiveTab('events');
+                                    } else {
+                                        setAdminActiveTab('go-engine');
+                                    }
+                                }}
                             >
-                                <span className="icon">📅</span>
-                                <span>Events</span>
+                                <span className="icon">{activeApp === 'flow' ? '📅' : '🚀'}</span>
+                                <span>{activeApp === 'flow' ? 'Events' : 'Engine'}</span>
                             </button>
                         )}
 
@@ -751,10 +911,25 @@ function Layout() {
                                 } else {
                                     setActiveMobileTab('settings');
                                 }
+                                setIsSidebarOpen(false);
                             }}
                         >
                             <span className="icon">⚙️</span>
                             <span>Setup</span>
+                        </button>
+
+                        <button
+                            className="mobile-nav-item"
+                            onClick={() => {
+                                if (window.confirm('Are you sure you want to logout?')) {
+                                    logout();
+                                    navigate(activeApp === 'flow' ? '/login' : '/go/login');
+                                }
+                            }}
+                            style={{ color: '#ff4d4d' }}
+                        >
+                            <span className="icon">🚪</span>
+                            <span>Logout</span>
                         </button>
                     </div>
                 )}
@@ -968,7 +1143,7 @@ function Layout() {
                     }
                 `}</style>
             </div>
-        </div>
+        </div >
     );
 }
 

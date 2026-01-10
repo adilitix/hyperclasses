@@ -8,12 +8,16 @@
 }
 
 .go-catalog-header {
-    height: 90px;
-    padding: 0 5%;
+    min-height: 80px;
+    padding: 10px 5%;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: #000;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 .catalog-nav {
@@ -289,11 +293,42 @@
 }
 
 @media (max-width: 768px) {
-    .catalog-hero h1 {
-        font-size: 2.5rem;
+    .go-catalog-header {
+        flex-direction: column;
+        gap: 15px;
+        padding-bottom: 20px;
     }
 
     .catalog-nav {
-        display: none;
+        gap: 15px;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .nav-item {
+        font-size: 0.7rem;
+    }
+
+    .register-workshop-btn {
+        padding: 8px 15px;
+        font-size: 0.7rem;
+    }
+
+    .catalog-hero h1 {
+        font-size: 2.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .tier-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .tier-go-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 20px;
     }
 }

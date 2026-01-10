@@ -10,5 +10,6 @@
     "instructions": ""
   },
   "files": [],
-  "chatDisabled": false
+  "chatDisabled": false,
+  "isWorkshop": false
 }

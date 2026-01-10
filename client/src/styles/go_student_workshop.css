@@ -366,6 +366,26 @@
     text-transform: uppercase;
 }
 
+.gate-warning {
+    font-size: 0.7rem;
+    font-weight: 950;
+    color: #ef4444;
+    letter-spacing: 1px;
+    animation: gatePulse 2s infinite;
+}
+
+@keyframes gatePulse {
+
+    0%,
+    100% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
 .nav-controls {
     display: flex;
     gap: 20px;
@@ -411,6 +431,19 @@
     transform: translateY(-4px);
     box-shadow: 0 15px 40px rgba(255, 123, 0, 0.4);
     filter: brightness(1.1);
+}
+
+.btn-next.locked {
+    background: #1e1e24;
+    color: #444;
+    cursor: not-allowed;
+    box-shadow: none;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.btn-next.locked:hover {
+    transform: none;
+    filter: none;
 }
 
 .btn-next:active {

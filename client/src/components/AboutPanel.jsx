@@ -50,27 +50,28 @@ function AboutPanel({ trainerUsername }) {
     };
 
     return (
-        <div className="about-panel" style={{ padding: '2rem', height: '100%', overflowY: 'auto' }}>
+        <div className="about-panel" style={{ height: '100%', overflowY: 'auto' }}>
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                style={{ maxWidth: '800px', margin: '0 auto' }}
+                className="about-content-wrapper"
+                style={{ maxWidth: '800px', margin: '0 auto', padding: '1.5rem' }}
             >
                 {/* Trainer Section (Only for students or if viewing specific trainer) */}
                 {trainer && (
                     <section className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem', border: '1px solid var(--primary-glow)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                            <div style={{
-                                width: '80px', height: '80px', borderRadius: '50%',
+                        <div className="trainer-header" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                            <div className="trainer-avatar" style={{
+                                width: '70px', height: '70px', borderRadius: '50%',
                                 background: 'var(--primary)', display: 'flex',
-                                alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem',
-                                boxShadow: '0 0 20px var(--primary-glow)'
+                                alignItems: 'center', justifyContent: 'center', fontSize: '2rem',
+                                boxShadow: '0 0 20px var(--primary-glow)', flexShrink: 0
                             }}>
                                 👨‍🏫
                             </div>
                             <div>
-                                <h2 className="cine-text" style={{ margin: 0, color: 'var(--primary)' }}>Know Your Trainer</h2>
-                                <h3 style={{ margin: '0.25rem 0', opacity: 0.9 }}>{trainer.displayName}</h3>
+                                <h2 className="cine-text trainer-tagline" style={{ margin: 0, color: 'var(--primary)', fontSize: '1.2rem' }}>Know Your Trainer</h2>
+                                <h3 style={{ margin: '0.25rem 0', opacity: 0.9, fontSize: '1rem' }}>{trainer.displayName}</h3>
                             </div>
                         </div>
                         <div style={{ lineHeight: '1.6', background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: '12px' }}>

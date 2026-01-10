@@ -10,7 +10,7 @@
         flex-direction: column !important;
         height: 100vh !important;
         height: 100dvh !important;
-        overflow: hidden;
+        overflow: hidden !important;
     }
 
     .app-sidebar {
@@ -18,8 +18,11 @@
     }
 
     .app-main {
-        padding-bottom: calc(70px + var(--safe-area-bottom)) !important;
+        padding-bottom: calc(65px + var(--safe-area-bottom)) !important;
         height: 100% !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
 
     /* 2. Custom Mobile Header */
@@ -101,8 +104,9 @@
     .app-content {
         padding: 0.75rem !important;
         margin-top: 0 !important;
+        flex: 1 !important;
         overflow-y: auto !important;
-        height: calc(100vh - 125px) !important;
+        -webkit-overflow-scrolling: touch !important;
     }
 
     .glass-panel {
@@ -112,8 +116,7 @@
         padding: 1rem !important;
         width: 100% !important;
         box-sizing: border-box !important;
-        overflow: hidden !important;
-        /* Fix for shadow artifacts on iPhone */
+        overflow: visible !important;
     }
 
     .glass-panel .glass-panel {

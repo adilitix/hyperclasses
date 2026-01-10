@@ -19,5 +19,53 @@
     "text": "Super Admin left the session.",
     "timestamp": "2025-12-28T14:34:37.354Z",
     "isSystem": true
+  },
+  {
+    "id": 1767333223821,
+    "username": "System",
+    "text": "admin joined the session.",
+    "timestamp": "2026-01-02T05:53:43.821Z",
+    "isSystem": true
+  },
+  {
+    "id": 1767333248532,
+    "username": "System",
+    "text": "saranya joined the session.",
+    "timestamp": "2026-01-02T05:54:08.532Z",
+    "isSystem": true
+  },
+  {
+    "id": 1767333289833,
+    "username": "saranya",
+    "text": "sfmhbfsf",
+    "timestamp": "2026-01-02T05:54:49.833Z"
+  },
+  {
+    "id": 1767333313969,
+    "username": "System",
+    "text": "saranya left the session.",
+    "timestamp": "2026-01-02T05:55:13.969Z",
+    "isSystem": true
+  },
+  {
+    "id": 1767333320126,
+    "username": "System",
+    "text": "saranya joined the session.",
+    "timestamp": "2026-01-02T05:55:20.126Z",
+    "isSystem": true
+  },
+  {
+    "id": 1767356023638,
+    "username": "System",
+    "text": "saranya left the session.",
+    "timestamp": "2026-01-02T12:13:43.638Z",
+    "isSystem": true
+  },
+  {
+    "id": 1767356023741,
+    "username": "System",
+    "text": "admin left the session.",
+    "timestamp": "2026-01-02T12:13:43.741Z",
+    "isSystem": true
   }
 ]

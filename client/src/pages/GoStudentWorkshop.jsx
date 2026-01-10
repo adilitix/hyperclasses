@@ -16,6 +16,7 @@ const GoStudentWorkshop = () => {
     const [selectedQuizIndex, setSelectedQuizIndex] = useState(null);
     const [quizTimeLeft, setQuizTimeLeft] = useState(null);
     const [isCertificateRequested, setIsCertificateRequested] = useState(false);
+    const [gateStep, setGateStep] = useState(0); // 0 means no limit
 
     useEffect(() => {
         let currentUser = user;
@@ -61,8 +62,13 @@ const GoStudentWorkshop = () => {
                 if (data.certificateReady) setIsCertificateRequested(true);
             });
 
+            socket.on('workshop_gate_update', (gate) => {
+                setGateStep(gate);
+            });
+
             return () => {
                 socket.off('workshop_restore_progress');
+                socket.off('workshop_gate_update');
             };
         }
     }, [socket, user]);
@@ -91,6 +97,12 @@ const GoStudentWorkshop = () => {
     }, [activePage, currentIndex]);
 
     const handleNext = () => {
+        // Gate check
+        if (gateStep !== 0 && currentIndex + 1 >= gateStep) {
+            alert('This step is currently locked by the instructor. Please wait for approval.');
+            return;
+        }
+
         // Quiz check
         if (activePage.type === 'quiz') {
             if (selectedQuizIndex !== activePage.correctOption) {
@@ -253,7 +265,12 @@ const GoStudentWorkshop = () => {
                     <div className="progress-bar-container">
                         <div className="progress-fill" style={{ width: `${progress}%` }}></div>
                     </div>
-                    <div className="progress-stats">{progress}% COMPLETE</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
+                        <div className="progress-stats">{progress}% COMPLETE</div>
+                        {gateStep !== 0 && currentIndex + 1 >= gateStep && (
+                            <div className="gate-warning">🔒 LOCKED BY INSTRUCTOR</div>
+                        )}
+                    </div>
                 </div>
 
                 <div className="nav-controls">
@@ -266,9 +283,10 @@ const GoStudentWorkshop = () => {
                     </button>
                     <button
                         onClick={handleNext}
-                        className="btn-next"
+                        disabled={gateStep !== 0 && currentIndex + 1 >= gateStep}
+                        className={`btn-next ${(gateStep !== 0 && currentIndex + 1 >= gateStep) ? 'locked' : ''}`}
                     >
-                        {currentIndex === totalPages - 1 ? 'FINISH WORKSHOP' : 'NEXT STEP →'}
+                        {currentIndex === totalPages - 1 ? 'FINISH WORKSHOP' : (gateStep !== 0 && currentIndex + 1 >= gateStep) ? 'WAITING FOR APPROVAL' : 'NEXT STEP →'}
                     </button>
                 </div>
             </footer>

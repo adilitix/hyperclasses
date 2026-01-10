@@ -1,3 +1,9 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :root {
   /* Professional Slate Theme */
   --bg-color: #0c111d;
@@ -153,20 +159,27 @@ body::before {
 }
 
 #root {
-  height: 100vh;
-  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
   width: 100vw;
   display: flex;
   flex-direction: column;
 }
 
-.app-container {
+body:has(.landing-mode) #root,
+body:has(.admin-login-portal) #root {
+  height: auto !important;
   min-height: 100vh;
-  min-height: 100dvh;
+  overflow: visible !important;
+}
+
+.app-container {
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: row;
-  /* Changed to row for sidebar */
   background-color: var(--bg-color);
+  overflow: hidden;
 }
 
 .app-main {
@@ -174,11 +187,8 @@ body::before {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  min-height: 100vh;
-  min-height: 100dvh;
-  /* Allow natural scroll on the main container if needed */
-  overflow-y: auto;
-  overflow-x: hidden;
+  height: 100%;
+  overflow: hidden;
 }
 
 .app-sidebar {
@@ -302,11 +312,11 @@ body::before {
   position: relative;
   width: 100%;
   max-width: 1600px;
-  /* Better PC scaling */
   margin: 0 auto;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 @media (max-width: 768px) {

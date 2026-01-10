@@ -48,7 +48,7 @@ const PricingPage = () => {
                         <li>✅ Community Support</li>
                         <li>✅ Live Q&A session</li>
                     </ul>
-                    <button className="btn-secondary full-width" onClick={() => handleEnroll('1-Day Introductory')}>Join Now</button>
+                    <button className="btn-secondary full-width" onClick={() => handleEnroll('1-Day Introductory')}>Enroll Now</button>
                 </motion.div>
 
                 {/* Most Popular plan - 3 Day */}
@@ -58,7 +58,7 @@ const PricingPage = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2 }}
                 >
-                    <div className="badge">Best Value</div>
+                    <div className="badge">Most Popular</div>
                     <div className="plan-name">Deep Dive</div>
                     <div className="plan-price">Rs 299<span>/3 Days</span></div>
                     <p className="plan-desc">For serious learners</p>
@@ -68,7 +68,7 @@ const PricingPage = () => {
                         <li>✅ Project-Based Learning</li>
                         <li>✅ AI-Powered Debugging</li>
                     </ul>
-                    <button className="btn-primary full-width" onClick={() => handleEnroll('3-Day Deep Dive')}>Try for free</button>
+                    <button className="btn-primary full-width" onClick={() => handleEnroll('3-Day Deep Dive')}>Enroll Now</button>
                 </motion.div>
 
                 {/* Five Day plan */}
@@ -78,6 +78,7 @@ const PricingPage = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.3 }}
                 >
+                    <div className="badge" style={{ background: '#10b981' }}>Most Effective</div>
                     <div className="plan-name">Mastery</div>
                     <div className="plan-price">Rs 499<span>/5 Days</span></div>
                     <p className="plan-desc">Complete certification</p>

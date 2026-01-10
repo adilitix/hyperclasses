@@ -76,7 +76,8 @@ function loadEvents() {
                         chatDisabled: eventData.chatDisabled || false,
                         chatHistory: [],
                         tickets: [],
-                        attendance: eventData.attendance || []
+                        attendance: eventData.attendance || [],
+                        isWorkshop: eventData.isWorkshop || false
                     };
 
                     // Load chat history
@@ -129,7 +130,8 @@ function saveEvent(event) {
             createdAt: event.createdAt,
             currentContent: event.currentContent,
             files: event.files,
-            chatDisabled: event.chatDisabled
+            chatDisabled: event.chatDisabled,
+            isWorkshop: event.isWorkshop
         };
         fs.writeFileSync(path.join(eventDir, 'event.json'), JSON.stringify(eventData, null, 2));
 

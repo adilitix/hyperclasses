@@ -12,6 +12,16 @@ import ContactPage from './pages/ContactPage';
 import GoLogin from './pages/GoLogin';
 import GoPortal from './pages/GoPortal';
 import GoStudentWorkshop from './pages/GoStudentWorkshop';
+import AdminLogin from './pages/AdminLogin';
+
+// A unified login wrapper for the landing page header button
+const AdminLoginRedirect = () => {
+    const { user } = useAuth();
+    if (user && (user.role === 'admin' || user.role === 'superadmin')) {
+        return <Navigate to="/app" replace />;
+    }
+    return <AdminLogin />;
+};
 
 const ComingSoon = ({ title }) => (
     <div style={{ height: '100vh', background: '#050505', color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif' }}>
@@ -49,8 +59,9 @@ function App() {
                         <Route path="/workshops" element={<WorkshopsPage />} />
                         <Route path="/contact" element={<ContactPage />} />
                         <Route path="/login" element={<LoginWrapper />} />
+                        <Route path="/admin/login" element={<AdminLoginRedirect />} />
                         <Route path="/go/login" element={<GoLogin />} />
-                        <Route path="/go/portal" element={<GoPortal />} />
+                        <Route path="/go/portal" element={<Navigate to="/app" replace />} />
                         <Route path="/go/admin/classroom" element={<ComingSoon title="Admin Control" />} />
                         <Route path="/go/student/classroom" element={<GoStudentWorkshop />} />
                         <Route path="/app/*" element={

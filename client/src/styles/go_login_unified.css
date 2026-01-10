@@ -1,3 +1,9 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
 .go-unified-container {
     width: 100vw;
     height: 100vh;
@@ -282,4 +288,71 @@
 .go-submit:disabled {
     cursor: wait;
     opacity: 0.8;
+}
+
+/* Responsiveness */
+@media (max-width: 500px) {
+    .go-header {
+        height: 80px;
+        padding: 0 20px;
+    }
+
+    .go-logo .logo-text {
+        font-size: 1.4rem;
+    }
+
+    .go-tag {
+        display: none;
+    }
+
+    .go-glass-card {
+        padding: 30px 20px;
+        margin: 0 15px;
+        border-radius: 20px;
+    }
+
+    .go-role-tabs {
+        margin-bottom: 20px;
+    }
+
+    .go-role-tab {
+        padding: 10px 5px;
+        font-size: 0.7rem;
+    }
+
+    .go-card-title {
+        font-size: 1.2rem;
+    }
+
+    .go-input-group input {
+        padding: 16px 45px;
+        font-size: 0.9rem;
+    }
+
+    .go-submit {
+        padding: 16px;
+        font-size: 0.85rem;
+    }
+
+    .go-footer {
+        height: 60px;
+    }
+}
+
+@media (max-height: 700px) {
+    .go-header {
+        height: 60px;
+    }
+
+    .go-glass-card {
+        padding: 20px;
+    }
+
+    .go-role-tabs {
+        margin-bottom: 15px;
+    }
+
+    .go-underline {
+        margin: 10px 0 20px;
+    }
 }

@@ -38,11 +38,12 @@ const upload = multer({ storage });
 
 // Event Class to encapsulate room state
 class EventRoom {
-    constructor(id, name, createdBy) {
+    constructor(id, name, createdBy, isWorkshop = false) {
         this.id = id;
         this.name = name;
         this.createdBy = createdBy; // admin username
         this.createdAt = new Date();
+        this.isWorkshop = isWorkshop;
 
         // State specific to this event
         this.currentContent = {
@@ -72,7 +73,8 @@ const GLOBAL_STATE = {
     workshops: db.loadWorkshops(), // Load from disk
     settings: db.loadSettings(), // Global application settings
     blockedIPs: [], // Global blocklist
-    workshop_progress: db.loadWorkshopProgress() // { workshopId: { username: { step, completed, certificateReady } } }
+    workshop_progress: db.loadWorkshopProgress(), // { workshopId: { username: { step, completed, certificateReady } } },
+    workshop_gates: {} // { workshopId: maxStep } - 0 means unlimited
 };
 
 // Initial Cloud Sync (Bidirectional)
@@ -153,7 +155,8 @@ app.post('/api/login', (req, res) => {
                 role: 'student',
                 eventId,
                 eventName: event.name,
-                trainerUsername: event.createdBy
+                trainerUsername: event.createdBy,
+                isWorkshop: event.isWorkshop
             });
         }
 
@@ -246,6 +249,21 @@ app.get('/api/trainer/:username', (req, res) => {
 });
 
 
+app.get('/api/check-event/:id', (req, res) => {
+    const { id } = req.params;
+    // Check Live Events
+    const event = GLOBAL_STATE.events.get(id);
+    if (event) {
+        return res.json({ success: true, type: event.isWorkshop ? 'go' : 'flow' });
+    }
+    // Check Static Workshops
+    const workshop = GLOBAL_STATE.workshops.find(w => w.id === id);
+    if (workshop) {
+        return res.json({ success: true, type: 'go' });
+    }
+    res.json({ success: false });
+});
+
 // Events Management (Admin Only - simplified check)
 app.get('/api/events', (req, res) => {
     // Convert Map to Array
@@ -260,21 +278,22 @@ app.get('/api/events', (req, res) => {
 });
 
 app.post('/api/events', (req, res) => {
-    const { name, createdBy, customId } = req.body;
+    const { name, createdBy, customId, isWorkshop } = req.body;
     if (!name) return res.status(400).json({ success: false, message: 'Event name required' });
 
-    const id = customId || Date.now().toString(36); // Simple ID generation
+    const id = customId || Date.now().toString(36);
 
     if (GLOBAL_STATE.events.has(id)) {
-        return res.status(400).json({ success: false, message: 'Event ID already exists' });
+        return res.status(400).json({ success: false, message: 'Event ID already exists in HyperFlow sessions' });
     }
 
-    const newEvent = new EventRoom(id, name, createdBy || 'System');
-    GLOBAL_STATE.events.set(id, newEvent);
-    db.saveEvent(newEvent); // Persist to disk
+    if (GLOBAL_STATE.workshops.some(w => w.id === id)) {
+        return res.status(400).json({ success: false, message: 'Event ID already exists in HyperGo workshops' });
+    }
 
-    // Broadcast event list update to all admins (who might be in a 'dashboard' room?)
-    // For now, we'll rely on polling or refresher, or maybe a global 'admin_room'
+    const newEvent = new EventRoom(id, name, createdBy || 'System', isWorkshop);
+    GLOBAL_STATE.events.set(id, newEvent);
+    db.saveEvent(newEvent);
     res.json({ success: true, event: newEvent });
 });
 
@@ -759,6 +778,7 @@ io.on('connection', (socket) => {
         socket.emit('workshop_restore_progress', progress);
 
         sendWorkshopMonitorUpdate(workshopId);
+        socket.emit('workshop_gate_update', GLOBAL_STATE.workshop_gates[workshopId] || 0);
     });
 
     socket.on('update_workshop_progress', ({ step, completed }) => {
@@ -792,6 +812,22 @@ io.on('connection', (socket) => {
     socket.on('join_workshop_monitor', (workshopId) => {
         socket.join(`workshop_monitor_${workshopId}`);
         sendWorkshopMonitorUpdate(workshopId);
+        // Also send current gate to monitor
+        socket.emit('workshop_gate_update', GLOBAL_STATE.workshop_gates[workshopId] || 0);
+    });
+
+    socket.on('set_workshop_gate', ({ workshopId, maxStep }) => {
+        GLOBAL_STATE.workshop_gates[workshopId] = maxStep;
+        io.to(`workshop_${workshopId}`).emit('workshop_gate_update', maxStep);
+        io.to(`workshop_monitor_${workshopId}`).emit('workshop_gate_update', maxStep);
+    });
+
+    socket.on('remove_student_progress', ({ workshopId, username }) => {
+        if (GLOBAL_STATE.workshop_progress[workshopId] && GLOBAL_STATE.workshop_progress[workshopId][username]) {
+            delete GLOBAL_STATE.workshop_progress[workshopId][username];
+            db.saveWorkshopProgress(GLOBAL_STATE.workshop_progress);
+            sendWorkshopMonitorUpdate(workshopId);
+        }
     });
 
 

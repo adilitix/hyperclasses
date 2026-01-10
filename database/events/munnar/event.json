@@ -5,10 +5,11 @@
   "createdAt": "2025-12-28T10:16:23.603Z",
   "currentContent": {
     "type": "code",
-    "content": "",
+    "content": "jhgjahsdjhasnvndvzb",
     "instructions": "",
-    "language": "python"
+    "language": "javascript"
   },
   "files": [],
-  "chatDisabled": false
+  "chatDisabled": false,
+  "isWorkshop": false
 }

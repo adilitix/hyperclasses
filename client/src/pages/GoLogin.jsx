@@ -4,10 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/go_login_unified.css';
 
-const GoLogin = () => {
+const GoLogin = ({ forcedRole }) => {
     const navigate = useNavigate();
     const { login } = useAuth();
-    const [role, setRole] = useState('student'); // 'student' or 'admin'
+    const [role, setRole] = useState(forcedRole || 'student');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [eventId, setEventId] = useState('');
@@ -40,7 +40,7 @@ const GoLogin = () => {
 
             if (res.success) {
                 if (role === 'admin') {
-                    navigate('/go/portal');
+                    navigate('/admin/select');
                 } else {
                     navigate('/go/student/classroom');
                 }
@@ -59,9 +59,9 @@ const GoLogin = () => {
             <header className="go-header">
                 <div className="go-logo" onClick={() => navigate('/')}>
                     <div className="logo-box">H</div>
-                    <span className="logo-text">Hyper<span>Go</span></span>
+                    <span className="logo-text">Hyper<span>{forcedRole === 'admin' ? 'Admin' : 'Go'}</span></span>
                 </div>
-                <div className="go-tag">ELITE WORKSHOP ENGINE</div>
+                <div className="go-tag">{forcedRole === 'admin' ? 'TRAINER ACCESS PORTAL' : 'ELITE WORKSHOP ENGINE'}</div>
             </header>
 
             <main className="go-main">
@@ -71,20 +71,22 @@ const GoLogin = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
                 >
-                    <div className="go-role-tabs">
-                        <button
-                            className={`go-role-tab ${role === 'student' ? 'active' : ''}`}
-                            onClick={() => { setRole('student'); setUsername(''); setPassword(''); setEventId(''); }}
-                        >
-                            STUDENT LOGIN
-                        </button>
-                        <button
-                            className={`go-role-tab ${role === 'admin' ? 'active' : ''}`}
-                            onClick={() => { setRole('admin'); setUsername(''); setPassword(''); }}
-                        >
-                            ADMIN LOGIN
-                        </button>
-                    </div>
+                    {!forcedRole && (
+                        <div className="go-role-tabs">
+                            <button
+                                className={`go-role-tab ${role === 'student' ? 'active' : ''}`}
+                                onClick={() => { setRole('student'); setUsername(''); setPassword(''); setEventId(''); }}
+                            >
+                                STUDENT LOGIN
+                            </button>
+                            <button
+                                className={`go-role-tab ${role === 'admin' ? 'active' : ''}`}
+                                onClick={() => { setRole('admin'); setUsername(''); setPassword(''); }}
+                            >
+                                ADMIN LOGIN
+                            </button>
+                        </div>
+                    )}
 
                     <h2 className="go-card-title">{role === 'student' ? 'STUDENT ACCESS' : 'MANAGEMENT ACCESS'}</h2>
                     <div className="go-underline"></div>
