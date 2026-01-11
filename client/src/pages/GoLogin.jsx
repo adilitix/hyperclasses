@@ -40,7 +40,7 @@ const GoLogin = ({ forcedRole }) => {
 
             if (res.success) {
                 if (role === 'admin') {
-                    navigate('/admin/select');
+                    navigate('/app');
                 } else {
                     navigate('/go/student/classroom');
                 }

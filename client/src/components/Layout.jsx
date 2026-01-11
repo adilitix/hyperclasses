@@ -250,7 +250,7 @@ function Layout() {
                     >
                         <Logo size={28} />
                         <h2 className="app-title cine-text" style={{ fontSize: '1rem', margin: 0, letterSpacing: '2px' }}>
-                            HYPER <span>FLOW</span>
+                            HYPER <span>{activeApp === 'flow' ? 'FLOW' : 'GO'}</span>
                         </h2>
                     </div>
                     {/* Mobile Close Button */}
@@ -555,7 +555,90 @@ function Layout() {
                 <header className="app-header" style={{ padding: '0.75rem 1.25rem' }}>
                     {/* Hamburger removed for mobile as we have bottom nav */}
                     {/* Unified Toggle Bar */}
-                    {/* Unified Toggle Bar Removed */}
+                    {(user.role === 'admin' || user.role === 'superadmin') && (
+                        <div className="unified-toggle-bar" style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            padding: '3px',
+                            borderRadius: '30px',
+                            display: 'flex',
+                            gap: '3px',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            marginLeft: isMobile ? '5px' : '20px'
+                        }}>
+                            <button
+                                onClick={() => {
+                                    setActiveApp('flow');
+                                    setAdminActiveTab('events');
+                                }}
+                                style={{
+                                    padding: isMobile ? '6px 12px' : '6px 20px',
+                                    borderRadius: '25px',
+                                    border: 'none',
+                                    fontSize: isMobile ? '0.65rem' : '0.75rem',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s',
+                                    background: 'transparent',
+                                    color: activeApp === 'flow' ? 'white' : 'rgba(255,255,255,0.4)',
+                                    position: 'relative',
+                                    zIndex: 2,
+                                    minWidth: isMobile ? '80px' : 'auto'
+                                }}
+                            >
+                                {activeApp === 'flow' && (
+                                    <motion.div
+                                        layoutId="toggle-bg"
+                                        className="toggle-bg-pill"
+                                        style={{
+                                            position: 'absolute',
+                                            inset: 0,
+                                            background: 'var(--primary-blue, #0066ff)',
+                                            borderRadius: '25px',
+                                            zIndex: -1,
+                                            boxShadow: '0 4px 15px rgba(0,102,255,0.3)'
+                                        }}
+                                    />
+                                )}
+                                HYPERFLOW
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setActiveApp('go');
+                                    setAdminActiveTab('go-engine');
+                                }}
+                                style={{
+                                    padding: isMobile ? '6px 12px' : '6px 20px',
+                                    borderRadius: '25px',
+                                    border: 'none',
+                                    fontSize: isMobile ? '0.65rem' : '0.75rem',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s',
+                                    background: 'transparent',
+                                    color: activeApp === 'go' ? 'white' : 'rgba(255,255,255,0.4)',
+                                    position: 'relative',
+                                    zIndex: 2,
+                                    minWidth: isMobile ? '80px' : 'auto'
+                                }}
+                            >
+                                {activeApp === 'go' && (
+                                    <motion.div
+                                        layoutId="toggle-bg"
+                                        className="toggle-bg-pill"
+                                        style={{
+                                            position: 'absolute',
+                                            inset: 0,
+                                            background: 'var(--primary-orange, #ff7b00)',
+                                            borderRadius: '25px',
+                                            zIndex: -1,
+                                            boxShadow: '0 4px 15px rgba(255,123,0,0.3)'
+                                        }}
+                                    />
+                                )}
+                                HYPERGO
+                            </button>
+                        </div>
+                    )}
 
                     {/* Active Event Indicator */}
                     <div style={{ marginLeft: '0.5rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem' }}>
