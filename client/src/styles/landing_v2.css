@@ -6,6 +6,33 @@
     --bg-dark: #000814;
     --text-white: #ffffff;
     --text-muted: rgba(255, 255, 255, 0.7);
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --card-border: rgba(255, 255, 255, 0.1);
+    --header-bg: rgba(0, 8, 20, 0.5);
+    --input-bg: rgba(255, 255, 255, 0.05);
+}
+
+[data-landing-theme='light'] {
+    --bg-dark: #f8fafc;
+    --text-white: #0f172a;
+    --text-muted: rgba(15, 23, 42, 0.7);
+    --primary-blue: #2563eb;
+    --primary-orange: #ea580c;
+    --card-bg: rgba(0, 0, 0, 0.02);
+    --card-border: rgba(0, 0, 0, 0.05);
+    --header-bg: rgba(255, 255, 255, 0.8);
+    --input-bg: rgba(0, 0, 0, 0.03);
+}
+
+[data-landing-theme='black'] {
+    --bg-dark: #000000;
+    --text-white: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.3);
+    --primary-blue: #1e3a8a;
+    --primary-orange: #9a3412;
+    --card-bg: #000;
+    --card-border: #111;
+    --header-bg: rgba(0, 0, 0, 0.8);
 }
 
 .landing-v2 {
@@ -29,7 +56,12 @@
     overflow: visible !important;
 }
 
-/* Gradient Background */
+/* Gradient Background - Hide in light mode for cleaner look */
+[data-landing-theme='light'] .gradient-bg {
+    background: radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 100% 100%, rgba(234, 88, 12, 0.05) 0%, transparent 50%);
+}
+
 .gradient-bg {
     position: fixed;
     top: 0;
@@ -74,7 +106,8 @@
     align-items: center;
     z-index: 1000;
     backdrop-filter: blur(10px);
-    background: rgba(0, 8, 20, 0.5);
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .admin-login-btn {
@@ -94,6 +127,20 @@
     background: white;
     color: black;
     transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+[data-landing-theme='light'] .admin-login-btn {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    color: #000000;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+[data-landing-theme='light'] .admin-login-btn:hover {
+    background: #f8fafc;
+    border-color: rgba(0, 0, 0, 0.3);
+    color: #000000;
 }
 
 .student-login-float {
@@ -131,7 +178,7 @@
     font-weight: 900;
     line-height: 1;
     margin-bottom: 20px;
-    background: linear-gradient(to right, #fff, #888);
+    background: linear-gradient(to right, var(--text-white), var(--text-muted));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -189,8 +236,8 @@
 }
 
 .v2-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
     padding: 40px;
     border-radius: 24px;
     transition: all 0.3s ease;
@@ -200,6 +247,10 @@
     background: rgba(255, 255, 255, 0.05);
     border-color: var(--primary-blue);
     transform: translateY(-10px);
+}
+
+[data-landing-theme='light'] .v2-card:hover {
+    background: rgba(0, 0, 0, 0.04);
 }
 
 .v2-card h3 {
@@ -232,11 +283,11 @@
 }
 
 .v2-input {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--input-bg);
+    border: 1px solid var(--card-border);
     padding: 15px 20px;
     border-radius: 12px;
-    color: white;
+    color: var(--text-white);
     outline: none;
     transition: all 0.3s ease;
 }
@@ -264,7 +315,16 @@
 
 @media (max-width: 768px) {
     .header-v2 {
-        padding: 20px;
+        padding: 15px 20px;
+    }
+
+    .logo-text {
+        display: none;
+    }
+
+    .header-v2 .admin-login-btn {
+        padding: 8px 16px;
+        font-size: 0.75rem;
     }
 
     .student-login-float {
@@ -275,12 +335,14 @@
         flex-direction: column;
         width: 100%;
         padding: 0 20px;
+        gap: 10px;
     }
 
     .v2-submit,
     .admin-login-btn {
         width: 100% !important;
         justify-content: center;
+        padding: 12px 20px !important;
     }
 
     .contact-v2 {
@@ -288,6 +350,24 @@
     }
 
     .hero-title {
-        font-size: 3rem;
+        font-size: 2.8rem;
+    }
+}
+
+@media (max-width: 440px) {
+    .header-v2 {
+        gap: 8px;
+        justify-content: center;
+        padding: 10px 15px;
+    }
+
+    .header-v2 .admin-login-btn:nth-of-type(2) {
+        display: none;
+        /* Hide Admin button on very small screens to save space */
+    }
+
+    .theme-toggle-v2 button {
+        padding: 4px 8px !important;
+        font-size: 0.8rem !important;
     }
 }

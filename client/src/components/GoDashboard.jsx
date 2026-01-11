@@ -318,7 +318,7 @@ const GoDashboard = () => {
                                 </div>
                             </div>
                             {activePage && (
-                                <div className="editor-container" style={{ background: 'transparent', padding: '30px', flex: 1, overflowY: 'auto' }}>
+                                <div className="editor-container" style={{ background: 'transparent', padding: '30px', flex: 1, overflowY: 'visible' }}>
                                     <div className="canvas-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
                                         <input
                                             style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '1.8rem', fontWeight: 900, outline: 'none', flex: 1 }}

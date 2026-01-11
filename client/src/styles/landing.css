@@ -15,6 +15,20 @@ body.landing-mode {
     background: var(--landing-bg) !important;
     background-color: var(--landing-bg) !important;
     color: var(--landing-text) !important;
+    transition: background 0.5s ease, color 0.5s ease;
+}
+
+[data-landing-theme='dark'] body.landing-mode,
+[data-landing-theme='black'] body.landing-mode {
+    --landing-bg: #000814;
+    --landing-text: #ffffff;
+    --landing-text-secondary: #94a3b8;
+}
+
+[data-landing-theme='light'] body.landing-mode {
+    --landing-bg: #f8fafc;
+    --landing-text: #0f172a;
+    --landing-text-secondary: #475569;
 }
 
 body.landing-mode::after,
@@ -43,16 +57,28 @@ body.landing-mode .app-container::after {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--header-bg, rgba(255, 255, 255, 0.85));
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid var(--card-border, rgba(0, 0, 0, 0.05));
     box-sizing: border-box;
+    color: var(--landing-text);
+}
+
+[data-landing-theme='dark'] .landing-nav,
+[data-landing-theme='black'] .landing-nav {
+    --header-bg: rgba(0, 8, 20, 0.85);
+    --card-border: rgba(255, 255, 255, 0.05);
+}
+
+[data-landing-theme='light'] .landing-nav {
+    --header-bg: rgba(255, 255, 255, 0.85);
+    --card-border: rgba(0, 0, 0, 0.05);
 }
 
 .landing-nav .logo {
     font-size: 1.5rem;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--landing-text);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -251,12 +277,18 @@ body.landing-mode .app-container::after {
 }
 
 .feature-card {
-    background: white;
+    background: var(--card-bg, white);
     padding: 2rem;
     border-radius: 16px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    border: 1px solid #e2e8f0;
-    transition: transform 0.2s;
+    border: 1px solid var(--card-border, #e2e8f0);
+    transition: transform 0.2s, background 0.3s;
+}
+
+[data-landing-theme='dark'] .feature-card,
+[data-landing-theme='black'] .feature-card {
+    --card-bg: rgba(255, 255, 255, 0.02);
+    --card-border: rgba(255, 255, 255, 0.05);
 }
 
 .feature-card:hover {
@@ -275,7 +307,7 @@ body.landing-mode .app-container::after {
 .feature-card h3 {
     font-size: 1.25rem;
     margin-bottom: 0.75rem;
-    color: #0f172a;
+    color: var(--landing-text);
 }
 
 .feature-card p {

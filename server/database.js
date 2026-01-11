@@ -169,6 +169,8 @@ function deleteEvent(eventId) {
         if (fs.existsSync(eventDir)) {
             fs.rmSync(eventDir, { recursive: true, force: true });
         }
+        // Sync to Cloud: Delete the record
+        supabase.removeFromCloud(`event_${eventId}`).catch(console.error);
     } catch (err) {
         console.error('Error deleting event:', err);
     }

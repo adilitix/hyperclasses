@@ -31,8 +31,8 @@ const FeaturesPage = () => {
                 style={{ maxWidth: '1200px', margin: '0 auto' }}
             >
                 <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-                    <h1 style={{ fontSize: '3rem', marginBottom: '1rem', color: '#0f172a' }}>Platform Features</h1>
-                    <p style={{ fontSize: '1.25rem', color: '#64748b' }}>Everything you need to master new skills effectively.</p>
+                    <h1 style={{ fontSize: '3rem', marginBottom: '1rem', color: 'var(--landing-text)' }}>Platform Features</h1>
+                    <p style={{ fontSize: '1.25rem', color: 'var(--landing-text-secondary)' }}>Everything you need to master new skills effectively.</p>
                 </div>
 
                 <div className="features-grid">

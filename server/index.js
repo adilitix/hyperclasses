@@ -1051,7 +1051,17 @@ async function sendWorkshopMonitorUpdate(workshopId) {
     io.to(`workshop_monitor_${workshopId}`).emit('workshop_monitor_update', monitorData);
 }
 
-// Serve React Frontend if it exists
+// Serve Adilitix Frontend
+const adilitixDistPath = path.join(__dirname, '../adilitix/dist');
+if (fs.existsSync(adilitixDistPath)) {
+    app.use('/adilitix', express.static(adilitixDistPath));
+    // Important: Handle SPA routing for Adilitix
+    app.get('/adilitix/*', (req, res) => {
+        res.sendFile(path.join(adilitixDistPath, 'index.html'));
+    });
+}
+
+// Serve React Frontend if it exists (HyperClass)
 const distPath = path.join(__dirname, '../client/dist');
 if (fs.existsSync(distPath)) {
     app.use(express.static(distPath));

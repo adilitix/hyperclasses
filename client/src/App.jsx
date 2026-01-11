@@ -5,6 +5,8 @@ import { SocketProvider } from './contexts/SocketContext';
 import Login from './components/Login';
 import Layout from './components/Layout';
 import LandingPage from './pages/LandingPage';
+import { LandingThemeProvider } from './contexts/LandingThemeContext';
+import TorchlightOverlay from './components/TorchlightOverlay';
 import PricingPage from './pages/PricingPage';
 import FeaturesPage from './pages/FeaturesPage';
 import WorkshopsPage from './pages/WorkshopsPage';
@@ -52,24 +54,27 @@ function App() {
         <BrowserRouter>
             <AuthProvider>
                 <SocketProvider>
-                    <Routes>
-                        <Route path="/" element={<LandingPage />} />
-                        <Route path="/pricing" element={<PricingPage />} />
-                        <Route path="/features" element={<FeaturesPage />} />
-                        <Route path="/workshops" element={<WorkshopsPage />} />
-                        <Route path="/contact" element={<ContactPage />} />
-                        <Route path="/login" element={<LoginWrapper />} />
-                        <Route path="/admin/login" element={<AdminLoginRedirect />} />
-                        <Route path="/go/login" element={<GoLogin />} />
-                        <Route path="/go/portal" element={<Navigate to="/app" replace />} />
-                        <Route path="/go/admin/classroom" element={<ComingSoon title="Admin Control" />} />
-                        <Route path="/go/student/classroom" element={<GoStudentWorkshop />} />
-                        <Route path="/app/*" element={
-                            <ProtectedRoute>
-                                <Layout />
-                            </ProtectedRoute>
-                        } />
-                    </Routes>
+                    <LandingThemeProvider>
+                        <TorchlightOverlay />
+                        <Routes>
+                            <Route path="/" element={<LandingPage />} />
+                            <Route path="/pricing" element={<PricingPage />} />
+                            <Route path="/features" element={<FeaturesPage />} />
+                            <Route path="/workshops" element={<WorkshopsPage />} />
+                            <Route path="/contact" element={<ContactPage />} />
+                            <Route path="/login" element={<LoginWrapper />} />
+                            <Route path="/admin/login" element={<AdminLoginRedirect />} />
+                            <Route path="/go/login" element={<GoLogin />} />
+                            <Route path="/go/portal" element={<Navigate to="/app" replace />} />
+                            <Route path="/go/admin/classroom" element={<ComingSoon title="Admin Control" />} />
+                            <Route path="/go/student/classroom" element={<GoStudentWorkshop />} />
+                            <Route path="/app/*" element={
+                                <ProtectedRoute>
+                                    <Layout />
+                                </ProtectedRoute>
+                            } />
+                        </Routes>
+                    </LandingThemeProvider>
                 </SocketProvider>
             </AuthProvider>
         </BrowserRouter>

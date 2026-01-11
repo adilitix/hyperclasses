@@ -97,6 +97,17 @@ class SupabaseService {
             return [];
         }
     }
+
+    async removeFromCloud(key) {
+        try {
+            await this.client.storage
+                .from(this.bucketName)
+                .remove([`_data/${key}.json`]);
+            console.log(`Cloud data removed for: ${key}`);
+        } catch (e) {
+            console.error(`Supabase Remove failed for ${key}:`, e.message);
+        }
+    }
 }
 
 module.exports = new SupabaseService();

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import LandingThemeToggle from './LandingThemeToggle';
 
 const LandingNavbar = () => {
     const navigate = useNavigate();
@@ -16,8 +17,8 @@ const LandingNavbar = () => {
         <React.Fragment>
             <nav className="landing-nav">
                 <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ background: '#0f172a', padding: '6px', borderRadius: '8px' }}>🚀</div>
-                    <span style={{ fontWeight: 900, fontSize: '1.2rem', color: '#0f172a' }}>Hyper<span style={{ color: '#00f0ff' }}>class</span></span>
+                    <div style={{ background: 'var(--text-white, #0f172a)', color: 'var(--bg-dark, #fff)', padding: '6px', borderRadius: '8px' }}>🚀</div>
+                    <span style={{ fontWeight: 900, fontSize: '1.2rem', color: 'var(--text-white, #0f172a)' }}>Hyper<span style={{ color: 'var(--primary-blue, #00f0ff)' }}>class</span></span>
                 </div>
 
                 {/* Desktop Links */}
@@ -29,7 +30,8 @@ const LandingNavbar = () => {
                 </div>
 
                 {/* Desktop Actions */}
-                <div className="nav-actions desktop-only">
+                <div className="nav-actions desktop-only" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <LandingThemeToggle />
                     <button className="btn-primary" onClick={() => navigate('/login')} style={{ borderRadius: '30px' }}>Join Session</button>
                     <button className="btn-secondary" onClick={() => navigate('/go/login')} style={{ borderRadius: '30px', border: '1px solid #ff7b00', color: '#ff7b00' }}>Student Go</button>
                 </div>

@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import LandingThemeToggle from '../components/LandingThemeToggle';
+import { useLandingTheme } from '../contexts/LandingThemeContext';
 import { useNavigate } from 'react-router-dom';
 import '../styles/landing_v2.css';
 
@@ -12,6 +14,7 @@ const LandingPage = () => {
     const springConfig = { damping: 25, stiffness: 150 };
     const spotlightX = useSpring(mouseX, springConfig);
     const spotlightY = useSpring(mouseY, springConfig);
+    const { theme } = useLandingTheme();
 
     useEffect(() => {
         const handleMouseMove = (e) => {
@@ -51,13 +54,15 @@ const LandingPage = () => {
 
     return (
         <div className="landing-v2">
-            <motion.div
-                className="mouse-spotlight"
-                style={{
-                    left: spotlightX,
-                    top: spotlightY,
-                }}
-            />
+            {theme !== 'black' && (
+                <motion.div
+                    className="mouse-spotlight"
+                    style={{
+                        left: spotlightX,
+                        top: spotlightY,
+                    }}
+                />
+            )}
             <div className="gradient-bg" />
 
             {/* Header */}
@@ -66,19 +71,20 @@ const LandingPage = () => {
                     <div className="logo-symbol" style={{
                         width: '40px',
                         height: '40px',
-                        background: 'white',
-                        color: 'black',
+                        background: 'var(--text-white, white)',
+                        color: 'var(--bg-dark, black)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontWeight: 900,
                         clipPath: 'polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%)'
                     }}>H</div>
-                    <span className="logo-text" style={{ fontSize: '1.5rem', fontWeight: 800, marginLeft: '12px' }}>
+                    <span className="logo-text" style={{ fontSize: '1.5rem', fontWeight: 800, marginLeft: '12px', color: 'var(--text-white)' }}>
                         Hyper<span style={{ fontWeight: 300, opacity: 0.7 }}>class</span>
                     </span>
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                    <LandingThemeToggle />
                     <button className="admin-login-btn" onClick={() => navigate('/login')} style={{ background: 'var(--primary-orange)', border: 'none', color: 'white' }}>
                         LOGIN
                     </button>

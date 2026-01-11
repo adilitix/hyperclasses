@@ -23,6 +23,11 @@ cd client
 npm install
 cd ..
 
+echo "Installing Adilitix Dependencies..."
+cd adilitix
+npm install
+cd ..
+
 echo "-----------------------------------"
 echo "✅ Setup Complete!"
 echo "-----------------------------------"

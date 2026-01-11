@@ -20,10 +20,18 @@ cd server
 npm run dev
 ```
 
-**Terminal 2 (Client/Frontend):**
+**Terminal 2 (HyperClass Frontend):**
 ```bash
 cd client
 npm run dev
 ```
 
-Then open your browser to the link shown in Terminal 2 (usually `http://localhost:5173`).
+**Terminal 3 (Adilitix Frontend):**
+```bash
+cd adilitix
+npm run dev
+```
+
+Then open your browser:
+- **HyperClass:** Usually `http://localhost:5173`
+- **Adilitix:** Usually `http://localhost:5174`

@@ -85,8 +85,8 @@ function UniversalEventsPanel({ onEnterEvent }) {
         <div style={{ padding: window.innerWidth < 768 ? '1rem' : '2rem', minHeight: '100%', background: '#0a0a0b', color: '#fff' }}>
             <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
                 <header style={{ marginBottom: '3rem' }}>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-1px', margin: 0 }}>COMMON EVENTS PANEL</h1>
-                    <p style={{ opacity: 0.5, fontSize: '0.9rem', marginTop: '10px' }}>Manage all HyperFlow and HyperGo sessions in one place.</p>
+                    <h1 style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-1px', margin: 0 }}>HYPERFLOW MANAGEMENT</h1>
+                    <p style={{ opacity: 0.5, fontSize: '0.9rem', marginTop: '10px' }}>Manage all active HyperFlow sessions and live broadcasts.</p>
                 </header>
 
                 {/* Unified Creation Form */}
@@ -101,7 +101,7 @@ function UniversalEventsPanel({ onEnterEvent }) {
                     <h4 style={{ margin: '0 0 1.5rem 0', fontSize: '0.75rem', color: '#00f0ff', letterSpacing: '2px', fontWeight: 800 }}>CREATE NEW SESSION</h4>
                     <form onSubmit={handleCreate} style={{
                         display: 'grid',
-                        gridTemplateColumns: window.innerWidth < 1000 ? '1fr' : '1fr 1fr 1fr auto',
+                        gridTemplateColumns: window.innerWidth < 1000 ? '1fr' : '1.5fr 1.5fr auto',
                         gap: '1.5rem',
                         alignItems: 'flex-end'
                     }}>
@@ -141,36 +141,7 @@ function UniversalEventsPanel({ onEnterEvent }) {
                                 onChange={(e) => setCustomId(e.target.value)}
                             />
                         </div>
-                        <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                                <label style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, letterSpacing: '1px' }}>PROCESS TYPE</label>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowInfo(!showInfo)}
-                                    style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '15px', height: '15px', fontSize: '9px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                >
-                                    i
-                                </button>
-                            </div>
-                            <select
-                                style={{
-                                    width: '100%',
-                                    padding: '14px 18px',
-                                    borderRadius: '12px',
-                                    background: 'rgba(255,255,255,0.03)',
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    color: '#fff',
-                                    fontSize: '0.9rem',
-                                    outline: 'none',
-                                    appearance: 'none'
-                                }}
-                                value={type}
-                                onChange={(e) => setType(e.target.value)}
-                            >
-                                <option value="flow">HyperFlow (Live Broadcast)</option>
-                                <option value="go">HyperGo (Self-Paced Workshop)</option>
-                            </select>
-                        </div>
+                        {/* Process Type Hidden - Defaulted to Flow */}
                         <button
                             type="submit"
                             disabled={loading}
@@ -191,31 +162,7 @@ function UniversalEventsPanel({ onEnterEvent }) {
                         </button>
                     </form>
 
-                    <AnimatePresence>
-                        {showInfo && (
-                            <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                style={{ overflow: 'hidden', marginTop: '1.5rem', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}
-                            >
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem' }}>
-                                    <div>
-                                        <strong style={{ color: '#00f0ff', display: 'block', marginBottom: '8px' }}>⚡ HyperFlow:</strong>
-                                        <p style={{ opacity: 0.6, fontSize: '0.85rem', lineHeight: 1.5 }}>
-                                            Primary classroom engine. Use this for live lectures where you want to broadcast code, manage chat, and run interactive polls.
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <strong style={{ color: '#ff7b00', display: 'block', marginBottom: '8px' }}>🚀 HyperGo:</strong>
-                                        <p style={{ opacity: 0.6, fontSize: '0.85rem', lineHeight: 1.5 }}>
-                                            Self-paced education manager. Best for workshops where students follow a curriculum, complete quizzes, and earn certificates.
-                                        </p>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                    {/* Info Section Hidden */}
                 </div>
 
                 {/* Combined List Grid */}
@@ -238,18 +185,7 @@ function UniversalEventsPanel({ onEnterEvent }) {
                             transition: 'all 0.3s'
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{
-                                    padding: '4px 8px',
-                                    fontSize: '0.5rem',
-                                    borderRadius: '6px',
-                                    background: evt.isWorkshop ? 'rgba(255,123,0,0.1)' : 'rgba(0,240,255,0.1)',
-                                    color: evt.isWorkshop ? '#ff7b00' : '#00f0ff',
-                                    border: `1px solid ${evt.isWorkshop ? 'rgba(255,123,0,0.2)' : 'rgba(0,240,255,0.2)'}`,
-                                    fontWeight: 900,
-                                    letterSpacing: '1px'
-                                }}>
-                                    {evt.isWorkshop ? 'GO' : 'FLOW'}
-                                </span>
+                                {/* Type Badge Hidden */}
                                 <button
                                     onClick={(e) => { e.stopPropagation(); handleDelete(evt.id); }}
                                     style={{ background: 'none', border: 'none', color: '#ffffff40', cursor: 'pointer', fontSize: '0.8rem' }}

@@ -25,8 +25,8 @@ const ContactPage = () => {
 
             <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '4rem 2rem' }}>
                 <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-                    <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '1rem', color: '#0f172a' }}>Get in Touch with Our Team</h1>
-                    <p style={{ fontSize: '1.25rem', color: '#64748b' }}>Have questions? We're here to help.</p>
+                    <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '1rem', color: 'var(--landing-text)' }}>Get in Touch with Our Team</h1>
+                    <p style={{ fontSize: '1.25rem', color: 'var(--landing-text-secondary)' }}>Have questions? We're here to help.</p>
                 </div>
 
                 <div className="contact-grid" style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '3rem', background: 'white', padding: '3rem', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 20px 40px -10px rgba(0,0,0,0.05)' }}>
@@ -76,15 +76,15 @@ const ContactPage = () => {
                                 <div>
                                     <div style={{ fontWeight: 600, color: '#0f172a' }}>Phone</div>
                                     <div style={{ color: '#64748b', fontSize: '0.9rem' }}>+91 80753 55024</div>
-                                    <div style={{ color: '#64748b', fontSize: '0.8rem' }}>(Admin Aadil S P)</div>
+                                    <div style={{ color: 'var(--landing-text-secondary)', fontSize: '0.8rem' }}>(Admin Aadil S P)</div>
                                 </div>
                             </div>
 
                             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                                 <div style={{ background: '#e0f2fe', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0284c7', flexShrink: 0 }}>📍</div>
                                 <div>
-                                    <div style={{ fontWeight: 600, color: '#0f172a' }}>Address</div>
-                                    <div style={{ color: '#64748b', fontSize: '0.9rem' }}>
+                                    <div style={{ fontWeight: 600, color: 'var(--landing-text)' }}>Address</div>
+                                    <div style={{ color: 'var(--landing-text-secondary)', fontSize: '0.9rem' }}>
                                         TinkerHub<br />
                                         Kochi, Kerala<br />
                                         India
