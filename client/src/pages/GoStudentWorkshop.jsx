@@ -5,12 +5,17 @@ import { useAuth, API_BASE_URL } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import '../styles/go_student_workshop.css';
 
-const GoStudentWorkshop = () => {
-    const { user } = useAuth();
+const GoStudentWorkshop = ({ isEmbedded = false }) => {
+    const { user, logout } = useAuth();
     const socket = useSocket();
     const navigate = useNavigate();
     const [workshop, setWorkshop] = useState(null);
-    const [currentIndex, setCurrentIndex] = useState(0);
+    const [currentIndex, setCurrentIndex] = useState(() => {
+        if (user?.role === 'admin') {
+            return parseInt(localStorage.getItem(`current_step_${user.workshopId}`)) || 0;
+        }
+        return 0;
+    });
     const [completed, setCompleted] = useState(false);
     const [loading, setLoading] = useState(true);
     const [selectedQuizIndex, setSelectedQuizIndex] = useState(null);
@@ -137,6 +142,20 @@ const GoStudentWorkshop = () => {
         alert('Certificate training complete! Request sent to instructor.');
     };
 
+    const handleReturnToPortal = () => {
+        logout();
+        navigate('/');
+    };
+
+    const handleRedo = () => {
+        if (socket) {
+            socket.emit('reset_workshop_progress');
+        }
+        setCurrentIndex(0);
+        setCompleted(false);
+        setIsCertificateRequested(false);
+    };
+
     if (loading) return <div className="go-workshop-loader">SYNCHRONIZING WORKSHOP...</div>;
     if (!workshop) return <div className="go-workshop-error">Workshop not found.</div>;
 
@@ -160,7 +179,18 @@ const GoStudentWorkshop = () => {
                         <button onClick={handleRequestCertificate} className="cert-btn">GENERATE CERTIFICATE</button>
                     )}
 
-                    <button onClick={() => navigate('/')} className="return-btn">RETURN TO PORTAL</button>
+                    <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <button onClick={handleRedo} className="redo-btn" style={{
+                            background: 'rgba(255, 123, 0, 0.1)',
+                            border: '1px solid var(--primary)',
+                            color: 'var(--primary)',
+                            padding: '14px 30px',
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            fontWeight: '700'
+                        }}>REDO WORKSHOP</button>
+                        <button onClick={handleReturnToPortal} className="return-btn">RETURN TO PORTAL</button>
+                    </div>
                     <div className="completion-decoration"></div>
                 </motion.div>
             </div>
@@ -168,17 +198,19 @@ const GoStudentWorkshop = () => {
     }
 
     return (
-        <div className="go-student-workshop-container">
-            <header className="workshop-view-header">
-                <div className="ws-brand">
-                    <div className="logo-box-sm">H</div>
-                    <span className="ws-title-top">{workshop.title}</span>
-                </div>
-                <div className="student-profile">
-                    <span>{user.username}</span>
-                    <button onClick={() => navigate('/')} className="exit-ws">EXIT</button>
-                </div>
-            </header>
+        <div className={isEmbedded ? "go-student-workshop-embedded" : "go-student-workshop-container"}>
+            {!isEmbedded && (
+                <header className="workshop-view-header">
+                    <div className="ws-brand">
+                        <div className="logo-box-sm">H</div>
+                        <span className="ws-title-top">{workshop.title}</span>
+                    </div>
+                    <div className="student-profile">
+                        <span>{user.username}</span>
+                        <button onClick={handleReturnToPortal} className="exit-ws">EXIT</button>
+                    </div>
+                </header>
+            )}
 
             <main className="workshop-viewer-main">
                 <AnimatePresence mode="wait">

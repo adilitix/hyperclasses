@@ -39,10 +39,22 @@ const GoLogin = ({ forcedRole }) => {
             const res = await login(loginUsername, role === 'admin' ? loginPassword : null, role, loginEventId);
 
             if (res.success) {
+                // Get fresh user from localstorage or context if possible, 
+                // but login returns {success:true} usually.
+                // However, AuthContext.login updates the 'user' state.
+                // We need to wait for the state to update or use the data from login if it returned it.
+                // Actually, our login implementation in AuthContext returns {success: true} after setting state.
+                // Let's use the local storage as a fallback to check what was saved.
+                const savedUser = JSON.parse(localStorage.getItem('user'));
+
                 if (role === 'admin') {
                     navigate('/app');
                 } else {
-                    navigate('/go/student/classroom');
+                    if (savedUser && savedUser.workshopId) {
+                        navigate('/go/student/classroom');
+                    } else {
+                        navigate('/app');
+                    }
                 }
             } else {
                 setError(res.message);

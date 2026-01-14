@@ -55,7 +55,8 @@ function Login() {
     const { user } = useAuth();
     useEffect(() => {
         if (user && user.role === 'student') {
-            if (user.isWorkshop) {
+            // Live Go sessions (isWorkshop: true but no static workshopId) should use the main app layout
+            if (user.workshopId) {
                 navigate('/go/student/classroom');
             } else {
                 navigate('/app');

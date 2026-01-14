@@ -44,6 +44,9 @@ function ProtectedRoute({ children }) {
 function LoginWrapper() {
     const { user } = useAuth();
     if (user) {
+        if (user.role === 'student' && user.workshopId) {
+            return <Navigate to="/go/student/classroom" replace />;
+        }
         return <Navigate to="/app" replace />;
     }
     return <Login />;
@@ -65,7 +68,7 @@ function App() {
                             <Route path="/login" element={<LoginWrapper />} />
                             <Route path="/admin/login" element={<AdminLoginRedirect />} />
                             <Route path="/go/login" element={<GoLogin />} />
-                            <Route path="/go/portal" element={<Navigate to="/app" replace />} />
+                            {/* Unified App handles these cases now */}
                             <Route path="/go/admin/classroom" element={<ComingSoon title="Admin Control" />} />
                             <Route path="/go/student/classroom" element={<GoStudentWorkshop />} />
                             <Route path="/app/*" element={

@@ -1,0 +1,730 @@
+import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import {
+    Users,
+    Calendar,
+    Package,
+    Award,
+    LogOut,
+    LayoutDashboard,
+    ExternalLink,
+    X,
+    Search,
+    ChevronRight,
+    Trash2,
+    Plus,
+    ShoppingCart,
+    Check,
+    CheckCircle,
+    Clock
+} from 'lucide-react';
+import { io } from 'socket.io-client';
+
+// ... external components
+const ApprovalToggle = ({ status, onToggle }) => {
+    const positions = { rejected: 0, pending: 1, approved: 2 };
+    const colors = { rejected: '#ef4444', pending: '#64748b', approved: '#10b981' };
+
+    return (
+        <div className="approval-toggle-container">
+            <div className="toggle-track">
+                <motion.div
+                    className="toggle-thumb"
+                    animate={{ x: positions[status] * 30 }}
+                    style={{ backgroundColor: colors[status] }}
+                />
+                <button onClick={() => onToggle('rejected')} className="toggle-btn-zone" />
+                <button onClick={() => onToggle('pending')} className="toggle-btn-zone" />
+                <button onClick={() => onToggle('approved')} className="toggle-btn-zone" />
+            </div>
+            <span className="status-label" style={{ color: colors[status] }}>{status}</span>
+        </div>
+    );
+};
+
+const CertificatePaper = ({ data, settings, scale = 1 }) => {
+    if (!settings) return null;
+
+    const { title, subtitle, description, signatureName, signatureRole, themeColor } = settings;
+    // Default data if previewing without specific data
+    const studentName = data?.studentName || 'Student Name';
+    const workshopName = data?.workshopName || 'Workshop Title';
+    const dateStr = data?.date ? new Date(data.date).toLocaleDateString() : new Date().toLocaleDateString();
+    const certId = data?.certificateId || 'ADX-EV-001';
+
+    return (
+        <div className="certificate-paper-container" style={{
+            width: '800px',
+            height: '600px',
+            position: 'relative',
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left', // Scale from top-left for preview container
+            marginBottom: scale < 1 ? `-${(1 - scale) * 600}px` : '0', // Negative margin to reduce whitespace when scaled down
+            marginRight: scale < 1 ? `-${(1 - scale) * 800}px` : '0'
+        }}>
+            <div className="certificate-paper" style={{
+                width: '100%',
+                height: '100%',
+                background: '#fff',
+                padding: '40px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                border: `10px solid ${themeColor}`,
+                boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                position: 'relative',
+                overflow: 'hidden'
+            }}>
+                {/* Decorative Corners (Optional, kept simple for now) */}
+
+                {/* Header */}
+                <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                    <h1 style={{
+                        fontFamily: "'Cinzel', serif",
+                        fontSize: '3.5rem',
+                        color: themeColor,
+                        margin: 0,
+                        letterSpacing: '2px',
+                        textTransform: 'uppercase'
+                    }}>
+                        {title}
+                    </h1>
+                    <p style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontSize: '1.2rem',
+                        color: '#64748b',
+                        marginTop: '10px',
+                        letterSpacing: '1px'
+                    }}>
+                        {subtitle}
+                    </p>
+                </div>
+
+                {/* Main Content */}
+                <div style={{ textAlign: 'center', width: '100%' }}>
+                    <h2 style={{
+                        fontFamily: "'Great Vibes', cursive",
+                        fontSize: '4.5rem',
+                        color: '#1e293b',
+                        margin: '20px 0',
+                        lineHeight: 1
+                    }}>
+                        {studentName}
+                    </h2>
+                    <p style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontSize: '1.1rem',
+                        color: '#475569',
+                        maxWidth: '80%',
+                        margin: '0 auto',
+                        lineHeight: '1.6'
+                    }}>
+                        {description} <br />
+                        <span style={{
+                            fontSize: '1.5rem',
+                            fontWeight: 'bold',
+                            color: themeColor,
+                            display: 'block',
+                            marginTop: '10px'
+                        }}>
+                            {workshopName}
+                        </span>
+                    </p>
+                </div>
+
+                {/* Footer / Signatures */}
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    padding: '0 40px',
+                    marginTop: '20px'
+                }}>
+                    <div style={{ textAlign: 'center' }}>
+                        <div style={{
+                            fontFamily: "'Montserrat', sans-serif",
+                            fontSize: '1rem',
+                            borderBottom: '2px solid #cbd5e1',
+                            paddingBottom: '5px',
+                            minWidth: '200px',
+                            marginBottom: '5px',
+                            color: '#1e293b'
+                        }}>
+                            {dateStr}
+                        </div>
+                        <span style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px' }}>Date Issued</span>
+                    </div>
+
+                    <div style={{ textAlign: 'center' }}>
+                        <div style={{
+                            fontFamily: "'Great Vibes', cursive",
+                            fontSize: '2rem',
+                            color: themeColor,
+                            marginBottom: '-10px' // Pull signature closer to line
+                        }}>
+                            {signatureName}
+                        </div>
+                        <div style={{
+                            fontFamily: "'Montserrat', sans-serif",
+                            fontSize: '1rem',
+                            borderBottom: '2px solid #cbd5e1',
+                            paddingBottom: '5px',
+                            minWidth: '200px',
+                            marginBottom: '5px'
+                        }}>
+                            {/* Line for signature */}
+                        </div>
+                        <span style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px' }}>{signatureRole}</span>
+                    </div>
+                </div>
+
+                {/* ID Badge */}
+                <div style={{
+                    position: 'absolute',
+                    bottom: '10px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    fontSize: '0.7rem',
+                    color: '#cbd5e1',
+                    fontFamily: 'monospace'
+                }}>
+                    ID: {certId}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const AdminDashboard = () => {
+    const navigate = useNavigate();
+    const [registrations, setRegistrations] = useState([]);
+    const [inventory, setInventory] = useState([]);
+    const [orders, setOrders] = useState([]);
+    const [completions, setCompletions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [activeView, setActiveView] = useState('dashboard');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showAddProduct, setShowAddProduct] = useState(false);
+    const [newItem, setNewItem] = useState({ name: '', count: '', category: '' });
+    const [showCertificatePreview, setShowCertificatePreview] = useState(false);
+    const [certificateData, setCertificateData] = useState(null);
+    const [certSettings, setCertSettings] = useState({
+        title: 'Certificate of Achievement',
+        subtitle: 'This is to certify that',
+        description: 'has successfully completed the workshop on',
+        signatureName: 'Aadil',
+        signatureRole: 'Program Director',
+        themeColor: '#059669'
+    });
+    const [showCertSettings, setShowCertSettings] = useState(false);
+
+    useEffect(() => {
+        const isAdmin = localStorage.getItem('adilitix_admin');
+        if (!isAdmin) {
+            navigate('/admin-login');
+        } else {
+            fetchData();
+
+            // Setup real-time updates
+            const socket = io('http://localhost:3000');
+            socket.on('adilitix_update', () => {
+                console.log('🔄 Data update received via socket');
+                fetchData(true);
+            });
+
+            return () => socket.disconnect();
+        }
+    }, [navigate]);
+
+    const fetchData = async (silent = false) => {
+        if (!silent) setLoading(true);
+        try {
+            const [regRes, invRes, ordRes, compRes, setRes] = await Promise.all([
+                fetch('/api/adilitix/registrations'),
+                fetch('/api/adilitix/inventory'),
+                fetch('/api/adilitix/orders'),
+                fetch('/api/adilitix/completions'),
+                fetch('/api/adilitix/certificates/settings')
+            ]);
+            setRegistrations(await regRes.json());
+            setInventory(await invRes.json());
+            setOrders(await ordRes.json());
+            setCompletions(await compRes.json());
+            const settings = await setRes.json();
+            if (settings && settings.title) setCertSettings(settings);
+        } catch (err) {
+            console.error('Failed to fetch admin data:', err);
+        } finally {
+            if (!silent) setLoading(false);
+        }
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('adilitix_admin');
+        navigate('/');
+    };
+
+    const deleteRegistration = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this registration?')) return;
+        await fetch(`/api/adilitix/registrations/${id}`, { method: 'DELETE' });
+        fetchData(true);
+    };
+
+    const updateRegStatus = async (id, status) => {
+        await fetch(`/api/adilitix/registrations/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        fetchData(true);
+    };
+
+    const deleteInventoryItem = async (id) => {
+        if (!window.confirm('Delete this item?')) return;
+        await fetch(`/api/adilitix/inventory/${id}`, { method: 'DELETE' });
+        fetchData(true);
+    };
+
+    const addInventoryItem = async (e) => {
+        e.preventDefault();
+        if (!newItem.name) return;
+
+        await fetch('/api/adilitix/inventory', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: newItem.name,
+                count: parseInt(newItem.count, 10) || 0,
+                category: newItem.category
+            })
+        });
+
+        setNewItem({ name: '', count: '', category: '' });
+        setShowAddProduct(false);
+        fetchData(true);
+    };
+
+    const updateInventoryCount = async (id, currentCount, delta) => {
+        const newCount = Math.max(0, currentCount + delta);
+        await fetch(`/api/adilitix/inventory/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ count: newCount })
+        });
+        fetchData(true);
+    };
+
+    const updateOrderStatus = async (id, status) => {
+        await fetch(`/api/adilitix/orders/${id}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        fetchData(true);
+    };
+
+    const deleteOrder = async (id) => {
+        if (!window.confirm('Delete this order?')) return;
+        await fetch(`/api/adilitix/orders/${id}`, { method: 'DELETE' });
+        fetchData(true);
+    };
+
+    const issueCertificate = async (workshopId, username) => {
+        await fetch('/api/adilitix/certificates/issue', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ workshopId, username })
+        });
+        fetchData(true);
+    };
+
+    const viewCertificate = async (workshopId, username) => {
+        const res = await fetch(`/api/adilitix/certificates/view/${workshopId}/${username}`);
+        const data = await res.json();
+        setCertificateData(data);
+        setShowCertificatePreview(true);
+    };
+
+    const saveCertSettings = async (e) => {
+        e.preventDefault();
+        await fetch('/api/adilitix/certificates/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(certSettings)
+        });
+        setShowCertSettings(false);
+        fetchData(true);
+    };
+
+    const dashboardCards = [
+        {
+            id: 'registrations',
+            title: 'Registrations',
+            icon: <Users size={24} />,
+            color: '#0066ff',
+            count: `${registrations.length} Total`,
+            action: () => setActiveView('registrations')
+        },
+        {
+            id: 'orders',
+            title: 'Store Orders',
+            icon: <ShoppingCart size={24} />,
+            color: '#10b981',
+            count: `${orders.length} Pending`,
+            action: () => setActiveView('orders')
+        },
+        {
+            id: 'inventory',
+            title: 'Inventory',
+            icon: <Package size={24} />,
+            color: '#ff7b00',
+            count: `${inventory.length} Items`,
+            action: () => setActiveView('inventory')
+        },
+        {
+            id: 'certificates',
+            title: 'Manage Certificates',
+            icon: <Award size={24} />,
+            color: '#8b5cf6',
+            count: `${completions.length} Completed`,
+            action: () => setActiveView('certificates')
+        }
+    ];
+
+    const renderRegistrationListView = () => (
+        <motion.div key="registrations" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="view-container">
+            <div className="view-header">
+                <h2>Registration Management</h2>
+                <button onClick={() => setActiveView('dashboard')} className="close-view-btn"><X size={20} /></button>
+            </div>
+            <div className="list-controls">
+                <div className="search-bar"><Search size={18} /><input type="text" placeholder="Filter student..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} /></div>
+            </div>
+            <div className="data-table-wrapper">
+                <table className="data-table">
+                    <thead><tr><th>Student</th><th>Course</th><th>Event</th><th>Status (Reject | Mid | Appr)</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        {registrations.filter(r => r.name?.toLowerCase().includes(searchQuery.toLowerCase())).map(reg => (
+                            <tr key={reg.id}>
+                                <td><div className="user-cell"><div className="user-avatar-sm">{reg.name?.charAt(0)}</div>{reg.name}</div></td>
+                                <td>{reg.course}</td>
+                                <td><span className="event-badge">{reg.eventId || 'General'}</span></td>
+                                <td><ApprovalToggle status={reg.status || 'pending'} onToggle={(s) => updateRegStatus(reg.id, s)} /></td>
+                                <td><button onClick={() => deleteRegistration(reg.id)} className="icon-btn-red"><Trash2 size={18} /></button></td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </motion.div>
+    );
+
+    const renderInventoryView = () => (
+        <motion.div key="inventory" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="view-container">
+            <div className="view-header">
+                <h2>Inventory Management</h2>
+                <div style={{ display: 'flex', gap: '15px' }}>
+                    <button onClick={() => setShowAddProduct(true)} className="cta-primary-sm"><Plus size={18} /> Add Product</button>
+                    <button onClick={() => setActiveView('dashboard')} className="close-view-btn"><X size={20} /></button>
+                </div>
+            </div>
+
+            {showAddProduct && (
+                <div className="overlay-glass" style={{
+                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)'
+                }}>
+                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="modal-box" style={{
+                        background: 'var(--ad-card)', padding: '30px', borderRadius: '24px', width: '400px',
+                        border: '1px solid var(--ad-border)',
+                        boxShadow: '0 20px 50px rgba(0,0,0,0.2)'
+                    }}>
+                        <h3 style={{ marginBottom: '20px', fontSize: '1.4rem' }}>Add New Product</h3>
+                        <form onSubmit={addInventoryItem} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                            <div className="form-group">
+                                <label>Item Name</label>
+                                <input autoFocus type="text" value={newItem.name} onChange={e => setNewItem({ ...newItem, name: e.target.value })} required placeholder="e.g. Arduino Uno" />
+                            </div>
+                            <div className="form-group">
+                                <label>Quantity</label>
+                                <input type="number" value={newItem.count} onChange={e => setNewItem({ ...newItem, count: e.target.value })} required placeholder="0" />
+                            </div>
+                            <div className="form-group">
+                                <label>Category</label>
+                                <input type="text" value={newItem.category} onChange={e => setNewItem({ ...newItem, category: e.target.value })} placeholder="e.g. Microcontrollers" />
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <button type="button" onClick={() => setShowAddProduct(false)} className="cta-secondary" style={{ flex: 1, padding: '12px', justifyContent: 'center' }}>Cancel</button>
+                                <button type="submit" className="cta-primary" style={{ flex: 1, padding: '12px', justifyContent: 'center' }}>Add Product</button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
+
+            <div className="db-grid">
+                {inventory.map(item => (
+                    <div key={item.id} className="inventory-card">
+                        <div className="inv-info">
+                            <h3>{item.name}</h3>
+                            <span className="inv-cat">{item.category}</span>
+                        </div>
+                        <div className="inv-mgmt">
+                            <div className="qty-control-group">
+                                <button onClick={() => updateInventoryCount(item.id, item.count, -1)} className="qty-btn-sm">-</button>
+                                <span className="count-num-sm">{item.count}</span>
+                                <button onClick={() => updateInventoryCount(item.id, item.count, 1)} className="qty-btn-sm">+</button>
+                            </div>
+                            <button onClick={() => deleteInventoryItem(item.id)} className="icon-btn-red"><Trash2 size={16} /></button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </motion.div>
+    );
+
+    const renderOrdersListView = () => (
+        <motion.div key="orders" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="view-container">
+            <div className="view-header">
+                <h2>Product Requirements (Orders)</h2>
+                <button onClick={() => setActiveView('dashboard')} className="close-view-btn"><X size={20} /></button>
+            </div>
+            <div className="data-table-wrapper">
+                <table className="data-table">
+                    <thead><tr><th>Customer</th><th>Requirements / Items</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        {orders.map(order => (
+                            <tr key={order.id} style={{ opacity: order.status === 'completed' ? 0.6 : 1 }}>
+                                <td>
+                                    <div className="user-cell">
+                                        <b>{order.name}</b>
+                                        <small style={{ color: 'var(--ad-text-dim)' }}>{order.phone}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div className="order-items-list">
+                                        {order.items?.map(i => <span key={i.id} className="item-tag">{i.name} (x{i.quantity})</span>)}
+                                        {order.requirements && <p className="req-text" style={{ marginTop: '8px', fontSize: '0.85rem' }}>"{order.requirements}"</p>}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style={{
+                                        color: order.status === 'completed' ? '#10b981' : '#f59e0b',
+                                        fontWeight: '700', textTransform: 'uppercase', fontSize: '0.75rem'
+                                    }}>
+                                        {order.status || 'pending'}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={order.status === 'completed'}
+                                                onChange={(e) => updateOrderStatus(order.id, e.target.checked ? 'completed' : 'pending')}
+                                                style={{ width: '18px', height: '18px', accentColor: 'var(--ad-primary)', cursor: 'pointer' }}
+                                            />
+                                            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: order.status === 'completed' ? 'var(--ad-primary)' : 'var(--ad-text)' }}>
+                                                Delivered
+                                            </span>
+                                        </label>
+                                        <button onClick={() => deleteOrder(order.id)} className="icon-btn-red" title="Delete Order"><Trash2 size={16} /></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </motion.div>
+    );
+
+    const renderCertificatesView = () => {
+        const mockData = {
+            studentName: 'John Doe',
+            workshopName: 'Robotics Masterclass',
+            date: new Date().toISOString(),
+            certificateId: 'ADX-EV-001'
+        };
+
+        return (
+            <motion.div key="certificates" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="view-container">
+                <div className="view-header">
+                    <h2>Workshop Completions (HyperGo)</h2>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button onClick={() => setShowCertSettings(true)} className="cta-secondary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
+                            Certificate Template
+                        </button>
+                        <button onClick={() => setActiveView('dashboard')} className="close-view-btn"><X size={20} /></button>
+                    </div>
+                </div>
+                <div className="data-table-wrapper">
+                    <table className="data-table">
+                        <thead><tr><th>Student ID</th><th>Workshop ID</th><th>Completion Date</th><th>Action</th></tr></thead>
+                        <tbody>
+                            {completions.map((comp, idx) => (
+                                <tr key={idx}>
+                                    <td><b>{comp.username}</b></td>
+                                    <td><span className="event-badge">{comp.workshopId}</span></td>
+                                    <td>{new Date(comp.completedAt).toLocaleDateString()}</td>
+                                    <td>
+                                        {comp.certificateIssued ? (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                                                    <CheckCircle size={14} /> Issued
+                                                </span>
+                                                <button
+                                                    onClick={() => viewCertificate(comp.workshopId, comp.username)}
+                                                    className="nav-btn-subtle"
+                                                    title="View & Print"
+                                                    style={{ padding: '6px 12px', fontSize: '0.75rem', height: 'auto', background: 'transparent' }}
+                                                >
+                                                    View
+                                                </button>
+                                                <button
+                                                    onClick={() => issueCertificate(comp.workshopId, comp.username)}
+                                                    className="nav-btn-subtle"
+                                                    title="Reissue"
+                                                    style={{ padding: '6px 12px', fontSize: '0.75rem', height: 'auto', background: 'transparent' }}
+                                                >
+                                                    Reissue
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button className="cta-primary-sm" onClick={() => issueCertificate(comp.workshopId, comp.username)}>
+                                                <Award size={16} /> Issue Certificate
+                                            </button>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Certificate Settings Modal */}
+                {showCertSettings && (
+                    <div className="overlay-glass" style={{
+                        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)'
+                    }}>
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="modal-box" style={{
+                            background: 'var(--ad-card)', padding: '30px', borderRadius: '24px', width: '900px',
+                            border: '1px solid var(--ad-border)',
+                            boxShadow: '0 20px 50px rgba(0,0,0,0.2)',
+                            display: 'flex', gap: '30px', justifyContent: 'space-between', maxHeight: '90vh', overflowY: 'auto'
+                        }}>
+                            <div style={{ flex: 1 }}>
+                                <h3 style={{ marginBottom: '20px', fontSize: '1.4rem' }}>Certificate Template</h3>
+                                <form onSubmit={saveCertSettings} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    <div className="form-group">
+                                        <label>Title</label>
+                                        <input type="text" value={certSettings.title} onChange={e => setCertSettings({ ...certSettings, title: e.target.value })} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Subtitle</label>
+                                        <input type="text" value={certSettings.subtitle} onChange={e => setCertSettings({ ...certSettings, subtitle: e.target.value })} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Description (before Workshop Name)</label>
+                                        <input type="text" value={certSettings.description} onChange={e => setCertSettings({ ...certSettings, description: e.target.value })} required />
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <div className="form-group" style={{ flex: 1 }}>
+                                            <label>Signatory Name</label>
+                                            <input type="text" value={certSettings.signatureName} onChange={e => setCertSettings({ ...certSettings, signatureName: e.target.value })} required />
+                                        </div>
+                                        <div className="form-group" style={{ flex: 1 }}>
+                                            <label>Signatory Role</label>
+                                            <input type="text" value={certSettings.signatureRole} onChange={e => setCertSettings({ ...certSettings, signatureRole: e.target.value })} required />
+                                        </div>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Theme Color</label>
+                                        <input type="color" value={certSettings.themeColor} onChange={e => setCertSettings({ ...certSettings, themeColor: e.target.value })} style={{ width: '100%', height: '40px' }} />
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                        <button type="button" onClick={() => setShowCertSettings(false)} className="cta-secondary" style={{ flex: 1, padding: '12px', justifyContent: 'center' }}>Cancel</button>
+                                        <button type="submit" className="cta-primary" style={{ flex: 1, padding: '12px', justifyContent: 'center' }}>Save Template</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', background: '#f8fafc', borderRadius: '16px', flexDirection: 'column', gap: '10px' }}>
+                                <div style={{ fontWeight: 'bold', color: 'var(--ad-text-dim)', fontSize: '0.9rem' }}>LIVE PREVIEW</div>
+                                <CertificatePaper data={mockData} settings={certSettings} scale={0.4} />
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </motion.div>
+        );
+    };
+
+    return (
+        <div className="admin-dashboard-layout">
+            <aside className="db-sidebar">
+                <div className="logo">ADILITIX</div>
+                <nav className="db-nav">
+                    <button onClick={() => setActiveView('dashboard')} className={`db-nav-item ${activeView === 'dashboard' ? 'active' : ''}`}><LayoutDashboard size={18} /> Dashboard</button>
+                    <button onClick={() => setActiveView('registrations')} className={`db-nav-item ${activeView === 'registrations' ? 'active' : ''}`}><Users size={18} /> Registrations</button>
+                    <button onClick={() => setActiveView('orders')} className={`db-nav-item ${activeView === 'orders' ? 'active' : ''}`}><ShoppingCart size={18} /> View Orders</button>
+                    <button onClick={() => setActiveView('inventory')} className={`db-nav-item ${activeView === 'inventory' ? 'active' : ''}`}><Package size={18} /> Inventory</button>
+                    <button onClick={() => setActiveView('certificates')} className={`db-nav-item ${activeView === 'certificates' ? 'active' : ''}`}><Award size={18} /> Completions</button>
+                    <a href="http://localhost:3000" target="_blank" rel="noopener noreferrer" className="db-nav-item">
+                        <ExternalLink size={18} /> Hyperclass App
+                    </a>
+                </nav>
+                <div style={{ flex: 1 }}></div>
+                <button onClick={handleLogout} className="db-logout-btn"><LogOut size={18} /> Exit Admin</button>
+            </aside>
+
+            <main className="db-main">
+                <header className="db-header">
+                    <div className="header-breadcrumbs"><span>Adilitix Admin</span>{activeView !== 'dashboard' && <><ChevronRight size={14} /><span>{activeView}</span></>}</div>
+                    <div className="admin-user-info"><span>Welcome, <b>Aadil</b></span><div className="avatar">A</div></div>
+                </header>
+
+                <div className="db-content">
+                    {loading ? <div className="db-loader">Fetching latest data...</div> : (
+                        <AnimatePresence mode="wait">
+                            {activeView === 'dashboard' && (
+                                <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="db-grid">
+                                    {dashboardCards.map(card => (
+                                        <div key={card.id} className="db-card" onClick={card.action}>
+                                            <div className="card-icon" style={{ backgroundColor: `${card.color}15`, color: card.color }}>{card.icon}</div>
+                                            <div className="card-info"><h3>{card.title}</h3><p>{card.count}</p></div>
+                                            <div className="card-action"><ChevronRight size={18} /></div>
+                                        </div>
+                                    ))}
+                                </motion.div>
+                            )}
+                            {activeView === 'registrations' && renderRegistrationListView()}
+                            {activeView === 'inventory' && renderInventoryView()}
+                            {activeView === 'orders' && renderOrdersListView()}
+                            {activeView === 'certificates' && renderCertificatesView()}
+                        </AnimatePresence>
+                    )}
+                </div>
+            </main>
+            {/* Certificate Preview Overlay */}
+            {showCertificatePreview && certificateData && (
+                <div className="certificate-preview-overlay" style={{
+                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 2000,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    padding: '20px'
+                }}>
+                    <div className="no-print" style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+                        <button className="cta-primary" onClick={() => window.print()}><ExternalLink size={18} /> Print / Save PDF</button>
+                        <button className="cta-secondary" onClick={() => setShowCertificatePreview(false)}><X size={18} /> Close</button>
+                    </div>
+
+                    <CertificatePaper data={certificateData} settings={certificateData.settings} scale={1} />
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default AdminDashboard;

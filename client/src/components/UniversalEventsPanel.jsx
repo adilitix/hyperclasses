@@ -74,11 +74,7 @@ function UniversalEventsPanel({ onEnterEvent }) {
     };
 
     const handleEnter = (evt) => {
-        if (evt.isWorkshop) {
-            navigate(`/go/portal`);
-        } else {
-            onEnterEvent(evt.id, evt.name);
-        }
+        onEnterEvent(evt.id, evt.name, evt.isWorkshop);
     };
 
     return (

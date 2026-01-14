@@ -10,6 +10,10 @@ const WORKSHOP_PROGRESS_FILE = path.join(__dirname, '../data/workshop_progress.j
 
 // --- DATABASE HELPERS ---
 const WORKSHOPS_FILE = path.join(DB_DIR, 'workshops.json');
+const ADILITIX_REGISTRATIONS_FILE = path.join(DB_DIR, 'adilitix_registrations.json');
+const ADILITIX_INVENTORY_FILE = path.join(DB_DIR, 'adilitix_inventory.json');
+const ADILITIX_ORDERS_FILE = path.join(DB_DIR, 'adilitix_orders.json');
+const ADILITIX_CERT_SETTINGS_FILE = path.join(DB_DIR, 'adilitix_certificate_settings.json');
 
 // Ensure database directories exist
 function initDatabase() {
@@ -283,6 +287,12 @@ module.exports = {
     saveSettings,
     loadWorkshops,
     saveWorkshops,
+    loadAdilitixRegistrations,
+    saveAdilitixRegistrations,
+    loadAdilitixInventory,
+    saveAdilitixInventory,
+    loadAdilitixOrders,
+    saveAdilitixOrders,
     loadWorkshopProgress,
     saveWorkshopProgress,
     restoreFromCloud,
@@ -370,3 +380,86 @@ function saveWorkshopProgress(progress) {
     } catch (err) { console.error(err); }
     supabase.syncToCloud('workshop_progress', progress).catch(console.error);
 }
+
+function loadAdilitixRegistrations() {
+    try {
+        if (fs.existsSync(ADILITIX_REGISTRATIONS_FILE)) {
+            return JSON.parse(fs.readFileSync(ADILITIX_REGISTRATIONS_FILE, 'utf8'));
+        }
+    } catch (err) { console.error('Error loading Adilitix registrations:', err); }
+    return [];
+}
+
+function saveAdilitixRegistrations(registrations) {
+    try {
+        fs.writeFileSync(ADILITIX_REGISTRATIONS_FILE, JSON.stringify(registrations, null, 2));
+    } catch (err) { console.error('Error saving Adilitix registrations:', err); }
+    supabase.syncToCloud('adilitix_registrations', registrations).catch(console.error);
+}
+
+function loadAdilitixInventory() {
+    try {
+        if (fs.existsSync(ADILITIX_INVENTORY_FILE)) {
+            return JSON.parse(fs.readFileSync(ADILITIX_INVENTORY_FILE, 'utf8'));
+        }
+    } catch (err) { console.error('Error loading Adilitix inventory:', err); }
+    return [
+        { id: '1', name: 'Arduino Nano', count: 45, category: 'Microcontrollers' },
+        { id: '2', name: 'SG90 Servo', count: 120, category: 'Actuators' },
+        { id: '3', name: 'HC-SR04 Sensor', count: 80, category: 'Sensors' }
+    ];
+}
+
+function saveAdilitixInventory(inventory) {
+    try {
+        fs.writeFileSync(ADILITIX_INVENTORY_FILE, JSON.stringify(inventory, null, 2));
+    } catch (err) { console.error('Error saving Adilitix inventory:', err); }
+    supabase.syncToCloud('adilitix_inventory', inventory).catch(console.error);
+}
+
+function loadAdilitixOrders() {
+    try {
+        if (fs.existsSync(ADILITIX_ORDERS_FILE)) {
+            return JSON.parse(fs.readFileSync(ADILITIX_ORDERS_FILE, 'utf8'));
+        }
+    } catch (err) { console.error('Error loading Adilitix orders:', err); }
+    return [];
+}
+
+function saveAdilitixOrders(orders) {
+    try {
+        fs.writeFileSync(ADILITIX_ORDERS_FILE, JSON.stringify(orders, null, 2));
+    } catch (err) { console.error('Error saving Adilitix orders:', err); }
+    supabase.syncToCloud('adilitix_orders', orders).catch(console.error);
+}
+
+function loadAdilitixCertificateSettings() {
+    try {
+        if (fs.existsSync(ADILITIX_CERT_SETTINGS_FILE)) {
+            return JSON.parse(fs.readFileSync(ADILITIX_CERT_SETTINGS_FILE, 'utf8'));
+        }
+    } catch (err) { console.error('Error loading cert settings:', err); }
+    return {};
+}
+
+function saveAdilitixCertificateSettings(settings) {
+    try {
+        fs.writeFileSync(ADILITIX_CERT_SETTINGS_FILE, JSON.stringify(settings, null, 2));
+    } catch (err) { console.error('Error saving cert settings:', err); }
+    supabase.syncToCloud('adilitix_certificate_settings', settings).catch(console.error);
+}
+
+module.exports = {
+    initDatabase,
+    loadAdmins, saveAdmins,
+    loadEvents, saveEvent, deleteEvent,
+    loadWorkshops, saveWorkshops,
+    loadSettings, saveSettings,
+    loadWorkshopProgress, saveWorkshopProgress,
+    loadAdilitixRegistrations, saveAdilitixRegistrations,
+    loadAdilitixInventory, saveAdilitixInventory,
+    loadAdilitixOrders, saveAdilitixOrders,
+    loadAdilitixCertificateSettings, saveAdilitixCertificateSettings,
+    restoreFromCloud,
+    syncLocalToCloud
+};

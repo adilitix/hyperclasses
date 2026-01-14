@@ -3,16 +3,35 @@
     "stuu": {
       "step": 3,
       "completed": true,
-      "certificateReady": true
+      "certificateReady": true,
+      "certificateIssued": true
     },
     "adil2": {
       "step": 4,
-      "completed": true
+      "completed": true,
+      "certificateIssued": true
     },
     "aadiil": {
       "step": 4,
       "completed": true,
-      "certificateReady": true
+      "certificateReady": true,
+      "certificateIssued": true
+    }
+  },
+  "go": {
+    "ghh": {
+      "step": 0,
+      "completed": true,
+      "certificateReady": false,
+      "certificateIssued": true
+    }
+  },
+  "project": {
+    "Alsaba": {
+      "step": 9,
+      "completed": true,
+      "certificateReady": true,
+      "certificateIssued": true
     }
   }
 }

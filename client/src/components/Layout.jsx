@@ -14,6 +14,7 @@ import AboutPanel from './AboutPanel';
 import Logo from './Logo';
 import { motion, AnimatePresence } from 'framer-motion';
 import GoDashboard from './GoDashboard';
+import GoStudentWorkshop from '../pages/GoStudentWorkshop';
 import '../styles/mobile.css';
 import '../styles/landing_v2.css'; // For some shared styles
 
@@ -57,15 +58,27 @@ function Layout() {
     const [primaryColor, setPrimaryColor] = useState('#00f0ff');
 
     // Unified Platform State
-    const [activeApp, setActiveApp] = useState('flow'); // 'flow' or 'go'
+    const [activeApp, setActiveApp] = useState(user.isWorkshop ? 'go' : 'flow'); // 'flow' or 'go'
     const [adminActiveTab, setAdminActiveTab] = useState('events');
     const [currentEvent, setCurrentEvent] = useState(null);
 
-    const handleEnterEvent = (id, name) => {
-        setCurrentEvent({ id, name });
+    useEffect(() => {
+        if (user && user.role === 'student' && user.isWorkshop !== undefined) {
+            setActiveApp(user.isWorkshop ? 'go' : 'flow');
+        }
+    }, [user]);
+
+    const handleEnterEvent = (id, name, isGo = false) => {
+        setCurrentEvent({ id, name, isWorkshop: isGo });
         window.currentEventId = id; // For quick access
-        setAdminActiveTab('classroom');
-        if (isMobile) setActiveMobileTab('classroom');
+        if (isGo) {
+            setActiveApp('go');
+            setAdminActiveTab('go-engine');
+        } else {
+            setActiveApp('flow');
+            setAdminActiveTab('classroom');
+        }
+        if (isMobile) setActiveMobileTab(isGo ? 'go' : 'classroom');
         if (socket) {
             socket.emit('join_event', {
                 username: user.username,
@@ -318,175 +331,192 @@ function Layout() {
                         </>
                     ) : (
                         <>
-                            {activeApp === 'flow' ? (
-                                <>
-                                    {/* Admin Navigation - FLOW */}
-                                    {(user.role === 'admin' || user.role === 'superadmin') && !showSuperAdmin && (
-                                        <>
-                                            <div style={{ padding: '0 0.75rem 0.5rem', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', marginBottom: '10px' }}>
-                                                MANAGEMENT
-                                            </div>
-                                            <button
-                                                onClick={() => setAdminActiveTab('events')}
-                                                className="btn btn-ghost"
-                                                style={{
-                                                    justifyContent: 'flex-start',
-                                                    border: 'none',
-                                                    color: adminActiveTab === 'events' ? 'var(--primary)' : 'var(--text-secondary)',
-                                                    background: adminActiveTab === 'events' ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
-                                                    width: '100%',
-                                                    marginBottom: '0.25rem'
-                                                }}
-                                            >
-                                                <span style={{ minWidth: '24px' }}>📅</span> Events
-                                            </button>
+                            <>
+                                {/* Student Navigation - Common tools for both FLOW and GO */}
+                                {user.role === 'student' && (
+                                    <>
+                                        <div style={{ padding: '0 0.75rem 0.5rem', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
+                                            {activeApp === 'flow' ? 'Live Classroom' : 'Workshop Hub'}
+                                        </div>
+                                        <button
+                                            onClick={() => setShowTicketManager(true)}
+                                            className="btn btn-ghost"
+                                            style={{
+                                                justifyContent: 'flex-start',
+                                                border: 'none',
+                                                background: activeApp === 'go' ? 'rgba(255, 123, 0, 0.05)' : 'rgba(245, 158, 11, 0.05)',
+                                                color: activeApp === 'go' ? '#ff7b00' : '#f59e0b',
+                                                width: '100%',
+                                                marginBottom: '0.5rem'
+                                            }}
+                                        >
+                                            <span style={{ minWidth: '24px' }}>🎫</span> Raise Ticket
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setShowTimeline(true);
+                                                setShowAbout(false);
+                                                setIsSidebarOpen(false);
+                                            }}
+                                            className="btn btn-ghost"
+                                            style={{
+                                                justifyContent: 'flex-start',
+                                                border: 'none',
+                                                color: showTimeline ? 'var(--primary)' : 'var(--text-secondary)',
+                                                background: showTimeline ? (activeApp === 'go' ? 'rgba(255, 123, 0, 0.1)' : 'rgba(56, 189, 248, 0.1)') : 'transparent',
+                                                width: '100%',
+                                                marginBottom: '0.5rem'
+                                            }}
+                                        >
+                                            <span style={{ minWidth: '24px' }}>🕒</span> {activeApp === 'flow' ? 'Session History' : 'Workshop Logs'}
+                                        </button>
+                                    </>
+                                )}
 
-                                            {currentEvent && (
-                                                <>
-                                                    <div style={{ margin: '1rem 0.75rem 0.5rem', paddingTop: '1rem', borderTop: '1px solid var(--glass-border)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
-                                                        Active Session
-                                                    </div>
-                                                    {[
-                                                        { id: 'classroom', icon: '🖥️', label: 'Classroom' },
-                                                        { id: 'students', icon: '👥', label: 'Students' },
-                                                        { id: 'tickets', icon: '🎫', label: 'Tickets' },
-                                                        { id: 'chat-history', icon: '💬', label: 'Chat History' },
-                                                        { id: 'attendance', icon: '📊', label: 'Attendance' }
-                                                    ].map(tab => (
+                                {/* Admin Navigation - Case Specific */}
+                                {(user.role === 'admin' || user.role === 'superadmin') && (
+                                    <>
+                                        {activeApp === 'flow' ? (
+                                            <>
+                                                <div style={{ padding: '0 0.75rem 0.5rem', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', marginBottom: '10px' }}>
+                                                    MANAGEMENT
+                                                </div>
+                                                <button
+                                                    onClick={() => setAdminActiveTab('events')}
+                                                    className="btn btn-ghost"
+                                                    style={{
+                                                        justifyContent: 'flex-start',
+                                                        border: 'none',
+                                                        color: adminActiveTab === 'events' ? 'var(--primary)' : 'var(--text-secondary)',
+                                                        background: adminActiveTab === 'events' ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
+                                                        width: '100%',
+                                                        marginBottom: '0.25rem'
+                                                    }}
+                                                >
+                                                    <span style={{ minWidth: '24px' }}>📅</span> Events
+                                                </button>
+
+                                                {currentEvent && (
+                                                    <>
+                                                        <div style={{ margin: '1rem 0.75rem 0.5rem', paddingTop: '1rem', borderTop: '1px solid var(--glass-border)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
+                                                            Active Session
+                                                        </div>
+                                                        {[
+                                                            { id: 'classroom', icon: '🖥️', label: 'Classroom' },
+                                                            { id: 'students', icon: '👥', label: 'Students' },
+                                                            { id: 'tickets', icon: '🎫', label: 'Tickets' },
+                                                            { id: 'chat-history', icon: '💬', label: 'Chat History' },
+                                                            { id: 'attendance', icon: '📊', label: 'Attendance' }
+                                                        ].map(tab => (
+                                                            <button
+                                                                key={tab.id}
+                                                                onClick={() => setAdminActiveTab(tab.id)}
+                                                                className="btn btn-ghost"
+                                                                style={{
+                                                                    justifyContent: 'flex-start',
+                                                                    border: 'none',
+                                                                    color: adminActiveTab === tab.id ? 'var(--primary)' : 'var(--text-secondary)',
+                                                                    background: adminActiveTab === tab.id ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
+                                                                    width: '100%',
+                                                                    marginBottom: '0.25rem'
+                                                                }}
+                                                            >
+                                                                <span style={{ minWidth: '24px' }}>{tab.icon}</span> {tab.label}
+                                                            </button>
+                                                        ))}
                                                         <button
-                                                            key={tab.id}
-                                                            onClick={() => setAdminActiveTab(tab.id)}
+                                                            onClick={() => setAdminActiveTab('about')}
                                                             className="btn btn-ghost"
                                                             style={{
                                                                 justifyContent: 'flex-start',
                                                                 border: 'none',
-                                                                color: adminActiveTab === tab.id ? 'var(--primary)' : 'var(--text-secondary)',
-                                                                background: adminActiveTab === tab.id ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
+                                                                color: adminActiveTab === 'about' ? 'var(--primary)' : 'var(--text-secondary)',
+                                                                background: adminActiveTab === 'about' ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
                                                                 width: '100%',
                                                                 marginBottom: '0.25rem'
                                                             }}
                                                         >
-                                                            <span style={{ minWidth: '24px' }}>{tab.icon}</span> {tab.label}
+                                                            <span style={{ minWidth: '24px' }}>ℹ️</span> About Website
                                                         </button>
-                                                    ))}
-                                                    <button
-                                                        onClick={() => setAdminActiveTab('about')}
-                                                        className="btn btn-ghost"
-                                                        style={{
-                                                            justifyContent: 'flex-start',
-                                                            border: 'none',
-                                                            color: adminActiveTab === 'about' ? 'var(--primary)' : 'var(--text-secondary)',
-                                                            background: adminActiveTab === 'about' ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
-                                                            width: '100%',
-                                                            marginBottom: '0.25rem'
-                                                        }}
-                                                    >
-                                                        <span style={{ minWidth: '24px' }}>ℹ️</span> About Website
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            setAdminActiveTab('classroom');
-                                                            setShowTimeline(true);
-                                                        }}
-                                                        className="btn btn-ghost"
-                                                        style={{
-                                                            justifyContent: 'flex-start',
-                                                            border: 'none',
-                                                            color: 'var(--text-secondary)',
-                                                            width: '100%',
-                                                            marginBottom: '0.25rem'
-                                                        }}
-                                                    >
-                                                        <span style={{ minWidth: '24px' }}>🕒</span> Timeline
-                                                    </button>
-                                                    <button
-                                                        onClick={handleExitEvent}
-                                                        className="btn btn-ghost"
-                                                        style={{
-                                                            justifyContent: 'flex-start',
-                                                            border: 'none',
-                                                            color: 'var(--danger)',
-                                                            width: '100%',
-                                                            marginTop: '0.5rem'
-                                                        }}
-                                                    >
-                                                        <span style={{ minWidth: '24px' }}>🚪</span> Leave Session
-                                                    </button>
-                                                </>
-                                            )}
-                                        </>
-                                    )}
-
-                                    {/* Student Navigation */}
-                                    {user.role === 'student' && (
-                                        <>
-                                            <div style={{ padding: '0 0.75rem 0.5rem', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
-                                                Workshop
-                                            </div>
-                                            <button
-                                                onClick={() => setShowTicketManager(true)}
-                                                className="btn btn-ghost"
-                                                style={{
-                                                    justifyContent: 'flex-start',
-                                                    border: 'none',
-                                                    background: 'rgba(245, 158, 11, 0.05)',
-                                                    color: '#f59e0b',
-                                                    width: '100%',
-                                                    marginBottom: '0.5rem'
-                                                }}
-                                            >
-                                                <span style={{ minWidth: '24px' }}>🎫</span> Raise Ticket
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    setShowTimeline(true);
-                                                    setShowAbout(false);
-                                                    setIsSidebarOpen(false);
-                                                }}
-                                                className="btn btn-ghost"
-                                                style={{
-                                                    justifyContent: 'flex-start',
-                                                    border: 'none',
-                                                    color: showTimeline ? 'var(--primary)' : 'var(--text-secondary)',
-                                                    background: showTimeline ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
-                                                    width: '100%',
-                                                    marginBottom: '0.5rem'
-                                                }}
-                                            >
-                                                <span style={{ minWidth: '24px' }}>🕒</span> History
-                                            </button>
-                                        </>
-                                    )}
-                                </>
-                            ) : (
-                                <>
-                                    {/* Admin Navigation - GO */}
-                                    <div style={{ padding: '0 0.75rem 0.5rem', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', marginBottom: '10px' }}>
-                                        WORKSHOP MGMT
-                                    </div>
-                                    <button
-                                        onClick={() => setAdminActiveTab('go-engine')}
-                                        className="btn btn-ghost"
-                                        style={{
-                                            justifyContent: 'flex-start',
-                                            border: 'none',
-                                            color: adminActiveTab === 'go-engine' ? 'var(--primary-orange, #ff7b00)' : 'var(--text-secondary)',
-                                            background: adminActiveTab === 'go-engine' ? 'rgba(255, 123, 0, 0.1)' : 'transparent',
-                                            width: '100%',
-                                            marginBottom: '0.25rem'
-                                        }}
-                                    >
-                                        <span style={{ minWidth: '24px' }}>🚀</span> Workshop Engine
-                                    </button>
-                                    <p style={{ padding: '0 0.75rem', fontSize: '0.75rem', opacity: 0.5, lineHeight: 1.4 }}>
-                                        Use the top toggle to switch back to Live Sessions.
-                                    </p>
-                                </>
-                            )}
+                                                        <button
+                                                            onClick={() => {
+                                                                setAdminActiveTab('classroom');
+                                                                setShowTimeline(true);
+                                                            }}
+                                                            className="btn btn-ghost"
+                                                            style={{
+                                                                justifyContent: 'flex-start',
+                                                                border: 'none',
+                                                                color: 'var(--text-secondary)',
+                                                                width: '100%',
+                                                                marginBottom: '0.25rem'
+                                                            }}
+                                                        >
+                                                            <span style={{ minWidth: '24px' }}>🕒</span> Timeline
+                                                        </button>
+                                                        <button
+                                                            onClick={handleExitEvent}
+                                                            className="btn btn-ghost"
+                                                            style={{
+                                                                justifyContent: 'flex-start',
+                                                                border: 'none',
+                                                                color: 'var(--danger)',
+                                                                width: '100%',
+                                                                marginTop: '0.5rem'
+                                                            }}
+                                                        >
+                                                            <span style={{ minWidth: '24px' }}>🚪</span> Leave Session
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div style={{ padding: '0 0.75rem 0.5rem', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', marginBottom: '10px' }}>
+                                                    WORKSHOP MGMT
+                                                </div>
+                                                <button
+                                                    onClick={() => setAdminActiveTab('go-engine')}
+                                                    className="btn btn-ghost"
+                                                    style={{
+                                                        justifyContent: 'flex-start',
+                                                        border: 'none',
+                                                        color: adminActiveTab === 'go-engine' ? 'var(--primary-orange, #ff7b00)' : 'var(--text-secondary)',
+                                                        background: adminActiveTab === 'go-engine' ? 'rgba(255, 123, 0, 0.1)' : 'transparent',
+                                                        width: '100%',
+                                                        marginBottom: '0.25rem'
+                                                    }}
+                                                >
+                                                    <span style={{ minWidth: '24px' }}>🚀</span> Workshop Engine
+                                                </button>
+                                                <p style={{ padding: '0 0.75rem', fontSize: '0.74rem', opacity: 0.5, lineHeight: 1.4, marginTop: '10px' }}>
+                                                    Switch to HYPERFLOW to manage live sessions.
+                                                </p>
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                            </>
                         </>
                     )}
 
                     <div style={{ flex: 1 }}></div>
+
+                    <button
+                        onClick={() => window.open('http://localhost:3000/adilitix/register', '_blank')}
+                        className="btn btn-ghost"
+                        style={{
+                            justifyContent: 'flex-start',
+                            border: 'none',
+                            color: 'var(--primary)',
+                            background: 'rgba(56, 189, 248, 0.05)',
+                            width: '100%',
+                            marginBottom: '0.5rem',
+                            fontWeight: 800
+                        }}
+                    >
+                        <span style={{ minWidth: '24px' }}>📝</span> Register for Workshop
+                    </button>
 
                     <button
                         onClick={() => {
@@ -664,7 +694,7 @@ function Layout() {
                                 maxWidth: isMobile ? '120px' : 'auto'
                             }}>
                                 {!isMobile && <span style={{ opacity: 0.6 }}>{activeApp === 'flow' ? 'FLOW' : 'GO'} SESSION:</span>}
-                                <span>{activeApp === 'flow' ? (currentEvent?.name || user.eventName) : 'MGMT'}</span>
+                                <span>{activeApp === 'flow' ? (currentEvent?.name || user.eventName) : (currentEvent?.name || user.workshopName || user.eventName || 'WORKSHOP')}</span>
                             </div>
                         )}
                         {showSuperAdmin && (
@@ -825,7 +855,11 @@ function Layout() {
                                     className="glass-panel lesson-panel"
                                     style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
                                 >
-                                    <LeftPanel viewingSnapshot={viewingSnapshot} setViewingSnapshot={setViewingSnapshot} />
+                                    {activeApp === 'go' ? (
+                                        <GoStudentWorkshop isEmbedded={true} />
+                                    ) : (
+                                        <LeftPanel viewingSnapshot={viewingSnapshot} setViewingSnapshot={setViewingSnapshot} />
+                                    )}
                                 </motion.div>
                             )}
 

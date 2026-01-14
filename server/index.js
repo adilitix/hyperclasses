@@ -74,7 +74,11 @@ const GLOBAL_STATE = {
     settings: db.loadSettings(), // Global application settings
     blockedIPs: [], // Global blocklist
     workshop_progress: db.loadWorkshopProgress(), // { workshopId: { username: { step, completed, certificateReady } } },
-    workshop_gates: {} // { workshopId: maxStep } - 0 means unlimited
+    workshop_gates: {}, // { workshopId: maxStep } - 0 means unlimited
+    adilitix_registrations: db.loadAdilitixRegistrations(),
+    adilitix_inventory: db.loadAdilitixInventory(),
+    adilitix_orders: db.loadAdilitixOrders(),
+    adilitix_certificate_settings: db.loadAdilitixCertificateSettings()
 };
 
 // Initial Cloud Sync (Bidirectional)
@@ -146,17 +150,31 @@ app.post('/api/login', (req, res) => {
         if (!username) return res.status(400).json({ success: false, message: 'Username required' });
         if (!eventId) return res.status(400).json({ success: false, message: 'ID required' });
 
-        // First Check Live Events (HyperFlow)
+        // First Check Live Events (HyperFlow / Live Go)
         const event = GLOBAL_STATE.events.get(eventId);
         if (event) {
+            // If it's a Go session (isWorkshop), check if we have a matching static workshop curriculum
+            let workshopId = null;
+            let workshopName = null;
+            if (event.isWorkshop) {
+                const workshop = GLOBAL_STATE.workshops.find(w => w.id === eventId);
+                if (workshop) {
+                    workshopId = workshop.id;
+                    workshopName = workshop.title;
+                }
+            }
+
+            console.log(`Student ${username} logged into event ${eventId} (isWorkshop: ${event.isWorkshop})`);
             return res.json({
                 success: true,
                 username,
                 role: 'student',
                 eventId,
+                workshopId,
+                workshopName,
                 eventName: event.name,
                 trainerUsername: event.createdBy,
-                isWorkshop: event.isWorkshop
+                isWorkshop: !!event.isWorkshop
             });
         }
 
@@ -272,6 +290,7 @@ app.get('/api/events', (req, res) => {
         name: e.name,
         createdBy: e.createdBy,
         createdAt: e.createdAt,
+        isWorkshop: e.isWorkshop,
         userCount: io.sockets.adapter.rooms.get(e.id)?.size || 0
     }));
     res.json(eventsList);
@@ -291,7 +310,8 @@ app.post('/api/events', (req, res) => {
         return res.status(400).json({ success: false, message: 'Event ID already exists in HyperGo workshops' });
     }
 
-    const newEvent = new EventRoom(id, name, createdBy || 'System', isWorkshop);
+    const newEvent = new EventRoom(id, name, createdBy || 'System', isWorkshop === true || isWorkshop === 'true');
+    console.log(`Creating event: ${name} (ID: ${id}, isWorkshop: ${newEvent.isWorkshop})`);
     GLOBAL_STATE.events.set(id, newEvent);
     db.saveEvent(newEvent);
     res.json({ success: true, event: newEvent });
@@ -361,6 +381,323 @@ app.delete('/api/workshops/:id', (req, res) => {
     }
 });
 
+
+// --- ADILITIX PORTAL ROUTES ---
+
+app.post('/api/adilitix/register', (req, res) => {
+    const registration = {
+        id: Date.now().toString(),
+        ...req.body,
+        status: 'pending', // pending, approved, rejected
+        timestamp: new Date().toISOString()
+    };
+    GLOBAL_STATE.adilitix_registrations.push(registration);
+    db.saveAdilitixRegistrations(GLOBAL_STATE.adilitix_registrations);
+    io.emit('adilitix_update');
+    res.json({ success: true, registration });
+});
+
+app.patch('/api/adilitix/registrations/:id', (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    const reg = GLOBAL_STATE.adilitix_registrations.find(r => r.id === id);
+    if (reg) {
+        reg.status = status;
+        db.saveAdilitixRegistrations(GLOBAL_STATE.adilitix_registrations);
+        io.emit('adilitix_update');
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ success: false });
+    }
+});
+
+app.delete('/api/adilitix/registrations/:id', (req, res) => {
+    const { id } = req.params;
+    GLOBAL_STATE.adilitix_registrations = GLOBAL_STATE.adilitix_registrations.filter(r => r.id !== id);
+    db.saveAdilitixRegistrations(GLOBAL_STATE.adilitix_registrations);
+    io.emit('adilitix_update');
+    res.json({ success: true });
+});
+
+app.get('/api/adilitix/registrations', (req, res) => {
+    res.json(GLOBAL_STATE.adilitix_registrations);
+});
+
+app.get('/api/adilitix/inventory', (req, res) => {
+    res.json(GLOBAL_STATE.adilitix_inventory);
+});
+
+app.post('/api/adilitix/inventory', (req, res) => {
+    const item = { id: Date.now().toString(), ...req.body };
+    GLOBAL_STATE.adilitix_inventory.push(item);
+    db.saveAdilitixInventory(GLOBAL_STATE.adilitix_inventory);
+    io.emit('adilitix_update');
+    res.json({ success: true, item });
+});
+
+app.patch('/api/adilitix/inventory/:id', (req, res) => {
+    const { id } = req.params;
+    const index = GLOBAL_STATE.adilitix_inventory.findIndex(i => i.id === id);
+    if (index !== -1) {
+        GLOBAL_STATE.adilitix_inventory[index] = { ...GLOBAL_STATE.adilitix_inventory[index], ...req.body };
+        db.saveAdilitixInventory(GLOBAL_STATE.adilitix_inventory);
+        io.emit('adilitix_update');
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ success: false });
+    }
+});
+
+app.delete('/api/adilitix/inventory/:id', (req, res) => {
+    const { id } = req.params;
+    GLOBAL_STATE.adilitix_inventory = GLOBAL_STATE.adilitix_inventory.filter(i => i.id !== id);
+    db.saveAdilitixInventory(GLOBAL_STATE.adilitix_inventory);
+    io.emit('adilitix_update');
+    res.json({ success: true });
+});
+
+app.get('/api/adilitix/orders', (req, res) => {
+    res.json(GLOBAL_STATE.adilitix_orders);
+});
+
+app.post('/api/adilitix/orders', (req, res) => {
+    const { items } = req.body;
+
+    // 1. Validate Stock
+    for (const orderItem of items) {
+        const inventoryItem = GLOBAL_STATE.adilitix_inventory.find(inv => inv.id === orderItem.id);
+        if (!inventoryItem || inventoryItem.count < orderItem.quantity) {
+            return res.status(400).json({ success: false, message: `Insufficient stock for ${orderItem.name}` });
+        }
+    }
+
+    // 2. Validate Stock Only (Don't deduct yet)
+    for (const orderItem of items) {
+        const inventoryItem = GLOBAL_STATE.adilitix_inventory.find(inv => inv.id === orderItem.id);
+        if (!inventoryItem || inventoryItem.count < orderItem.quantity) {
+            return res.status(400).json({ success: false, message: `Insufficient stock for ${orderItem.name}` });
+        }
+    }
+
+    // 3. Create Order
+    const order = {
+        id: Date.now().toString(),
+        ...req.body,
+        status: 'pending',
+        timestamp: new Date().toISOString()
+    };
+    GLOBAL_STATE.adilitix_orders.push(order);
+    db.saveAdilitixOrders(GLOBAL_STATE.adilitix_orders);
+
+    io.emit('adilitix_update');
+    res.json({ success: true, order });
+});
+
+app.delete('/api/adilitix/orders/:id', (req, res) => {
+    const { id } = req.params;
+    GLOBAL_STATE.adilitix_orders = GLOBAL_STATE.adilitix_orders.filter(o => o.id !== id);
+    db.saveAdilitixOrders(GLOBAL_STATE.adilitix_orders);
+    io.emit('adilitix_update');
+    res.json({ success: true });
+});
+
+app.patch('/api/adilitix/orders/:id/status', (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    const order = GLOBAL_STATE.adilitix_orders.find(o => o.id === id);
+
+    if (order) {
+        // If marking as completed, NOW deduct stock
+        if (status === 'completed' && order.status !== 'completed') {
+            // Check stock again
+            for (const orderItem of order.items) {
+                const inventoryItem = GLOBAL_STATE.adilitix_inventory.find(inv => inv.id === orderItem.id);
+                if (!inventoryItem || inventoryItem.count < orderItem.quantity) {
+                    return res.status(400).json({ success: false, message: `Insufficient stock for ${orderItem.name}` });
+                }
+            }
+
+            // Deduct
+            order.items.forEach(orderItem => {
+                const inventoryItem = GLOBAL_STATE.adilitix_inventory.find(inv => inv.id === orderItem.id);
+                if (inventoryItem) {
+                    inventoryItem.count -= orderItem.quantity;
+                }
+            });
+            db.saveAdilitixInventory(GLOBAL_STATE.adilitix_inventory);
+        }
+
+        order.status = status;
+        db.saveAdilitixOrders(GLOBAL_STATE.adilitix_orders);
+        io.emit('adilitix_update');
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ success: false });
+    }
+});
+
+app.get('/api/adilitix/completions', (req, res) => {
+    // Extract completions from workshop_progress
+    const completions = [];
+    Object.entries(GLOBAL_STATE.workshop_progress).forEach(([workshopId, students]) => {
+        Object.entries(students).forEach(([username, data]) => {
+            if (data.completed) {
+                completions.push({
+                    username,
+                    workshopId,
+                    certificateIssued: data.certificateIssued || false,
+                    completedAt: data.completedAt || new Date().toISOString()
+                });
+            }
+        });
+    });
+    res.json(completions);
+});
+
+app.post('/api/adilitix/certificates/issue', (req, res) => {
+    const { workshopId, username } = req.body;
+    if (
+        GLOBAL_STATE.workshop_progress[workshopId] &&
+        GLOBAL_STATE.workshop_progress[workshopId][username]
+    ) {
+        GLOBAL_STATE.workshop_progress[workshopId][username].certificateIssued = true;
+        db.saveWorkshopProgress(GLOBAL_STATE.workshop_progress);
+        io.emit('adilitix_update');
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ success: false, message: 'Completion not found' });
+    }
+});
+
+// Certificate Settings
+app.get('/api/adilitix/certificates/settings', (req, res) => {
+    res.json(GLOBAL_STATE.adilitix_certificate_settings);
+});
+
+app.post('/api/adilitix/certificates/settings', (req, res) => {
+    GLOBAL_STATE.adilitix_certificate_settings = { ...GLOBAL_STATE.adilitix_certificate_settings, ...req.body };
+    db.saveAdilitixCertificateSettings(GLOBAL_STATE.adilitix_certificate_settings);
+    res.json({ success: true });
+});
+
+// View Certificate Data
+app.get('/api/adilitix/certificates/view/:workshopId/:username', (req, res) => {
+    const { workshopId, username } = req.params;
+
+    // Verify completion exists
+    if (!GLOBAL_STATE.workshop_progress[workshopId] || !GLOBAL_STATE.workshop_progress[workshopId][username]) {
+        return res.status(404).json({ success: false, message: 'Completion not found' });
+    }
+
+    // Get registration for full name (if available) or use username
+    const reg = GLOBAL_STATE.adilitix_registrations.find(r => r.name === username) || {};
+    const studentName = reg.name || username;
+
+    // Get completion date
+    const completionData = GLOBAL_STATE.workshop_progress[workshopId][username];
+
+    // Combine with current settings
+    // Helper to generate deterministic ID based on completion order
+    const generateCertificateId = (workshopId, username) => {
+        // Mock event code mapping (can be expanded)
+        // If workshopId is numeric, try to find a name or fallback to 'WS'
+        // For now, let's use 'RO' for Robotics, 'IO' for IoT, or generic 'EV'
+        let eventCode = 'EV';
+        const workshopName = workshopId.toString().toUpperCase();
+        if (workshopName.includes('ROBOT')) eventCode = 'RO';
+        else if (workshopName.includes('IOT')) eventCode = 'IO';
+        else if (workshopName.length >= 2 && isNaN(workshopName)) eventCode = workshopName.substring(0, 2).toUpperCase();
+
+        // Find user's index in the completion list to generate a sequence number
+        // This ensures ID is permanent as long as data order doesn't change wildly (which is fine for this scope)
+        let sequence = 1;
+        if (GLOBAL_STATE.workshop_progress[workshopId]) {
+            const completedUsers = Object.keys(GLOBAL_STATE.workshop_progress[workshopId])
+                .filter(u => GLOBAL_STATE.workshop_progress[workshopId][u].completed || GLOBAL_STATE.workshop_progress[workshopId][u].certificateIssued)
+                .sort(); // Sort alphabetically to maintain deterministic order
+
+            const index = completedUsers.indexOf(username);
+            if (index !== -1) sequence = index + 1;
+        }
+
+        const seqString = sequence.toString().padStart(3, '0');
+        // Final Format: ADX-{EVENT}-{SEQ} e.g., ADX-EV-001
+        return `ADX-${eventCode}-${seqString}`;
+    };
+
+    // Get workshop name from global state
+    const workshop = GLOBAL_STATE.workshops.find(w => w.id === workshopId) || {};
+    const workshopName = workshop.title || workshopId;
+
+    const certificateData = {
+        studentName,
+        workshopName,
+        date: completionData.completedAt || new Date().toISOString(),
+        settings: GLOBAL_STATE.adilitix_certificate_settings,
+        certificateId: generateCertificateId(workshopId, username)
+    };
+
+    res.json(certificateData);
+});
+
+// Verify Certificate
+app.post('/api/adilitix/certificates/verify', (req, res) => {
+    const { certificateId } = req.body;
+    if (!certificateId || !certificateId.startsWith('ADX-')) {
+        return res.json({ valid: false, message: 'Invalid ID format' });
+    }
+
+    let matchFound = null;
+
+    // Iterate all workshops
+    Object.keys(GLOBAL_STATE.workshop_progress).forEach(wsId => {
+        if (matchFound) return;
+
+        const users = Object.keys(GLOBAL_STATE.workshop_progress[wsId]);
+        const completedUsers = users
+            .filter(u => GLOBAL_STATE.workshop_progress[wsId][u].completed || GLOBAL_STATE.workshop_progress[wsId][u].certificateIssued)
+            .sort();
+
+        completedUsers.forEach((user, idx) => {
+            if (matchFound) return;
+
+            let eventCode = 'EV';
+            const workshopName = wsId.toString().toUpperCase();
+            if (workshopName.includes('ROBOT')) eventCode = 'RO';
+            else if (workshopName.includes('IOT')) eventCode = 'IO';
+            else if (workshopName.length >= 2 && isNaN(workshopName)) eventCode = workshopName.substring(0, 2).toUpperCase();
+
+            const seqString = (idx + 1).toString().padStart(3, '0');
+            const generatedId = `ADX-${eventCode}-${seqString}`;
+
+            if (generatedId === certificateId) {
+                matchFound = {
+                    workshopId: wsId,
+                    username: user,
+                    data: GLOBAL_STATE.workshop_progress[wsId][user]
+                };
+            }
+        });
+    });
+
+    if (matchFound) {
+        const reg = GLOBAL_STATE.adilitix_registrations.find(r => r.name === matchFound.username) || {};
+        const workshop = GLOBAL_STATE.workshops.find(w => w.id === matchFound.workshopId) || {};
+        const workshopName = workshop.title || matchFound.workshopId;
+
+        return res.json({
+            valid: true,
+            data: {
+                studentName: reg.name || matchFound.username,
+                workshopName: workshopName,
+                completedAt: matchFound.data.completedAt,
+                certificateId: certificateId
+            }
+        });
+    }
+
+    res.json({ valid: false });
+});
 
 app.get('/api/storage-status', async (req, res) => {
     const isConnected = await supabase.healthCheck();
@@ -793,6 +1130,21 @@ io.on('connection', (socket) => {
         };
         db.saveWorkshopProgress(GLOBAL_STATE.workshop_progress);
         sendWorkshopMonitorUpdate(workshopId);
+    });
+
+    socket.on('reset_workshop_progress', () => {
+        const { workshopId, username } = socket.data;
+        if (!workshopId || !username) return;
+
+        if (GLOBAL_STATE.workshop_progress[workshopId] && GLOBAL_STATE.workshop_progress[workshopId][username]) {
+            GLOBAL_STATE.workshop_progress[workshopId][username] = {
+                step: 0,
+                completed: false,
+                certificateReady: false
+            };
+            db.saveWorkshopProgress(GLOBAL_STATE.workshop_progress);
+            sendWorkshopMonitorUpdate(workshopId);
+        }
     });
 
     socket.on('request_certificate', () => {
