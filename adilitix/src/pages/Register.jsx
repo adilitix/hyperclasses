@@ -16,8 +16,9 @@ const Register = () => {
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const BASE_URL = import.meta.env.VITE_SERVER_URL ||
+    const rawBase = import.meta.env.VITE_SERVER_URL ||
         (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://hyperclass.onrender.com');
+    const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
 
     useEffect(() => {
         // Fetch events from Hyperclass API
