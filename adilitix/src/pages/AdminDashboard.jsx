@@ -220,6 +220,8 @@ const AdminDashboard = () => {
     });
     const [showCertSettings, setShowCertSettings] = useState(false);
 
+    const BASE_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
+
     useEffect(() => {
         const isAdmin = localStorage.getItem('adilitix_admin');
         if (!isAdmin) {
@@ -228,7 +230,7 @@ const AdminDashboard = () => {
             fetchData();
 
             // Setup real-time updates
-            const socket = io('http://localhost:3000');
+            const socket = io(BASE_URL);
             socket.on('adilitix_update', () => {
                 console.log('🔄 Data update received via socket');
                 fetchData(true);
@@ -242,11 +244,11 @@ const AdminDashboard = () => {
         if (!silent) setLoading(true);
         try {
             const [regRes, invRes, ordRes, compRes, setRes] = await Promise.all([
-                fetch('/api/adilitix/registrations'),
-                fetch('/api/adilitix/inventory'),
-                fetch('/api/adilitix/orders'),
-                fetch('/api/adilitix/completions'),
-                fetch('/api/adilitix/certificates/settings')
+                fetch(`${BASE_URL}/api/adilitix/registrations`),
+                fetch(`${BASE_URL}/api/adilitix/inventory`),
+                fetch(`${BASE_URL}/api/adilitix/orders`),
+                fetch(`${BASE_URL}/api/adilitix/completions`),
+                fetch(`${BASE_URL}/api/adilitix/certificates/settings`)
             ]);
             setRegistrations(await regRes.json());
             setInventory(await invRes.json());
@@ -268,12 +270,12 @@ const AdminDashboard = () => {
 
     const deleteRegistration = async (id) => {
         if (!window.confirm('Are you sure you want to delete this registration?')) return;
-        await fetch(`/api/adilitix/registrations/${id}`, { method: 'DELETE' });
+        await fetch(`${BASE_URL}/api/adilitix/registrations/${id}`, { method: 'DELETE' });
         fetchData(true);
     };
 
     const updateRegStatus = async (id, status) => {
-        await fetch(`/api/adilitix/registrations/${id}`, {
+        await fetch(`${BASE_URL}/api/adilitix/registrations/${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status })
@@ -283,7 +285,7 @@ const AdminDashboard = () => {
 
     const deleteInventoryItem = async (id) => {
         if (!window.confirm('Delete this item?')) return;
-        await fetch(`/api/adilitix/inventory/${id}`, { method: 'DELETE' });
+        await fetch(`${BASE_URL}/api/adilitix/inventory/${id}`, { method: 'DELETE' });
         fetchData(true);
     };
 
@@ -291,7 +293,7 @@ const AdminDashboard = () => {
         e.preventDefault();
         if (!newItem.name) return;
 
-        await fetch('/api/adilitix/inventory', {
+        await fetch(`${BASE_URL}/api/adilitix/inventory`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -308,7 +310,7 @@ const AdminDashboard = () => {
 
     const updateInventoryCount = async (id, currentCount, delta) => {
         const newCount = Math.max(0, currentCount + delta);
-        await fetch(`/api/adilitix/inventory/${id}`, {
+        await fetch(`${BASE_URL}/api/adilitix/inventory/${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ count: newCount })
@@ -317,7 +319,7 @@ const AdminDashboard = () => {
     };
 
     const updateOrderStatus = async (id, status) => {
-        await fetch(`/api/adilitix/orders/${id}/status`, {
+        await fetch(`${BASE_URL}/api/adilitix/orders/${id}/status`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status })
@@ -327,12 +329,12 @@ const AdminDashboard = () => {
 
     const deleteOrder = async (id) => {
         if (!window.confirm('Delete this order?')) return;
-        await fetch(`/api/adilitix/orders/${id}`, { method: 'DELETE' });
+        await fetch(`${BASE_URL}/api/adilitix/orders/${id}`, { method: 'DELETE' });
         fetchData(true);
     };
 
     const issueCertificate = async (workshopId, username) => {
-        await fetch('/api/adilitix/certificates/issue', {
+        await fetch(`${BASE_URL}/api/adilitix/certificates/issue`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ workshopId, username })
@@ -341,7 +343,7 @@ const AdminDashboard = () => {
     };
 
     const viewCertificate = async (workshopId, username) => {
-        const res = await fetch(`/api/adilitix/certificates/view/${workshopId}/${username}`);
+        const res = await fetch(`${BASE_URL}/api/adilitix/certificates/view/${workshopId}/${username}`);
         const data = await res.json();
         setCertificateData(data);
         setShowCertificatePreview(true);
@@ -349,7 +351,7 @@ const AdminDashboard = () => {
 
     const saveCertSettings = async (e) => {
         e.preventDefault();
-        await fetch('/api/adilitix/certificates/settings', {
+        await fetch(`${BASE_URL}/api/adilitix/certificates/settings`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(certSettings)

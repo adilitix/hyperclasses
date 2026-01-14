@@ -16,9 +16,11 @@ const Register = () => {
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    const BASE_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
+
     useEffect(() => {
         // Fetch events from Hyperclass API
-        fetch('/api/events')
+        fetch(`${BASE_URL}/api/events`)
             .then(res => res.json())
             .then(data => {
                 // Filter for Go sessions (isWorkshop)
@@ -36,7 +38,7 @@ const Register = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await fetch('/api/adilitix/register', {
+            const response = await fetch(`${BASE_URL}/api/adilitix/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
