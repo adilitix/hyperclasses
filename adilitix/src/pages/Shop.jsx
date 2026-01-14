@@ -12,7 +12,8 @@ const Shop = () => {
     const [loading, setLoading] = useState(true);
     const [showToast, setShowToast] = useState(false);
 
-    const BASE_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
+    const BASE_URL = import.meta.env.VITE_SERVER_URL ||
+        (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://hyperclass.onrender.com');
 
     useEffect(() => {
         fetch(`${BASE_URL}/api/adilitix/inventory`)

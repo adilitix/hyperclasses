@@ -220,7 +220,8 @@ const AdminDashboard = () => {
     });
     const [showCertSettings, setShowCertSettings] = useState(false);
 
-    const BASE_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
+    const BASE_URL = import.meta.env.VITE_SERVER_URL ||
+        (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://hyperclass.onrender.com');
 
     useEffect(() => {
         const isAdmin = localStorage.getItem('adilitix_admin');

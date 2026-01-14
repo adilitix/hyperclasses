@@ -8,7 +8,8 @@ const VerifyCertificate = () => {
     const [status, setStatus] = React.useState('idle'); // idle, verifying, success, error
     const [result, setResult] = React.useState(null);
 
-    const BASE_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
+    const BASE_URL = import.meta.env.VITE_SERVER_URL ||
+        (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://hyperclass.onrender.com');
 
     const handleVerify = async (e) => {
         e.preventDefault();
