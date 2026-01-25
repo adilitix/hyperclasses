@@ -224,6 +224,10 @@ const AdminDashboard = () => {
         (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://hyperclass.onrender.com');
     const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
 
+    const HYPERCLASS_URL = window.location.hostname === 'localhost'
+        ? 'http://localhost:3000'
+        : 'https://hyperclass.vercel.app';
+
     useEffect(() => {
         const isAdmin = localStorage.getItem('adilitix_admin');
         if (!isAdmin) {
@@ -676,7 +680,7 @@ const AdminDashboard = () => {
                     <button onClick={() => setActiveView('orders')} className={`db-nav-item ${activeView === 'orders' ? 'active' : ''}`}><ShoppingCart size={18} /> View Orders</button>
                     <button onClick={() => setActiveView('inventory')} className={`db-nav-item ${activeView === 'inventory' ? 'active' : ''}`}><Package size={18} /> Inventory</button>
                     <button onClick={() => setActiveView('certificates')} className={`db-nav-item ${activeView === 'certificates' ? 'active' : ''}`}><Award size={18} /> Completions</button>
-                    <a href="http://localhost:3000" target="_blank" rel="noopener noreferrer" className="db-nav-item">
+                    <a href={HYPERCLASS_URL} target="_blank" rel="noopener noreferrer" className="db-nav-item">
                         <ExternalLink size={18} /> Hyperclass App
                     </a>
                 </nav>

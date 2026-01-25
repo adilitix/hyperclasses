@@ -6,6 +6,10 @@ import { ArrowRight, ShieldCheck, ClipboardCheck, Settings } from 'lucide-react'
 const Landing = () => {
     const [isVisible, setIsVisible] = useState(false);
 
+    const HYPERCLASS_URL = window.location.hostname === 'localhost'
+        ? 'http://localhost:3000'
+        : 'https://hyperclass.vercel.app';
+
     useEffect(() => {
         setIsVisible(true);
     }, []);
@@ -41,7 +45,7 @@ const Landing = () => {
                     </motion.p>
                     <div className="cta-group">
                         <Link to="/register" className="cta-primary">Register for Workshop <ArrowRight size={18} /></Link>
-                        <button className="cta-secondary" onClick={() => window.location.href = 'http://localhost:3000'}>View Hyperclass</button>
+                        <button className="cta-secondary" onClick={() => window.location.href = HYPERCLASS_URL}>View Hyperclass</button>
                     </div>
                 </div>
                 <div className="hero-image">
@@ -53,7 +57,7 @@ const Landing = () => {
 
             <section id="products" className="products-section">
                 <h2>Our First Product</h2>
-                <div className="product-card clickable" onClick={() => window.location.href = 'http://localhost:3000'}>
+                <div className="product-card clickable" onClick={() => window.location.href = HYPERCLASS_URL}>
                     <div className="product-info">
                         <h3>Hyperclass</h3>
                         <p>The ultimate collaborative workshop platform. Designed by robotics engineers for seamless real-time learning.</p>
