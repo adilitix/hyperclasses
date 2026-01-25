@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const db = require('./database');
 const supabase = require('./supabase');
+const googleSheets = require('./googleSheets');
 
 const app = express();
 const server = http.createServer(app);
@@ -394,6 +395,10 @@ app.post('/api/adilitix/register', (req, res) => {
     GLOBAL_STATE.adilitix_registrations.push(registration);
     db.saveAdilitixRegistrations(GLOBAL_STATE.adilitix_registrations);
     io.emit('adilitix_update');
+
+    // Sync to Google Sheets
+    googleSheets.appendRegistration(registration).catch(console.error);
+
     res.json({ success: true, registration });
 });
 
