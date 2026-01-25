@@ -9,8 +9,12 @@ import VerifyCertificate from './pages/VerifyCertificate';
 import './App.css';
 
 function App() {
+  const getBasename = () => {
+    return window.location.pathname.startsWith('/adilitix') ? '/adilitix' : '';
+  };
+
   return (
-    <Router>
+    <Router basename={getBasename()}>
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/register" element={<Register />} />
