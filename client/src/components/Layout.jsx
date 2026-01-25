@@ -502,21 +502,6 @@ function Layout() {
 
                     <div style={{ flex: 1 }}></div>
 
-                    <button
-                        onClick={() => window.open('http://localhost:3000/adilitix/register', '_blank')}
-                        className="btn btn-ghost"
-                        style={{
-                            justifyContent: 'flex-start',
-                            border: 'none',
-                            color: 'var(--primary)',
-                            background: 'rgba(56, 189, 248, 0.05)',
-                            width: '100%',
-                            marginBottom: '0.5rem',
-                            fontWeight: 800
-                        }}
-                    >
-                        <span style={{ minWidth: '24px' }}>📝</span> Register for Workshop
-                    </button>
 
                     <button
                         onClick={() => {
