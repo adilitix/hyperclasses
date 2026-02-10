@@ -51,24 +51,40 @@ class GoogleSheetsService {
             // Find "Sheet1" or use the first sheet
             let sheet = this.doc.sheetsByTitle['Sheet1'] || this.doc.sheetsByIndex[0];
 
+            // Load headers from Row 1
+            try {
+                await sheet.loadHeaderRow(1);
+            } catch (e) {
+                console.log('⚠️ No headers found or Row 1 is empty. Initializing headers...');
+                await sheet.setHeaderRow([
+                    'Date & Time',
+                    'Name',
+                    'Email',
+                    'Ph No',
+                    'Course of Study',
+                    'Event',
+                    'Approval',
+                    'Status'
+                ]);
+            }
+
             // Map data to columns matching the spreadsheet headers
-            // Ensure these match exactly what is in your spreadsheet row 1
             const rowData = {
                 'Date & Time': new Date(reg.timestamp).toLocaleString(),
                 'Name': reg.name,
                 'Email': reg.email,
                 'Ph No': reg.phone,
                 'Course of Study': reg.course,
-                'Event': reg.eventId || 'General',
-                'Approval': reg.status === 'approved' ? 'YES' : 'PENDING',
+                'Event': reg.eventName || reg.eventId || 'General',
+                'Approval': (reg.status === 'approved' || reg.status === 'YES') ? 'YES' : 'PENDING',
                 'Status': reg.status
             };
 
             await sheet.addRow(rowData);
             console.log('📝 Registration synced to Google Sheets:', reg.name);
         } catch (err) {
-            console.error('❌ Error appending to Google Sheets:', err);
-            console.log('💡 TIP: Ensure your Spreadsheet columns match: Date & Time, Name, Email, Ph No, Course of Study, Event, Approval, Status');
+            console.error('❌ Error appending to Google Sheets:', err.message);
+            console.log('💡 TIP: Check if your headers are on Row 2. If they are on Row 1, please delete any empty rows above them.');
         }
     }
 

@@ -347,7 +347,12 @@ function loadSettings() {
                 'Low-latency interaction',
                 'Modern Glassmorphic UI',
                 'Comprehensive Admin Controls'
-            ]
+            ],
+            permanentNotification: {
+                enabled: false,
+                buttonName: 'Register Now',
+                url: 'https://example.com'
+            }
         }
     };
 }

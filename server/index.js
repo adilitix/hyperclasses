@@ -243,13 +243,25 @@ app.get('/api/settings', (req, res) => {
 });
 
 app.post('/api/settings', (req, res) => {
-    const { aboutWebsite } = req.body;
+    const { aboutWebsite, permanentNotification } = req.body;
+    let updated = false;
+
     if (aboutWebsite) {
         GLOBAL_STATE.settings.aboutWebsite = aboutWebsite;
+        updated = true;
+    }
+
+    if (permanentNotification) {
+        GLOBAL_STATE.settings.permanentNotification = permanentNotification;
+        updated = true;
+    }
+
+    if (updated) {
         db.saveSettings(GLOBAL_STATE.settings);
         io.emit('settings_update', GLOBAL_STATE.settings);
         return res.json({ success: true, settings: GLOBAL_STATE.settings });
     }
+
     res.status(400).json({ success: false, message: 'Invalid settings' });
 });
 
@@ -386,9 +398,11 @@ app.delete('/api/workshops/:id', (req, res) => {
 // --- ADILITIX PORTAL ROUTES ---
 
 app.post('/api/adilitix/register', (req, res) => {
+    const event = GLOBAL_STATE.events.find(e => e.id === req.body.eventId);
     const registration = {
         id: Date.now().toString(),
         ...req.body,
+        eventName: event ? event.name : (req.body.eventId || 'General'),
         status: 'pending', // pending, approved, rejected
         timestamp: new Date().toISOString()
     };

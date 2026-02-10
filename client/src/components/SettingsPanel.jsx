@@ -14,6 +14,46 @@ function SettingsPanel({ theme, setTheme, primaryColor, setPrimaryColor, downloa
     const [updating, setUpdating] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
 
+    // Broadcast Settings State (Permanent Notification)
+    const [notificationSettings, setNotificationSettings] = useState({
+        enabled: false,
+        buttonName: 'Register Now',
+        url: 'https://example.com'
+    });
+
+    // Fetch initial settings
+    React.useEffect(() => {
+        fetch(`${API_BASE_URL}/api/settings`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.permanentNotification) {
+                    setNotificationSettings(data.permanentNotification);
+                }
+            })
+            .catch(console.error);
+    }, []);
+
+    const handleSaveNotification = async () => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/settings`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    permanentNotification: notificationSettings
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setMessage({ type: 'success', text: 'Broadcast settings saved!' });
+                setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+            } else {
+                setMessage({ type: 'error', text: 'Failed to save settings' });
+            }
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Error saving settings' });
+        }
+    };
+
     const colors = [
         { name: 'Cyan', value: '#00f0ff' },
         { name: 'Green', value: '#00ff9d' },
@@ -131,6 +171,7 @@ function SettingsPanel({ theme, setTheme, primaryColor, setPrimaryColor, downloa
                 }}>
                     {renderNavButton('appearance', '🎨', 'Appearance')}
                     {user?.role !== 'student' && renderNavButton('profile', '🛡️', 'Profile')}
+                    {user?.role !== 'student' && renderNavButton('broadcast', '📢', 'Broadcast')}
                     {user?.role === 'student' && renderNavButton('downloads', '💾', 'Downloads')}
                 </div>
 
@@ -260,6 +301,77 @@ function SettingsPanel({ theme, setTheme, primaryColor, setPrimaryColor, downloa
                                 >
                                     {fileFormats.map(f => <option key={f.ext} value={f.ext}>{f.name} (.{f.ext})</option>)}
                                 </select>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {activeSection === 'broadcast' && (
+                        <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}>
+                            <h3 className="cine-text" style={{ fontSize: '1rem', marginBottom: '2rem', color: 'var(--primary)' }}>Broadcast Notification</h3>
+
+                            {message.text && (
+                                <div style={{
+                                    padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem',
+                                    background: message.type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                    color: message.type === 'success' ? 'var(--success)' : 'var(--danger)',
+                                    border: `1px solid ${message.type === 'success' ? 'var(--success)' : 'var(--danger)'}44`
+                                }}>
+                                    {message.text}
+                                </div>
+                            )}
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                    <div>
+                                        <strong style={{ display: 'block', fontSize: '0.9rem' }}>Enable Notification</strong>
+                                        <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>Show a permanent button to all students</span>
+                                    </div>
+                                    <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '50px', height: '26px' }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={notificationSettings.enabled}
+                                            onChange={e => setNotificationSettings({ ...notificationSettings, enabled: e.target.checked })}
+                                            style={{ opacity: 0, width: 0, height: 0 }}
+                                        />
+                                        <span className="slider round" style={{
+                                            position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0,
+                                            backgroundColor: notificationSettings.enabled ? 'var(--primary)' : '#ccc',
+                                            transition: '.4s', borderRadius: '34px'
+                                        }}>
+                                            <span style={{
+                                                position: 'absolute', content: '""', height: '20px', width: '20px', left: '3px', bottom: '3px',
+                                                backgroundColor: 'white', transition: '.4s', borderRadius: '50%',
+                                                transform: notificationSettings.enabled ? 'translateX(24px)' : 'translateX(0)'
+                                            }} />
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Button Text</label>
+                                    <input
+                                        type="text" className="input-field"
+                                        value={notificationSettings.buttonName}
+                                        onChange={e => setNotificationSettings({ ...notificationSettings, buttonName: e.target.value })}
+                                        style={{ width: '100%' }}
+                                        placeholder="e.g. Register for Advanced Course"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem' }}>Full URL (students will be redirected here)</label>
+                                    <input
+                                        type="url" className="input-field"
+                                        value={notificationSettings.url}
+                                        onChange={e => setNotificationSettings({ ...notificationSettings, url: e.target.value })}
+                                        style={{ width: '100%' }}
+                                        placeholder="https://..."
+                                    />
+                                </div>
+
+                                <button onClick={handleSaveNotification} className="btn btn-primary" style={{ width: 'fit-content', padding: '0.75rem 2rem' }}>
+                                    Save Changes
+                                </button>
                             </div>
                         </motion.div>
                     )}

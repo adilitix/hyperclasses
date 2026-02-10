@@ -41,6 +41,34 @@ function LeftPanel({ viewingSnapshot, setViewingSnapshot }) {
     });
     const [snippetName, setSnippetName] = useState('');
 
+    // Notification State
+    const [notificationSettings, setNotificationSettings] = useState(null);
+
+    // Fetch Notification Settings
+    useEffect(() => {
+        const fetchSettings = () => {
+            fetch(`${API_BASE_URL}/api/settings`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.permanentNotification) {
+                        setNotificationSettings(data.permanentNotification);
+                    }
+                })
+                .catch(console.error);
+        };
+        fetchSettings();
+
+        // Listen for updates
+        if (socket) {
+            socket.on('settings_update', (newSettings) => {
+                if (newSettings.permanentNotification) {
+                    setNotificationSettings(newSettings.permanentNotification);
+                }
+            });
+            return () => socket.off('settings_update');
+        }
+    }, [socket]);
+
     const fileInputRef = React.useRef(null); // Ref for the hidden file input
 
     useEffect(() => {
@@ -482,6 +510,42 @@ function LeftPanel({ viewingSnapshot, setViewingSnapshot }) {
 
             {/* Content View Area */}
             <div style={{ flex: 1, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+                {/* Permanent Notification Banner */}
+                {notificationSettings?.enabled && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        style={{
+                            padding: '1rem',
+                            background: 'rgba(var(--primary-rgb, 0, 240, 255), 0.1)',
+                            border: '1px solid var(--primary)',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            marginBottom: '0.5rem'
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <span style={{ fontSize: '1.2rem' }}>📢</span>
+                            <div>
+                                <strong style={{ color: 'var(--primary)', display: 'block' }}>Announcement</strong>
+                                <span style={{ fontSize: '0.85rem', opacity: 0.8 }}>Important update available</span>
+                            </div>
+                        </div>
+                        <a
+                            href={notificationSettings.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-primary"
+                            style={{ textDecoration: 'none', fontWeight: 800 }}
+                        >
+                            {notificationSettings.buttonName} →
+                        </a>
+                    </motion.div>
+                )}
+
                 {files.length > 0 && (
                     <div className="glass-panel" style={{ padding: '1.25rem', background: 'rgba(255, 255, 255, 0.02)' }}>
                         <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Shared Resources</h4>
