@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
     Users,
-    Calendar,
     Package,
     Award,
     LogOut,
@@ -25,9 +24,7 @@ import {
     Crown,
     Upload,
     Edit3,
-    Copy,
     Hash,
-    FolderOpen,
     Eye
 } from 'lucide-react';
 import { io } from 'socket.io-client';
@@ -263,10 +260,6 @@ const AdminDashboard = () => {
     const [selectedRegs, setSelectedRegs] = useState(new Set());
     const [copiedWsId, setCopiedWsId] = useState('');
 
-    // Settings / Password Change
-    const [pwChange, setPwChange] = useState({ current: '', newPw: '', confirm: '' });
-    const [pwChangeMsg, setPwChangeMsg] = useState('');
-    const [editingPermsAdmin, setEditingPermsAdmin] = useState(null);
 
     const rawBase = import.meta.env.VITE_SERVER_URL ||
         (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://hyperclass.onrender.com');
