@@ -23,7 +23,12 @@ import {
     Settings,
     FileSpreadsheet,
     Crown,
-    Upload
+    Upload,
+    Edit3,
+    Copy,
+    Hash,
+    FolderOpen,
+    Eye
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 
@@ -236,11 +241,20 @@ const AdminDashboard = () => {
     const [adminList, setAdminList] = useState([]);
     const [showAddAdmin, setShowAddAdmin] = useState(false);
     const [newAdmin, setNewAdmin] = useState({ username: '', password: '', role: 'admin' });
-    const [sheetImport, setSheetImport] = useState({ spreadsheetId: '', sheetName: '' });
+    const [sheetImport, setSheetImport] = useState({ spreadsheetId: '', sheetName: '', eventId: '' });
     const [importResult, setImportResult] = useState(null);
     const [importLoading, setImportLoading] = useState(false);
     const [serviceAccountEmail, setServiceAccountEmail] = useState('');
     const [copiedEmail, setCopiedEmail] = useState(false);
+
+    // Adilitix Events (Workshop Events with permanent IDs)
+    const [adilitixEvents, setAdilitixEvents] = useState([]);
+    const [showCreateEvent, setShowCreateEvent] = useState(false);
+    const [newEvent, setNewEvent] = useState({ title: '', description: '', workshopId: '' });
+    const [editingEvent, setEditingEvent] = useState(null);
+    const [regEventFilter, setRegEventFilter] = useState('all');
+    const [selectedRegs, setSelectedRegs] = useState(new Set());
+    const [copiedWsId, setCopiedWsId] = useState('');
 
     const rawBase = import.meta.env.VITE_SERVER_URL ||
         (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://hyperclass.onrender.com');
@@ -291,6 +305,12 @@ const AdminDashboard = () => {
             if (Array.isArray(wsData)) setWorkshops(wsData);
             const admData = await admRes.json();
             if (Array.isArray(admData)) setAdminList(admData);
+            // Fetch Adilitix Events
+            try {
+                const evRes = await fetch(`${BASE_URL}/api/adilitix/events`);
+                const evData = await evRes.json();
+                if (Array.isArray(evData)) setAdilitixEvents(evData);
+            } catch (e) { }
             // Fetch service account email
             try {
                 const saRes = await fetch(`${BASE_URL}/api/adilitix/service-account-email`);
@@ -314,6 +334,55 @@ const AdminDashboard = () => {
     const deleteRegistration = async (id) => {
         if (!window.confirm('Are you sure you want to delete this registration?')) return;
         await fetch(`${BASE_URL}/api/adilitix/registrations/${id}`, { method: 'DELETE' });
+        fetchData(true);
+    };
+
+    const bulkDeleteRegistrations = async () => {
+        if (selectedRegs.size === 0) return;
+        if (!window.confirm(`Delete ${selectedRegs.size} selected registration(s)?`)) return;
+        await fetch(`${BASE_URL}/api/adilitix/registrations/bulk-delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: [...selectedRegs] })
+        });
+        setSelectedRegs(new Set());
+        fetchData(true);
+    };
+
+    // Adilitix Event CRUD
+    const createAdilitixEvent = async (e) => {
+        e.preventDefault();
+        const res = await fetch(`${BASE_URL}/api/adilitix/events`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newEvent)
+        });
+        const data = await res.json();
+        if (data.success) {
+            setShowCreateEvent(false);
+            setNewEvent({ title: '', description: '', workshopId: '' });
+            fetchData(true);
+        } else {
+            alert(data.message || 'Failed');
+        }
+    };
+
+    const updateAdilitixEvent = async (e) => {
+        e.preventDefault();
+        if (!editingEvent) return;
+        await fetch(`${BASE_URL}/api/adilitix/events/${editingEvent.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: editingEvent.title, description: editingEvent.description })
+        });
+        setEditingEvent(null);
+        fetchData(true);
+    };
+
+    const deleteAdilitixEvent = async (id) => {
+        if (!window.confirm('Delete this event? (Registrations will NOT be deleted)')) return;
+        await fetch(`${BASE_URL}/api/adilitix/events/${id}`, { method: 'DELETE' });
+        if (regEventFilter === id) setRegEventFilter('all');
         fetchData(true);
     };
 
@@ -490,7 +559,7 @@ const AdminDashboard = () => {
             title: 'Registrations',
             icon: <Users size={24} />,
             color: '#0066ff',
-            count: `${registrations.length} Total`,
+            count: `${registrations.length} Total • ${adilitixEvents.length} Events`,
             action: () => setActiveView('registrations')
         },
         {
@@ -545,33 +614,211 @@ const AdminDashboard = () => {
         ] : [])
     ];
 
-    const renderRegistrationListView = () => (
-        <motion.div key="registrations" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="view-container">
-            <div className="view-header">
-                <h2>Registration Management</h2>
-                <button onClick={() => setActiveView('dashboard')} className="close-view-btn"><X size={20} /></button>
-            </div>
-            <div className="list-controls">
-                <div className="search-bar"><Search size={18} /><input type="text" placeholder="Filter student..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} /></div>
-            </div>
-            <div className="data-table-wrapper">
-                <table className="data-table">
-                    <thead><tr><th>Student</th><th>Course</th><th>Event</th><th>Status (Reject | Mid | Appr)</th><th>Actions</th></tr></thead>
-                    <tbody>
-                        {registrations.filter(r => r.name?.toLowerCase().includes(searchQuery.toLowerCase())).map(reg => (
-                            <tr key={reg.id}>
-                                <td><div className="user-cell"><div className="user-avatar-sm">{reg.name?.charAt(0)}</div>{reg.name}</div></td>
-                                <td>{reg.course}</td>
-                                <td><span className="event-badge">{reg.eventName || getWorkshopName(reg.eventId) || 'General'}</span></td>
-                                <td><ApprovalToggle status={reg.status || 'pending'} onToggle={(s) => updateRegStatus(reg.id, s)} /></td>
-                                <td><button onClick={() => deleteRegistration(reg.id)} className="icon-btn-red"><Trash2 size={18} /></button></td>
+    const renderRegistrationListView = () => {
+        // Filter registrations by selected event
+        const filteredRegs = registrations
+            .filter(r => regEventFilter === 'all' || r.eventId === regEventFilter)
+            .filter(r => r.name?.toLowerCase().includes(searchQuery.toLowerCase()));
+
+        const allFilteredIds = filteredRegs.map(r => r.id);
+        const allSelected = allFilteredIds.length > 0 && allFilteredIds.every(id => selectedRegs.has(id));
+
+        const toggleSelectAll = () => {
+            if (allSelected) {
+                setSelectedRegs(new Set());
+            } else {
+                setSelectedRegs(new Set(allFilteredIds));
+            }
+        };
+
+        const toggleSelect = (id) => {
+            const next = new Set(selectedRegs);
+            next.has(id) ? next.delete(id) : next.add(id);
+            setSelectedRegs(next);
+        };
+
+        // Count per event
+        const eventCounts = {};
+        registrations.forEach(r => {
+            const eid = r.eventId || 'uncategorized';
+            eventCounts[eid] = (eventCounts[eid] || 0) + 1;
+        });
+
+        return (
+            <motion.div key="registrations" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="view-container">
+                <div className="view-header">
+                    <h2>Registration Management</h2>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button onClick={() => setShowCreateEvent(true)} className="cta-primary-sm"><Plus size={16} /> New Event</button>
+                        <button onClick={() => setActiveView('dashboard')} className="close-view-btn"><X size={20} /></button>
+                    </div>
+                </div>
+
+                {/* Event Tabs */}
+                <div style={{
+                    display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px',
+                    padding: '4px', background: 'rgba(0,0,0,0.04)', borderRadius: '14px'
+                }}>
+                    <button
+                        onClick={() => { setRegEventFilter('all'); setSelectedRegs(new Set()); }}
+                        style={{
+                            padding: '8px 18px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+                            fontWeight: 700, fontSize: '0.82rem', transition: 'all 0.2s',
+                            background: regEventFilter === 'all' ? 'var(--ad-primary)' : 'transparent',
+                            color: regEventFilter === 'all' ? '#fff' : 'var(--ad-text-dim)',
+                        }}
+                    >
+                        <Eye size={14} style={{ marginRight: '5px', verticalAlign: '-2px' }} />
+                        View All ({registrations.length})
+                    </button>
+                    {adilitixEvents.map(ev => (
+                        <button
+                            key={ev.id}
+                            onClick={() => { setRegEventFilter(ev.id); setSelectedRegs(new Set()); }}
+                            style={{
+                                padding: '8px 18px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+                                fontWeight: 700, fontSize: '0.82rem', transition: 'all 0.2s',
+                                background: regEventFilter === ev.id ? 'var(--ad-primary)' : 'transparent',
+                                color: regEventFilter === ev.id ? '#fff' : 'var(--ad-text-dim)',
+                            }}
+                        >
+                            {ev.title} ({eventCounts[ev.id] || 0})
+                        </button>
+                    ))}
+                </div>
+
+                {/* Event Detail Card (when specific event selected) */}
+                {regEventFilter !== 'all' && (() => {
+                    const ev = adilitixEvents.find(e => e.id === regEventFilter);
+                    if (!ev) return null;
+                    return (
+                        <div style={{
+                            background: 'rgba(5,150,105,0.06)', border: '1px solid rgba(5,150,105,0.15)',
+                            borderRadius: '16px', padding: '16px 20px', marginBottom: '16px',
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px'
+                        }}>
+                            <div>
+                                <h3 style={{ fontSize: '1.1rem', marginBottom: '4px' }}>{ev.title}</h3>
+                                {ev.description && <p style={{ fontSize: '0.85rem', color: 'var(--ad-text-dim)', margin: 0 }}>{ev.description}</p>}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--ad-primary)', background: 'rgba(5,150,105,0.1)', padding: '3px 12px', borderRadius: '20px', fontFamily: 'monospace' }}>
+                                        <Hash size={12} style={{ verticalAlign: '-1px' }} /> {ev.workshopId}
+                                    </span>
+                                    <button
+                                        onClick={() => { navigator.clipboard.writeText(ev.workshopId); setCopiedWsId(ev.workshopId); setTimeout(() => setCopiedWsId(''), 2000); }}
+                                        style={{ background: copiedWsId === ev.workshopId ? '#10b981' : 'rgba(0,0,0,0.08)', color: copiedWsId === ev.workshopId ? '#fff' : 'var(--ad-text-dim)', border: 'none', borderRadius: '6px', padding: '3px 10px', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700 }}
+                                    >
+                                        {copiedWsId === ev.workshopId ? '✓' : 'Copy ID'}
+                                    </button>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button onClick={() => setEditingEvent({ ...ev })} className="cta-secondary" style={{ padding: '8px 14px', fontSize: '0.8rem' }}><Edit3 size={14} /> Edit</button>
+                                <button onClick={() => deleteAdilitixEvent(ev.id)} className="icon-btn-red" title="Delete Event"><Trash2 size={16} /></button>
+                            </div>
+                        </div>
+                    );
+                })()}
+
+                {/* Controls: search + bulk actions */}
+                <div className="list-controls" style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div className="search-bar"><Search size={18} /><input type="text" placeholder="Filter student..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} /></div>
+                    {selectedRegs.size > 0 && (
+                        <button onClick={bulkDeleteRegistrations} className="cta-secondary" style={{ color: '#ef4444', borderColor: '#ef4444', padding: '8px 16px', fontSize: '0.82rem' }}>
+                            <Trash2 size={16} /> Delete {selectedRegs.size} Selected
+                        </button>
+                    )}
+                </div>
+
+                <div className="data-table-wrapper">
+                    <table className="data-table">
+                        <thead>
+                            <tr>
+                                <th style={{ width: '40px' }}>
+                                    <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: 'var(--ad-primary)' }} />
+                                </th>
+                                <th>Student</th><th>Course</th><th>Event</th><th>Status (Reject | Mid | Appr)</th><th>Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </motion.div>
-    );
+                        </thead>
+                        <tbody>
+                            {filteredRegs.map(reg => (
+                                <tr key={reg.id} style={{ background: selectedRegs.has(reg.id) ? 'rgba(5,150,105,0.04)' : undefined }}>
+                                    <td>
+                                        <input type="checkbox" checked={selectedRegs.has(reg.id)} onChange={() => toggleSelect(reg.id)} style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: 'var(--ad-primary)' }} />
+                                    </td>
+                                    <td><div className="user-cell"><div className="user-avatar-sm">{reg.name?.charAt(0)}</div>{reg.name}</div></td>
+                                    <td>{reg.course}</td>
+                                    <td><span className="event-badge">{reg.eventName || getWorkshopName(reg.eventId) || 'General'}</span></td>
+                                    <td><ApprovalToggle status={reg.status || 'pending'} onToggle={(s) => updateRegStatus(reg.id, s)} /></td>
+                                    <td><button onClick={() => deleteRegistration(reg.id)} className="icon-btn-red"><Trash2 size={18} /></button></td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    {filteredRegs.length === 0 && (
+                        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--ad-text-dim)', fontSize: '0.9rem' }}>
+                            No registrations found{regEventFilter !== 'all' ? ' for this event' : ''}.
+                        </div>
+                    )}
+                </div>
+
+                {/* Create Event Modal */}
+                {showCreateEvent && (
+                    <div className="overlay-glass" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)' }}>
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ background: 'var(--ad-card)', padding: '30px', borderRadius: '24px', width: '460px', border: '1px solid var(--ad-border)', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }}>
+                            <h3 style={{ marginBottom: '20px', fontSize: '1.3rem' }}>Create New Event</h3>
+                            <form onSubmit={createAdilitixEvent} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                <div className="form-group">
+                                    <label>Event / Workshop Title *</label>
+                                    <input autoFocus type="text" value={newEvent.title} onChange={e => setNewEvent({ ...newEvent, title: e.target.value })} required placeholder="e.g. Robotics Workshop Munnar" />
+                                </div>
+                                <div className="form-group">
+                                    <label>Description</label>
+                                    <input type="text" value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} placeholder="e.g. 3-day robotics masterclass" />
+                                </div>
+                                <div className="form-group">
+                                    <label>Workshop ID
+                                        <span style={{ fontSize: '0.75rem', color: 'var(--ad-text-dim)', marginLeft: '8px' }}>
+                                            Leave blank to auto-generate • Permanent once created
+                                        </span>
+                                    </label>
+                                    <input type="text" value={newEvent.workshopId} onChange={e => setNewEvent({ ...newEvent, workshopId: e.target.value.toUpperCase() })} placeholder="Auto-generated (e.g. ADX-RO-001)" style={{ fontFamily: 'monospace' }} />
+                                </div>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                    <button type="button" onClick={() => setShowCreateEvent(false)} className="cta-secondary" style={{ flex: 1, padding: '12px', justifyContent: 'center' }}>Cancel</button>
+                                    <button type="submit" className="cta-primary" style={{ flex: 1, padding: '12px', justifyContent: 'center' }}>Create Event</button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+
+                {/* Edit Event Modal */}
+                {editingEvent && (
+                    <div className="overlay-glass" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)' }}>
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ background: 'var(--ad-card)', padding: '30px', borderRadius: '24px', width: '460px', border: '1px solid var(--ad-border)', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }}>
+                            <h3 style={{ marginBottom: '6px', fontSize: '1.3rem' }}>Edit Event</h3>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--ad-text-dim)', marginBottom: '20px' }}>Workshop ID <code style={{ background: 'rgba(0,0,0,0.1)', padding: '2px 8px', borderRadius: '4px' }}>{editingEvent.workshopId}</code> is permanent and cannot be changed.</p>
+                            <form onSubmit={updateAdilitixEvent} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                <div className="form-group">
+                                    <label>Event Title</label>
+                                    <input autoFocus type="text" value={editingEvent.title} onChange={e => setEditingEvent({ ...editingEvent, title: e.target.value })} required />
+                                </div>
+                                <div className="form-group">
+                                    <label>Description</label>
+                                    <input type="text" value={editingEvent.description} onChange={e => setEditingEvent({ ...editingEvent, description: e.target.value })} />
+                                </div>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                    <button type="button" onClick={() => setEditingEvent(null)} className="cta-secondary" style={{ flex: 1, padding: '12px', justifyContent: 'center' }}>Cancel</button>
+                                    <button type="submit" className="cta-primary" style={{ flex: 1, padding: '12px', justifyContent: 'center' }}>Save Changes</button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </motion.div>
+        );
+    };
 
     const renderInventoryView = () => (
         <motion.div key="inventory" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="view-container">
@@ -1064,12 +1311,12 @@ const AdminDashboard = () => {
 
                 <form onSubmit={importFromSheet} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     <div className="form-group">
-                        <label>Spreadsheet ID *</label>
+                        <label>Spreadsheet ID or URL *</label>
                         <input
                             type="text" required
                             value={sheetImport.spreadsheetId}
                             onChange={e => setSheetImport({ ...sheetImport, spreadsheetId: e.target.value })}
-                            placeholder="e.g. 1ydMS7fpnvWN1jzVe0Tww3uNQ9OiJx4tRfv-uf7zI5WE"
+                            placeholder="Paste full URL or just the spreadsheet ID"
                             style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}
                         />
                     </div>
@@ -1081,6 +1328,22 @@ const AdminDashboard = () => {
                             onChange={e => setSheetImport({ ...sheetImport, sheetName: e.target.value })}
                             placeholder="e.g. Sheet1 or Form Responses 1"
                         />
+                    </div>
+                    <div className="form-group">
+                        <label>Import to Event</label>
+                        <select
+                            value={sheetImport.eventId}
+                            onChange={e => setSheetImport({ ...sheetImport, eventId: e.target.value })}
+                            style={{ padding: '10px 14px', borderRadius: '10px', fontSize: '0.9rem' }}
+                        >
+                            <option value="">— No event (uncategorized) —</option>
+                            {adilitixEvents.map(ev => (
+                                <option key={ev.id} value={ev.id}>{ev.title} ({ev.workshopId})</option>
+                            ))}
+                        </select>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--ad-text-dim)', marginTop: '4px' }}>
+                            Create events first in the Registrations panel, then import here.
+                        </span>
                     </div>
                     <button type="submit" className="cta-primary" disabled={importLoading} style={{ alignSelf: 'flex-start', padding: '12px 28px' }}>
                         {importLoading ? (<><Clock size={18} /> Importing...</>) : (<><Upload size={18} /> Import Registrations</>)}

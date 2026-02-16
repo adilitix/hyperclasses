@@ -80,7 +80,8 @@ const GLOBAL_STATE = {
     adilitix_inventory: db.loadAdilitixInventory(),
     adilitix_orders: db.loadAdilitixOrders(),
     adilitix_certificate_settings: db.loadAdilitixCertificateSettings(),
-    adilitix_admins: db.loadAdilitixAdmins()
+    adilitix_admins: db.loadAdilitixAdmins(),
+    adilitix_events: db.loadAdilitixEvents()
 };
 
 // Initial Cloud Sync (Bidirectional)
@@ -472,9 +473,90 @@ app.delete('/api/adilitix/admins/:username', (req, res) => {
     res.json({ success: true });
 });
 
+// ---- ADILITIX EVENTS (Workshop Events with permanent IDs) ----
+
+app.get('/api/adilitix/events', (req, res) => {
+    res.json(GLOBAL_STATE.adilitix_events || []);
+});
+
+app.post('/api/adilitix/events', (req, res) => {
+    const { title, description, workshopId } = req.body;
+    if (!title) return res.status(400).json({ success: false, message: 'Title required' });
+
+    // Generate or use provided workshop ID (permanent, never changes)
+    let finalWorkshopId = workshopId;
+    if (!finalWorkshopId) {
+        // Auto-generate: ADX-{2-letter-code}-{timestamp-based}
+        const code = title.replace(/[^a-zA-Z]/g, '').substring(0, 2).toUpperCase() || 'WS';
+        const seq = (GLOBAL_STATE.adilitix_events.length + 1).toString().padStart(3, '0');
+        finalWorkshopId = `ADX-${code}-${seq}`;
+    }
+
+    // Ensure workshop ID is unique
+    if (GLOBAL_STATE.adilitix_events.find(e => e.workshopId === finalWorkshopId)) {
+        return res.status(400).json({ success: false, message: `Workshop ID "${finalWorkshopId}" already exists` });
+    }
+
+    const event = {
+        id: Date.now().toString(),
+        title,
+        description: description || '',
+        workshopId: finalWorkshopId,
+        createdAt: new Date().toISOString()
+    };
+
+    GLOBAL_STATE.adilitix_events.push(event);
+    db.saveAdilitixEvents(GLOBAL_STATE.adilitix_events);
+    io.emit('adilitix_update');
+    res.json({ success: true, event });
+});
+
+app.put('/api/adilitix/events/:id', (req, res) => {
+    const idx = GLOBAL_STATE.adilitix_events.findIndex(e => e.id === req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Event not found' });
+
+    const { title, description } = req.body;
+    if (title) GLOBAL_STATE.adilitix_events[idx].title = title;
+    if (description !== undefined) GLOBAL_STATE.adilitix_events[idx].description = description;
+    // workshopId is NEVER changed — it's permanent
+
+    db.saveAdilitixEvents(GLOBAL_STATE.adilitix_events);
+    io.emit('adilitix_update');
+    res.json({ success: true, event: GLOBAL_STATE.adilitix_events[idx] });
+});
+
+app.delete('/api/adilitix/events/:id', (req, res) => {
+    const idx = GLOBAL_STATE.adilitix_events.findIndex(e => e.id === req.params.id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Event not found' });
+
+    // Only delete the event metadata, NOT the registrations
+    GLOBAL_STATE.adilitix_events.splice(idx, 1);
+    db.saveAdilitixEvents(GLOBAL_STATE.adilitix_events);
+    io.emit('adilitix_update');
+    res.json({ success: true });
+});
+
+// ---- BULK DELETE REGISTRATIONS ----
+
+app.post('/api/adilitix/registrations/bulk-delete', (req, res) => {
+    const { ids } = req.body;
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ success: false, message: 'No IDs provided' });
+    }
+
+    const idsSet = new Set(ids);
+    const before = GLOBAL_STATE.adilitix_registrations.length;
+    GLOBAL_STATE.adilitix_registrations = GLOBAL_STATE.adilitix_registrations.filter(r => !idsSet.has(r.id));
+    const deleted = before - GLOBAL_STATE.adilitix_registrations.length;
+
+    db.saveAdilitixRegistrations(GLOBAL_STATE.adilitix_registrations);
+    io.emit('adilitix_update');
+    res.json({ success: true, deleted });
+});
+
 // Google Sheets Import — pull registrations from any Google Sheet
 app.post('/api/adilitix/import-sheet', async (req, res) => {
-    let { spreadsheetId, sheetName } = req.body;
+    let { spreadsheetId, sheetName, eventId } = req.body;
     if (!spreadsheetId) {
         return res.status(400).json({ success: false, message: 'spreadsheetId is required' });
     }
@@ -543,14 +625,18 @@ app.post('/api/adilitix/import-sheet', async (req, res) => {
             // Deduplicate by email
             if (email && existingEmails.has(email.toLowerCase())) { skipped++; continue; }
 
+            // Resolve event name from eventId if provided
+            const adxEvent = eventId ? GLOBAL_STATE.adilitix_events.find(e => e.id === eventId) : null;
+            const sheetEventVal = eventIdx >= 0 ? (vals[eventIdx] || '').trim() : '';
+
             const reg = {
                 id: Date.now().toString() + Math.random().toString(36).substr(2, 4),
                 name: name || 'Unknown',
                 email: email || '',
                 phone: phoneIdx >= 0 ? (vals[phoneIdx] || '').trim() : '',
                 course: courseIdx >= 0 ? (vals[courseIdx] || '').trim() : '',
-                eventId: eventIdx >= 0 ? (vals[eventIdx] || '').trim() : '',
-                eventName: eventIdx >= 0 ? (vals[eventIdx] || '').trim() : 'Imported',
+                eventId: eventId || sheetEventVal,
+                eventName: adxEvent ? adxEvent.title : (sheetEventVal || 'Imported'),
                 status: 'pending',
                 timestamp: new Date().toISOString(),
                 source: 'google-sheet-import'
