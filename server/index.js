@@ -398,11 +398,15 @@ app.delete('/api/workshops/:id', (req, res) => {
 // --- ADILITIX PORTAL ROUTES ---
 
 app.post('/api/adilitix/register', (req, res) => {
-    const event = GLOBAL_STATE.events.find(e => e.id === req.body.eventId);
+    // events is a Map, use .get() not .find()
+    const event = GLOBAL_STATE.events.get(req.body.eventId);
+    // Also check workshops array for name resolution
+    const workshop = GLOBAL_STATE.workshops.find(w => w.id === req.body.eventId);
+    const eventName = event ? event.name : (workshop ? workshop.title : (req.body.eventId || 'General'));
     const registration = {
         id: Date.now().toString(),
         ...req.body,
-        eventName: event ? event.name : (req.body.eventId || 'General'),
+        eventName,
         status: 'pending', // pending, approved, rejected
         timestamp: new Date().toISOString()
     };
@@ -571,6 +575,52 @@ app.get('/api/adilitix/completions', (req, res) => {
         });
     });
     res.json(completions);
+});
+
+// Manually add a completion (from admin panel)
+app.post('/api/adilitix/completions', (req, res) => {
+    const { workshopId, username, studentName } = req.body;
+    if (!workshopId || !username) {
+        return res.status(400).json({ success: false, message: 'workshopId and username are required' });
+    }
+
+    if (!GLOBAL_STATE.workshop_progress[workshopId]) {
+        GLOBAL_STATE.workshop_progress[workshopId] = {};
+    }
+
+    // Don't overwrite if already exists
+    if (GLOBAL_STATE.workshop_progress[workshopId][username]) {
+        return res.status(400).json({ success: false, message: 'Completion already exists for this student/workshop' });
+    }
+
+    GLOBAL_STATE.workshop_progress[workshopId][username] = {
+        step: 999,
+        completed: true,
+        completedAt: new Date().toISOString(),
+        certificateIssued: false,
+        studentName: studentName || username
+    };
+
+    db.saveWorkshopProgress(GLOBAL_STATE.workshop_progress);
+    io.emit('adilitix_update');
+    res.json({ success: true });
+});
+
+// Delete a completion
+app.delete('/api/adilitix/completions/:workshopId/:username', (req, res) => {
+    const { workshopId, username } = req.params;
+    if (GLOBAL_STATE.workshop_progress[workshopId] && GLOBAL_STATE.workshop_progress[workshopId][username]) {
+        delete GLOBAL_STATE.workshop_progress[workshopId][username];
+        // Clean up empty workshop entries
+        if (Object.keys(GLOBAL_STATE.workshop_progress[workshopId]).length === 0) {
+            delete GLOBAL_STATE.workshop_progress[workshopId];
+        }
+        db.saveWorkshopProgress(GLOBAL_STATE.workshop_progress);
+        io.emit('adilitix_update');
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ success: false, message: 'Completion not found' });
+    }
 });
 
 app.post('/api/adilitix/certificates/issue', (req, res) => {

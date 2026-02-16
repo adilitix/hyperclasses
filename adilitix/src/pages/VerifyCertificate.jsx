@@ -82,8 +82,9 @@ const VerifyCertificate = () => {
                             </div>
                             <div style={{ textAlign: 'left', color: '#14532d', lineHeight: '1.6' }}>
                                 <p><b>Student:</b> {result.studentName}</p>
-                                <p><b>Workshop ID:</b> {result.workshopId}</p>
+                                <p><b>Workshop:</b> {result.workshopName || result.workshopId}</p>
                                 <p><b>Completed:</b> {new Date(result.completedAt).toLocaleDateString()}</p>
+                                <p><b>Certificate ID:</b> {result.certificateId}</p>
                             </div>
                         </motion.div>
                     )}

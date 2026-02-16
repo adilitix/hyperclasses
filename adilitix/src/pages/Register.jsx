@@ -21,15 +21,32 @@ const Register = () => {
     const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
 
     useEffect(() => {
-        // Fetch events from Hyperclass API
-        fetch(`${BASE_URL}/api/events`)
-            .then(res => res.json())
-            .then(data => {
-                // Filter for Go sessions (isWorkshop)
-                const goEvents = data.filter(e => e.isWorkshop === true);
-                setEvents(goEvents);
-            })
-            .catch(err => console.error('Failed to fetch events:', err));
+        // Fetch both live Go events and static workshops
+        Promise.all([
+            fetch(`${BASE_URL}/api/events`).then(res => res.json()).catch(() => []),
+            fetch(`${BASE_URL}/api/workshops`).then(res => res.json()).catch(() => [])
+        ]).then(([liveEvents, workshops]) => {
+            // Live Go sessions
+            const goEvents = (liveEvents || []).filter(e => e.isWorkshop === true).map(e => ({
+                id: e.id,
+                name: e.name,
+                source: 'live'
+            }));
+            // Static workshops
+            const wsEvents = (workshops || []).map(w => ({
+                id: w.id,
+                name: w.title,
+                source: 'workshop'
+            }));
+            // Merge and deduplicate by ID
+            const merged = [...goEvents];
+            wsEvents.forEach(w => {
+                if (!merged.find(m => m.id === w.id)) {
+                    merged.push(w);
+                }
+            });
+            setEvents(merged);
+        }).catch(err => console.error('Failed to fetch events:', err));
     }, []);
 
     const handleChange = (e) => {
@@ -152,7 +169,7 @@ const Register = () => {
                                 <option value="">Select a session</option>
                                 {events.map(evt => (
                                     <option key={evt.id} value={evt.id}>
-                                        {evt.name} ({evt.isWorkshop ? 'Go' : 'Flow'})
+                                        {evt.name}
                                     </option>
                                 ))}
                             </select>

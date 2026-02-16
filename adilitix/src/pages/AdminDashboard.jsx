@@ -17,7 +17,9 @@ import {
     ShoppingCart,
     Check,
     CheckCircle,
-    Clock
+    Clock,
+    ShieldCheck,
+    UserPlus
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 
@@ -219,6 +221,9 @@ const AdminDashboard = () => {
         themeColor: '#059669'
     });
     const [showCertSettings, setShowCertSettings] = useState(false);
+    const [workshops, setWorkshops] = useState([]);
+    const [showAddCompletion, setShowAddCompletion] = useState(false);
+    const [newCompletion, setNewCompletion] = useState({ studentName: '', username: '', workshopId: '' });
 
     const rawBase = import.meta.env.VITE_SERVER_URL ||
         (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://hyperclass.onrender.com');
@@ -249,12 +254,13 @@ const AdminDashboard = () => {
     const fetchData = async (silent = false) => {
         if (!silent) setLoading(true);
         try {
-            const [regRes, invRes, ordRes, compRes, setRes] = await Promise.all([
+            const [regRes, invRes, ordRes, compRes, setRes, wsRes] = await Promise.all([
                 fetch(`${BASE_URL}/api/adilitix/registrations`),
                 fetch(`${BASE_URL}/api/adilitix/inventory`),
                 fetch(`${BASE_URL}/api/adilitix/orders`),
                 fetch(`${BASE_URL}/api/adilitix/completions`),
-                fetch(`${BASE_URL}/api/adilitix/certificates/settings`)
+                fetch(`${BASE_URL}/api/adilitix/certificates/settings`),
+                fetch(`${BASE_URL}/api/workshops`)
             ]);
             setRegistrations(await regRes.json());
             setInventory(await invRes.json());
@@ -262,6 +268,8 @@ const AdminDashboard = () => {
             setCompletions(await compRes.json());
             const settings = await setRes.json();
             if (settings && settings.title) setCertSettings(settings);
+            const wsData = await wsRes.json();
+            if (Array.isArray(wsData)) setWorkshops(wsData);
         } catch (err) {
             console.error('Failed to fetch admin data:', err);
         } finally {
@@ -366,6 +374,40 @@ const AdminDashboard = () => {
         fetchData(true);
     };
 
+    const addCompletion = async (e) => {
+        e.preventDefault();
+        if (!newCompletion.username || !newCompletion.workshopId) return;
+        try {
+            const res = await fetch(`${BASE_URL}/api/adilitix/completions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newCompletion)
+            });
+            const data = await res.json();
+            if (data.success) {
+                setShowAddCompletion(false);
+                setNewCompletion({ studentName: '', username: '', workshopId: '' });
+                fetchData(true);
+            } else {
+                alert(data.message || 'Failed to add completion');
+            }
+        } catch (err) {
+            alert('Error adding completion: ' + err.message);
+        }
+    };
+
+    const deleteCompletion = async (workshopId, username) => {
+        if (!window.confirm(`Remove completion for ${username}?`)) return;
+        await fetch(`${BASE_URL}/api/adilitix/completions/${encodeURIComponent(workshopId)}/${encodeURIComponent(username)}`, { method: 'DELETE' });
+        fetchData(true);
+    };
+
+    // Helper to resolve workshop name from ID
+    const getWorkshopName = (workshopId) => {
+        const ws = workshops.find(w => w.id === workshopId);
+        return ws ? ws.title : workshopId;
+    };
+
     const dashboardCards = [
         {
             id: 'registrations',
@@ -374,6 +416,14 @@ const AdminDashboard = () => {
             color: '#0066ff',
             count: `${registrations.length} Total`,
             action: () => setActiveView('registrations')
+        },
+        {
+            id: 'verification',
+            title: 'Verification',
+            icon: <ShieldCheck size={24} />,
+            color: '#06b6d4',
+            count: `${completions.length} Verified`,
+            action: () => setActiveView('verification')
         },
         {
             id: 'orders',
@@ -418,7 +468,7 @@ const AdminDashboard = () => {
                             <tr key={reg.id}>
                                 <td><div className="user-cell"><div className="user-avatar-sm">{reg.name?.charAt(0)}</div>{reg.name}</div></td>
                                 <td>{reg.course}</td>
-                                <td><span className="event-badge">{reg.eventId || 'General'}</span></td>
+                                <td><span className="event-badge">{reg.eventName || getWorkshopName(reg.eventId) || 'General'}</span></td>
                                 <td><ApprovalToggle status={reg.status || 'pending'} onToggle={(s) => updateRegStatus(reg.id, s)} /></td>
                                 <td><button onClick={() => deleteRegistration(reg.id)} className="icon-btn-red"><Trash2 size={18} /></button></td>
                             </tr>
@@ -549,6 +599,114 @@ const AdminDashboard = () => {
         </motion.div>
     );
 
+    const renderVerificationView = () => (
+        <motion.div key="verification" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="view-container">
+            <div className="view-header">
+                <h2>Student Verification</h2>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button onClick={() => setShowAddCompletion(true)} className="cta-primary-sm"><UserPlus size={18} /> Add Student</button>
+                    <button onClick={() => setActiveView('dashboard')} className="close-view-btn"><X size={20} /></button>
+                </div>
+            </div>
+            <div className="list-controls">
+                <div className="search-bar"><Search size={18} /><input type="text" placeholder="Search students..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} /></div>
+            </div>
+
+            <div className="data-table-wrapper">
+                <table className="data-table">
+                    <thead><tr><th>Student</th><th>Workshop</th><th>Completed</th><th>Certificate</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        {completions
+                            .filter(c => c.username?.toLowerCase().includes(searchQuery.toLowerCase()))
+                            .map((comp, idx) => (
+                                <tr key={idx}>
+                                    <td>
+                                        <div className="user-cell">
+                                            <div className="user-avatar-sm">{comp.username?.charAt(0)?.toUpperCase()}</div>
+                                            <b>{comp.username}</b>
+                                        </div>
+                                    </td>
+                                    <td><span className="event-badge">{getWorkshopName(comp.workshopId)}</span></td>
+                                    <td>{new Date(comp.completedAt).toLocaleDateString()}</td>
+                                    <td>
+                                        {comp.certificateIssued ? (
+                                            <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                                                <CheckCircle size={14} /> Issued
+                                            </span>
+                                        ) : (
+                                            <span style={{ color: '#f59e0b', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                                                <Clock size={14} /> Pending
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td>
+                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                            {!comp.certificateIssued && (
+                                                <button className="cta-primary-sm" onClick={() => issueCertificate(comp.workshopId, comp.username)}>
+                                                    <Award size={14} /> Issue
+                                                </button>
+                                            )}
+                                            {comp.certificateIssued && (
+                                                <button onClick={() => viewCertificate(comp.workshopId, comp.username)}
+                                                    className="nav-btn-subtle"
+                                                    style={{ padding: '6px 12px', fontSize: '0.75rem', height: 'auto', background: 'transparent' }}
+                                                >View</button>
+                                            )}
+                                            <button onClick={() => deleteCompletion(comp.workshopId, comp.username)} className="icon-btn-red" title="Remove"><Trash2 size={16} /></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        {completions.filter(c => c.username?.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                            <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: 'var(--ad-text-dim)' }}>No verified students yet. Click "Add Student" to add one.</td></tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Add Completion Modal */}
+            {showAddCompletion && (
+                <div className="overlay-glass" style={{
+                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)'
+                }}>
+                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="modal-box" style={{
+                        background: 'var(--ad-card)', padding: '30px', borderRadius: '24px', width: '450px',
+                        border: '1px solid var(--ad-border)',
+                        boxShadow: '0 20px 50px rgba(0,0,0,0.2)'
+                    }}>
+                        <h3 style={{ marginBottom: '20px', fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <ShieldCheck size={22} style={{ color: '#06b6d4' }} /> Verify Student Completion
+                        </h3>
+                        <form onSubmit={addCompletion} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                            <div className="form-group">
+                                <label>Student Name</label>
+                                <input autoFocus type="text" value={newCompletion.studentName} onChange={e => setNewCompletion({ ...newCompletion, studentName: e.target.value })} required placeholder="e.g. John Doe" />
+                            </div>
+                            <div className="form-group">
+                                <label>Student ID / Username</label>
+                                <input type="text" value={newCompletion.username} onChange={e => setNewCompletion({ ...newCompletion, username: e.target.value })} required placeholder="e.g. john_doe" />
+                            </div>
+                            <div className="form-group">
+                                <label>Workshop</label>
+                                <select value={newCompletion.workshopId} onChange={e => setNewCompletion({ ...newCompletion, workshopId: e.target.value })} required>
+                                    <option value="">Select a workshop</option>
+                                    {workshops.map(ws => (
+                                        <option key={ws.id} value={ws.id}>{ws.title}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <button type="button" onClick={() => setShowAddCompletion(false)} className="cta-secondary" style={{ flex: 1, padding: '12px', justifyContent: 'center' }}>Cancel</button>
+                                <button type="submit" className="cta-primary" style={{ flex: 1, padding: '12px', justifyContent: 'center' }}>Add & Verify</button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
+        </motion.div>
+    );
+
     const renderCertificatesView = () => {
         const mockData = {
             studentName: 'John Doe',
@@ -560,7 +718,7 @@ const AdminDashboard = () => {
         return (
             <motion.div key="certificates" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="view-container">
                 <div className="view-header">
-                    <h2>Workshop Completions (HyperGo)</h2>
+                    <h2>Certificate Management</h2>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         <button onClick={() => setShowCertSettings(true)} className="cta-secondary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
                             Certificate Template
@@ -570,12 +728,12 @@ const AdminDashboard = () => {
                 </div>
                 <div className="data-table-wrapper">
                     <table className="data-table">
-                        <thead><tr><th>Student ID</th><th>Workshop ID</th><th>Completion Date</th><th>Action</th></tr></thead>
+                        <thead><tr><th>Student</th><th>Workshop</th><th>Completion Date</th><th>Action</th></tr></thead>
                         <tbody>
                             {completions.map((comp, idx) => (
                                 <tr key={idx}>
                                     <td><b>{comp.username}</b></td>
-                                    <td><span className="event-badge">{comp.workshopId}</span></td>
+                                    <td><span className="event-badge">{getWorkshopName(comp.workshopId)}</span></td>
                                     <td>{new Date(comp.completedAt).toLocaleDateString()}</td>
                                     <td>
                                         {comp.certificateIssued ? (
@@ -608,6 +766,9 @@ const AdminDashboard = () => {
                                     </td>
                                 </tr>
                             ))}
+                            {completions.length === 0 && (
+                                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '40px', color: 'var(--ad-text-dim)' }}>No completions to show. Add students via the Verification panel first.</td></tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -678,8 +839,9 @@ const AdminDashboard = () => {
                     <button onClick={() => setActiveView('dashboard')} className={`db-nav-item ${activeView === 'dashboard' ? 'active' : ''}`}><LayoutDashboard size={18} /> Dashboard</button>
                     <button onClick={() => setActiveView('registrations')} className={`db-nav-item ${activeView === 'registrations' ? 'active' : ''}`}><Users size={18} /> Registrations</button>
                     <button onClick={() => setActiveView('orders')} className={`db-nav-item ${activeView === 'orders' ? 'active' : ''}`}><ShoppingCart size={18} /> View Orders</button>
+                    <button onClick={() => setActiveView('verification')} className={`db-nav-item ${activeView === 'verification' ? 'active' : ''}`}><ShieldCheck size={18} /> Verification</button>
                     <button onClick={() => setActiveView('inventory')} className={`db-nav-item ${activeView === 'inventory' ? 'active' : ''}`}><Package size={18} /> Inventory</button>
-                    <button onClick={() => setActiveView('certificates')} className={`db-nav-item ${activeView === 'certificates' ? 'active' : ''}`}><Award size={18} /> Completions</button>
+                    <button onClick={() => setActiveView('certificates')} className={`db-nav-item ${activeView === 'certificates' ? 'active' : ''}`}><Award size={18} /> Certificates</button>
                     <a href={HYPERCLASS_URL} target="_blank" rel="noopener noreferrer" className="db-nav-item">
                         <ExternalLink size={18} /> Hyperclass App
                     </a>
@@ -711,6 +873,7 @@ const AdminDashboard = () => {
                             {activeView === 'registrations' && renderRegistrationListView()}
                             {activeView === 'inventory' && renderInventoryView()}
                             {activeView === 'orders' && renderOrdersListView()}
+                            {activeView === 'verification' && renderVerificationView()}
                             {activeView === 'certificates' && renderCertificatesView()}
                         </AnimatePresence>
                     )}

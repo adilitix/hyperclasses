@@ -1157,6 +1157,107 @@ a {
   font-family: 'Inter', sans-serif;
 }
 
+/* --- Admin Dashboard Missing Styles --- */
+.view-container {
+  width: 100%;
+}
+
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.view-header h2 {
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.list-controls {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 12px;
+}
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar-sm {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--ad-primary), #0ea5e9);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+}
+
+.event-badge {
+  background: rgba(5, 150, 105, 0.1);
+  color: var(--ad-primary);
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.status-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.admin-login-page {
+  min-height: 100vh;
+  background: var(--ad-bg);
+}
+
+.admin-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.card-info h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.card-info p {
+  font-size: 0.85rem;
+  color: var(--ad-text-dim);
+  margin-top: 4px;
+}
+
+.card-action {
+  margin-left: auto;
+  color: var(--ad-text-dim);
+}
+
+.db-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--ad-text-dim);
+  font-weight: 600;
+}
+
+.verify-page {
+  min-height: 100vh;
+  background: var(--ad-bg);
+  padding-top: 120px;
+}
+
 .login-btn {
   background: var(--ad-primary);
   color: white;

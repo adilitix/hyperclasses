@@ -276,28 +276,6 @@ function saveWorkshops(workshops) {
     supabase.syncToCloud('workshops', workshops).catch(console.error);
 }
 
-module.exports = {
-    initDatabase,
-    loadAdmins,
-    saveAdmins,
-    loadEvents,
-    saveEvent,
-    deleteEvent,
-    loadSettings,
-    saveSettings,
-    loadWorkshops,
-    saveWorkshops,
-    loadAdilitixRegistrations,
-    saveAdilitixRegistrations,
-    loadAdilitixInventory,
-    saveAdilitixInventory,
-    loadAdilitixOrders,
-    saveAdilitixOrders,
-    loadWorkshopProgress,
-    saveWorkshopProgress,
-    restoreFromCloud,
-    syncLocalToCloud
-};
 
 // Push all local data to cloud (Primary sync)
 async function syncLocalToCloud(globalState) {
