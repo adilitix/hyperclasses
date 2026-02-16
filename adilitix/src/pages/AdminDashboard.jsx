@@ -239,6 +239,8 @@ const AdminDashboard = () => {
     const [sheetImport, setSheetImport] = useState({ spreadsheetId: '', sheetName: '' });
     const [importResult, setImportResult] = useState(null);
     const [importLoading, setImportLoading] = useState(false);
+    const [serviceAccountEmail, setServiceAccountEmail] = useState('');
+    const [copiedEmail, setCopiedEmail] = useState(false);
 
     const rawBase = import.meta.env.VITE_SERVER_URL ||
         (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://hyperclass.onrender.com');
@@ -289,6 +291,12 @@ const AdminDashboard = () => {
             if (Array.isArray(wsData)) setWorkshops(wsData);
             const admData = await admRes.json();
             if (Array.isArray(admData)) setAdminList(admData);
+            // Fetch service account email
+            try {
+                const saRes = await fetch(`${BASE_URL}/api/adilitix/service-account-email`);
+                const saData = await saRes.json();
+                if (saData.email) setServiceAccountEmail(saData.email);
+            } catch (e) { }
         } catch (err) {
             console.error('Failed to fetch admin data:', err);
         } finally {
@@ -1022,10 +1030,28 @@ const AdminDashboard = () => {
                     </h4>
                     <ol style={{ paddingLeft: '20px', fontSize: '0.9rem', color: 'var(--ad-text-dim)' }}>
                         <li>Open your Google Sheet (any account) → click <b>Share</b></li>
-                        <li>Add the service account email as <b>Viewer</b>:<br />
-                            <code style={{ background: 'rgba(0,0,0,0.15)', padding: '3px 8px', borderRadius: '6px', fontSize: '0.8rem', wordBreak: 'break-all' }}>
-                                Check your server/credentials.json → client_email field
-                            </code>
+                        <li>Add this service account email as <b>Viewer</b>:
+                            <div style={{
+                                display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', marginBottom: '4px',
+                                background: 'rgba(0,0,0,0.12)', padding: '8px 14px', borderRadius: '10px', width: 'fit-content', maxWidth: '100%'
+                            }}>
+                                <code style={{ fontSize: '0.82rem', wordBreak: 'break-all', flex: 1 }}>
+                                    {serviceAccountEmail || 'Loading...'}
+                                </code>
+                                {serviceAccountEmail && (
+                                    <button
+                                        type="button"
+                                        onClick={() => { navigator.clipboard.writeText(serviceAccountEmail); setCopiedEmail(true); setTimeout(() => setCopiedEmail(false), 2000); }}
+                                        style={{
+                                            background: copiedEmail ? '#10b981' : 'var(--ad-primary)', color: '#fff',
+                                            border: 'none', borderRadius: '8px', padding: '5px 14px', cursor: 'pointer',
+                                            fontSize: '0.75rem', fontWeight: 700, whiteSpace: 'nowrap', transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        {copiedEmail ? '✓ Copied!' : 'Copy'}
+                                    </button>
+                                )}
+                            </div>
                         </li>
                         <li>Copy the <b>Spreadsheet ID</b> from the URL:<br />
                             <code style={{ background: 'rgba(0,0,0,0.15)', padding: '3px 8px', borderRadius: '6px', fontSize: '0.8rem' }}>

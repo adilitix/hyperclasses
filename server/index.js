@@ -398,6 +398,22 @@ app.delete('/api/workshops/:id', (req, res) => {
 
 // --- ADILITIX PORTAL ROUTES ---
 
+// Return service account email for sheet sharing
+app.get('/api/adilitix/service-account-email', (req, res) => {
+    try {
+        const credPath = require('path').join(__dirname, 'credentials.json');
+        if (require('fs').existsSync(credPath)) {
+            const creds = JSON.parse(require('fs').readFileSync(credPath, 'utf8'));
+            return res.json({ email: creds.client_email || null });
+        }
+        if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
+            return res.json({ email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL });
+        }
+    } catch (e) { }
+    res.json({ email: null });
+});
+
+
 // Adilitix Admin Auth
 app.post('/api/adilitix/auth/login', (req, res) => {
     const { username, password } = req.body;
