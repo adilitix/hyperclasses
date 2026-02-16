@@ -474,10 +474,18 @@ app.delete('/api/adilitix/admins/:username', (req, res) => {
 
 // Google Sheets Import — pull registrations from any Google Sheet
 app.post('/api/adilitix/import-sheet', async (req, res) => {
-    const { spreadsheetId, sheetName } = req.body;
+    let { spreadsheetId, sheetName } = req.body;
     if (!spreadsheetId) {
         return res.status(400).json({ success: false, message: 'spreadsheetId is required' });
     }
+
+    // Auto-extract ID from full URL if pasted
+    const urlMatch = spreadsheetId.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+    if (urlMatch) {
+        spreadsheetId = urlMatch[1];
+    }
+    // Clean any trailing whitespace or slashes
+    spreadsheetId = spreadsheetId.trim().replace(/\/.*$/, '');
 
     try {
         const { GoogleSpreadsheet } = require('google-spreadsheet');

@@ -190,7 +190,7 @@ async function restoreFromCloud(globalState) {
         const cloudAdmins = await supabase.getFromCloud('admins');
         if (cloudAdmins && Array.isArray(cloudAdmins)) {
             globalState.admins = cloudAdmins;
-            saveAdmins(cloudAdmins); // Sync to local
+            saveAdmins(cloudAdmins);
             console.log('Admins restored from cloud.');
         }
 
@@ -198,7 +198,7 @@ async function restoreFromCloud(globalState) {
         const cloudSettings = await supabase.getFromCloud('settings');
         if (cloudSettings) {
             globalState.settings = cloudSettings;
-            saveSettings(cloudSettings); // Sync to local
+            saveSettings(cloudSettings);
             console.log('Settings restored from cloud.');
         }
 
@@ -211,7 +211,7 @@ async function restoreFromCloud(globalState) {
                     const eventData = await supabase.getFromCloud(`event_${eventId}`);
                     if (eventData) {
                         globalState.events.set(eventId, eventData);
-                        saveEvent(eventData); // Sync to local
+                        saveEvent(eventData);
                         console.log(`Event ${eventId} restored from cloud.`);
                     }
                 }
@@ -225,6 +225,73 @@ async function restoreFromCloud(globalState) {
             saveWorkshops(cloudWorkshops);
             console.log('Workshops restored from cloud.');
         }
+
+        // Restore Workshop Progress
+        const cloudProgress = await supabase.getFromCloud('workshop_progress');
+        if (cloudProgress && typeof cloudProgress === 'object' && Object.keys(cloudProgress).length > 0) {
+            globalState.workshop_progress = cloudProgress;
+            saveWorkshopProgress(cloudProgress);
+            console.log('Workshop progress restored from cloud.');
+        }
+
+        // Restore Adilitix Registrations
+        const cloudRegs = await supabase.getFromCloud('adilitix_registrations');
+        if (cloudRegs && Array.isArray(cloudRegs) && cloudRegs.length > 0) {
+            // Merge: keep cloud data if local is empty, otherwise merge unique by ID
+            if (globalState.adilitix_registrations.length === 0) {
+                globalState.adilitix_registrations = cloudRegs;
+            } else {
+                const existingIds = new Set(globalState.adilitix_registrations.map(r => r.id));
+                cloudRegs.forEach(r => {
+                    if (!existingIds.has(r.id)) globalState.adilitix_registrations.push(r);
+                });
+            }
+            saveAdilitixRegistrations(globalState.adilitix_registrations);
+            console.log(`Adilitix registrations restored from cloud (${globalState.adilitix_registrations.length} total).`);
+        }
+
+        // Restore Adilitix Inventory
+        const cloudInv = await supabase.getFromCloud('adilitix_inventory');
+        if (cloudInv && Array.isArray(cloudInv) && cloudInv.length > 0) {
+            globalState.adilitix_inventory = cloudInv;
+            saveAdilitixInventory(cloudInv);
+            console.log('Adilitix inventory restored from cloud.');
+        }
+
+        // Restore Adilitix Orders
+        const cloudOrders = await supabase.getFromCloud('adilitix_orders');
+        if (cloudOrders && Array.isArray(cloudOrders)) {
+            if (globalState.adilitix_orders.length === 0) {
+                globalState.adilitix_orders = cloudOrders;
+            } else {
+                const existingIds = new Set(globalState.adilitix_orders.map(o => o.id));
+                cloudOrders.forEach(o => {
+                    if (!existingIds.has(o.id)) globalState.adilitix_orders.push(o);
+                });
+            }
+            saveAdilitixOrders(globalState.adilitix_orders);
+            console.log(`Adilitix orders restored from cloud (${globalState.adilitix_orders.length} total).`);
+        }
+
+        // Restore Adilitix Certificate Settings
+        const cloudCertSettings = await supabase.getFromCloud('adilitix_certificate_settings');
+        if (cloudCertSettings && cloudCertSettings.title) {
+            globalState.adilitix_certificate_settings = {
+                ...globalState.adilitix_certificate_settings,
+                ...cloudCertSettings
+            };
+            saveAdilitixCertificateSettings(globalState.adilitix_certificate_settings);
+            console.log('Adilitix certificate settings restored from cloud.');
+        }
+
+        // Restore Adilitix Admins
+        const cloudAdilitixAdmins = await supabase.getFromCloud('adilitix_admins');
+        if (cloudAdilitixAdmins && Array.isArray(cloudAdilitixAdmins) && cloudAdilitixAdmins.length > 0) {
+            globalState.adilitix_admins = cloudAdilitixAdmins;
+            saveAdilitixAdmins(cloudAdilitixAdmins);
+            console.log('Adilitix admins restored from cloud.');
+        }
+
     } catch (err) {
         console.error('Failed to restore from cloud:', err);
     }
@@ -295,7 +362,13 @@ async function syncLocalToCloud(globalState) {
             saveEvent(event);
             console.log(`Event ${id} synced to cloud.`);
         }
-        console.log('All local data synced to cloud.');
+        // Sync Adilitix data
+        saveAdilitixRegistrations(globalState.adilitix_registrations);
+        saveAdilitixInventory(globalState.adilitix_inventory);
+        saveAdilitixOrders(globalState.adilitix_orders);
+        saveAdilitixCertificateSettings(globalState.adilitix_certificate_settings);
+        saveAdilitixAdmins(globalState.adilitix_admins);
+        console.log('All local data (including Adilitix) synced to cloud.');
     } catch (err) {
         console.error('Failed to sync local data to cloud:', err);
     }
