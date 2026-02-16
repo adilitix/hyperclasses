@@ -16,6 +16,7 @@ const ADILITIX_ORDERS_FILE = path.join(DB_DIR, 'adilitix_orders.json');
 const ADILITIX_CERT_SETTINGS_FILE = path.join(DB_DIR, 'adilitix_certificate_settings.json');
 const ADILITIX_ADMINS_FILE = path.join(DB_DIR, 'adilitix_admins.json');
 const ADILITIX_EVENTS_FILE = path.join(DB_DIR, 'adilitix_events.json');
+const ADILITIX_NOTICES_FILE = path.join(DB_DIR, 'adilitix_notices.json');
 
 // Ensure database directories exist
 function initDatabase() {
@@ -297,8 +298,16 @@ async function restoreFromCloud(globalState) {
         const cloudAdilitixEvents = await supabase.getFromCloud('adilitix_events');
         if (cloudAdilitixEvents && Array.isArray(cloudAdilitixEvents) && cloudAdilitixEvents.length > 0) {
             globalState.adilitix_events = cloudAdilitixEvents;
-            saveAdilitixEvents(cloudAdilitixEvents);
+            if (globalState.adilitix_events) saveAdilitixEvents(globalState.adilitix_events);
             console.log('Adilitix events restored from cloud.');
+        }
+
+        // Restore Adilitix Notices
+        const cloudNotices = await supabase.getFromCloud('adilitix_notices');
+        if (cloudNotices && Array.isArray(cloudNotices)) {
+            globalState.adilitix_notices = cloudNotices;
+            saveAdilitixNotices(cloudNotices);
+            console.log('Adilitix notices restored from cloud.');
         }
 
     } catch (err) {
@@ -378,6 +387,7 @@ async function syncLocalToCloud(globalState) {
         saveAdilitixCertificateSettings(globalState.adilitix_certificate_settings);
         saveAdilitixAdmins(globalState.adilitix_admins);
         if (globalState.adilitix_events) saveAdilitixEvents(globalState.adilitix_events);
+        if (globalState.adilitix_notices) saveAdilitixNotices(globalState.adilitix_notices);
         console.log('All local data (including Adilitix) synced to cloud.');
     } catch (err) {
         console.error('Failed to sync local data to cloud:', err);
@@ -569,6 +579,23 @@ function saveAdilitixEvents(events) {
     supabase.syncToCloud('adilitix_events', events).catch(console.error);
 }
 
+// Adilitix Noticeboard
+function loadAdilitixNotices() {
+    try {
+        if (fs.existsSync(ADILITIX_NOTICES_FILE)) {
+            return JSON.parse(fs.readFileSync(ADILITIX_NOTICES_FILE, 'utf8'));
+        }
+    } catch (err) { console.error('Error loading Adilitix notices:', err); }
+    return [];
+}
+
+function saveAdilitixNotices(notices) {
+    try {
+        fs.writeFileSync(ADILITIX_NOTICES_FILE, JSON.stringify(notices, null, 2));
+    } catch (err) { console.error('Error saving Adilitix notices:', err); }
+    supabase.syncToCloud('adilitix_notices', notices).catch(console.error);
+}
+
 module.exports = {
     initDatabase,
     loadAdmins, saveAdmins,
@@ -582,6 +609,7 @@ module.exports = {
     loadAdilitixCertificateSettings, saveAdilitixCertificateSettings,
     loadAdilitixAdmins, saveAdilitixAdmins,
     loadAdilitixEvents, saveAdilitixEvents,
+    loadAdilitixNotices, saveAdilitixNotices,
     restoreFromCloud,
     syncLocalToCloud
 };

@@ -1,4 +1,5 @@
 const express = require('express');
+const os = require('os');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
@@ -123,7 +124,8 @@ const GLOBAL_STATE = {
     adilitix_orders: db.loadAdilitixOrders(),
     adilitix_certificate_settings: db.loadAdilitixCertificateSettings(),
     adilitix_admins: db.loadAdilitixAdmins(),
-    adilitix_events: db.loadAdilitixEvents()
+    adilitix_events: db.loadAdilitixEvents(),
+    adilitix_notices: db.loadAdilitixNotices()
 };
 
 // Initial Cloud Sync (Bidirectional)
@@ -599,9 +601,60 @@ app.delete('/api/adilitix/admins/:username', (req, res) => {
     if (idx === -1) {
         return res.status(404).json({ success: false, message: 'Admin not found' });
     }
-    GLOBAL_STATE.adilitix_admins.splice(idx, 1);
     db.saveAdilitixAdmins(GLOBAL_STATE.adilitix_admins);
     res.json({ success: true });
+});
+
+// --- ADILITIX NOTICEBOARD ---
+app.get('/api/adilitix/notices', (req, res) => {
+    res.json(GLOBAL_STATE.adilitix_notices);
+});
+
+app.post('/api/adilitix/notices', (req, res) => {
+    const { title, content, author, priority } = req.body;
+    if (!title || !content) {
+        return res.status(400).json({ success: false, message: 'Title and content required' });
+    }
+    const newNotice = {
+        id: Date.now().toString(),
+        title,
+        content,
+        author: author || 'Admin',
+        priority: priority || 'normal',
+        timestamp: new Date().toISOString()
+    };
+    GLOBAL_STATE.adilitix_notices.unshift(newNotice); // Newest first
+    if (GLOBAL_STATE.adilitix_notices.length > 50) GLOBAL_STATE.adilitix_notices = GLOBAL_STATE.adilitix_notices.slice(0, 50);
+    db.saveAdilitixNotices(GLOBAL_STATE.adilitix_notices);
+    res.json({ success: true, notice: newNotice });
+});
+
+app.delete('/api/adilitix/notices/:id', (req, res) => {
+    GLOBAL_STATE.adilitix_notices = GLOBAL_STATE.adilitix_notices.filter(n => n.id !== req.params.id);
+    db.saveAdilitixNotices(GLOBAL_STATE.adilitix_notices);
+    res.json({ success: true });
+});
+
+// --- SYSTEM STATUS ---
+app.get('/api/system-status', (req, res) => {
+    const status = {
+        uptime: os.uptime(),
+        platform: os.platform(),
+        arch: os.arch(),
+        cpuCount: os.cpus().length,
+        freeMem: os.freemem(),
+        totalMem: os.totalmem(),
+        loadAvg: os.loadavg(),
+        processMemory: process.memoryUsage(),
+        dbStats: {
+            events: GLOBAL_STATE.events.size,
+            registrations: GLOBAL_STATE.adilitix_registrations.length,
+            inventoryItems: GLOBAL_STATE.adilitix_inventory.length,
+            activeSockets: io.sockets.sockets.size
+        },
+        timestamp: new Date().toISOString()
+    };
+    res.json(status);
 });
 
 // ---- ADILITIX EVENTS (Workshop Events with permanent IDs) ----

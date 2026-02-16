@@ -25,7 +25,12 @@ import {
     Upload,
     Edit3,
     Hash,
-    Eye
+    Eye,
+    Bell,
+    Info,
+    Activity,
+    MessageSquare,
+    ChevronLeft
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 
@@ -250,6 +255,12 @@ const AdminDashboard = () => {
     const [importLoading, setImportLoading] = useState(false);
     const [serviceAccountEmail, setServiceAccountEmail] = useState('');
     const [copiedEmail, setCopiedEmail] = useState(false);
+    const [notices, setNotices] = useState([]);
+    const [showAddNotice, setShowAddNotice] = useState(false);
+    const [newNotice, setNewNotice] = useState({ title: '', content: '', priority: 'normal' });
+    const [systemStatus, setSystemStatus] = useState(null);
+    const [showSystemStatus, setShowSystemStatus] = useState(false);
+    const [calendarDate, setCalendarDate] = useState(new Date());
 
     // Adilitix Events (Workshop Events with permanent IDs)
     const [adilitixEvents, setAdilitixEvents] = useState([]);
@@ -297,31 +308,44 @@ const AdminDashboard = () => {
                 fetch(`${BASE_URL}/api/adilitix/completions`),
                 fetch(`${BASE_URL}/api/adilitix/certificates/settings`),
                 fetch(`${BASE_URL}/api/workshops`),
-                fetch(`${BASE_URL}/api/adilitix/admins`)
+                fetch(`${BASE_URL}/api/adilitix/admins`),
+                fetch(`${BASE_URL}/api/adilitix/events`),
+                fetch(`${BASE_URL}/api/adilitix/notices`)
             ];
-            const [regRes, invRes, ordRes, compRes, setRes, wsRes, admRes] = await Promise.all(fetches);
+            const [regRes, invRes, ordRes, compRes, setRes, wsRes, admRes, evRes, noticeRes] = await Promise.all(fetches);
+
             setRegistrations(await regRes.json());
             setInventory(await invRes.json());
             setOrders(await ordRes.json());
             setCompletions(await compRes.json());
+
             const settings = await setRes.json();
             if (settings && settings.title) setCertSettings(settings);
+
             const wsData = await wsRes.json();
             if (Array.isArray(wsData)) setWorkshops(wsData);
+
             const admData = await admRes.json();
             if (Array.isArray(admData)) setAdminList(admData);
-            // Fetch Adilitix Events
-            try {
-                const evRes = await fetch(`${BASE_URL}/api/adilitix/events`);
-                const evData = await evRes.json();
-                if (Array.isArray(evData)) setAdilitixEvents(evData);
-            } catch (e) { }
+
+            const evData = await evRes.json();
+            if (Array.isArray(evData)) setAdilitixEvents(evData);
+
+            const noticeData = await noticeRes.json();
+            if (Array.isArray(noticeData)) setNotices(noticeData);
+
+            // Fetch system status if superadmin
+            if (isSuperAdmin) {
+                const statusRes = await fetch(`${BASE_URL}/api/system-status`);
+                const statusData = await statusRes.json();
+                setSystemStatus(statusData);
+            }
+
             // Fetch service account email
-            try {
-                const saRes = await fetch(`${BASE_URL}/api/adilitix/service-account-email`);
-                const saData = await saRes.json();
-                if (saData.email) setServiceAccountEmail(saData.email);
-            } catch (e) { }
+            const saRes = await fetch(`${BASE_URL}/api/adilitix/service-account-email`);
+            const saData = await saRes.json();
+            if (saData.email) setServiceAccountEmail(saData.email);
+
         } catch (err) {
             console.error('Failed to fetch admin data:', err);
         } finally {
@@ -593,11 +617,240 @@ const AdminDashboard = () => {
                 setShowAddAdmin(false);
                 setNewAdmin({ username: '', password: '', role: 'admin' });
                 fetchData(true);
-            } else {
-                alert(data.message || 'Failed');
             }
-        } catch (err) { alert(err.message); }
+        } catch (err) { alert('Error adding admin'); }
     };
+
+    // --- NOTICEBOARD ---
+    const postNotice = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await fetch(`${BASE_URL}/api/adilitix/notices`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...newNotice, author: adminUsername })
+            });
+            if (res.ok) {
+                setShowAddNotice(false);
+                setNewNotice({ title: '', content: '', priority: 'normal' });
+                fetchData(true);
+            }
+        } catch (err) { alert('Error posting notice'); }
+    };
+
+    const deleteNotice = async (id) => {
+        if (!window.confirm('Delete this notice?')) return;
+        await fetch(`${BASE_URL}/api/adilitix/notices/${id}`, { method: 'DELETE' });
+        fetchData(true);
+    };
+
+    // --- CALENDAR HELPERS ---
+    const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+    const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
+
+    const renderCalendarView = () => {
+        const year = calendarDate.getFullYear();
+        const month = calendarDate.getMonth();
+        const daysInMonth = getDaysInMonth(year, month);
+        const firstDay = getFirstDayOfMonth(year, month);
+        const monthName = new Intl.DateTimeFormat('en-US', { month: 'long' }).format(calendarDate);
+
+        const days = [];
+        for (let i = 0; i < firstDay; i++) days.push(null);
+        for (let i = 1; i <= daysInMonth; i++) days.push(i);
+
+        return (
+            <div className="calendar-view">
+                <div className="calendar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                        <h2 className="cine-text" style={{ margin: 0 }}>{monthName} {year}</h2>
+                        <div style={{ display: 'flex', gap: '5px' }}>
+                            <button className="cta-icon" onClick={() => setCalendarDate(new Date(year, month - 1))}><ChevronLeft size={18} /></button>
+                            <button className="cta-icon" onClick={() => setCalendarDate(new Date())}><Clock size={18} /></button>
+                            <button className="cta-icon" onClick={() => setCalendarDate(new Date(year, month + 1))}><ChevronRight size={18} /></button>
+                        </div>
+                    </div>
+                    <button className="cta-primary" onClick={() => setShowCreateEvent(true)}><Plus size={18} /> New Event</button>
+                </div>
+
+                <div className="calendar-grid-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', background: 'var(--ad-border)', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--ad-border)' }}>
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+                        <div key={d} style={{ background: 'var(--ad-bg-alt)', padding: '12px', textAlign: 'center', fontWeight: 700, fontSize: '0.8rem', color: 'var(--ad-text-muted)' }}>{d}</div>
+                    ))}
+                    {days.map((day, idx) => {
+                        const dateStr = day ? `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}` : null;
+                        const dayEvents = adilitixEvents.filter(ev => ev.createdAt && ev.createdAt.startsWith(dateStr));
+                        const isToday = day && new Date().toDateString() === new Date(year, month, day).toDateString();
+
+                        return (
+                            <div key={idx} style={{ background: 'var(--ad-card-bg)', minHeight: '120px', padding: '10px', position: 'relative' }}>
+                                {day && (
+                                    <>
+                                        <span style={{ fontSize: '0.9rem', fontWeight: 600, color: isToday ? 'var(--ad-accent)' : 'inherit' }}>{day}</span>
+                                        <div className="day-events" style={{ marginTop: '5px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            {dayEvents.map(ev => (
+                                                <div key={ev.id} className="calendar-event-pill" style={{ fontSize: '0.7rem', padding: '4px 8px', borderRadius: '4px', background: 'var(--ad-accent-light)', color: 'var(--ad-accent)', borderLeft: '3px solid var(--ad-accent)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                    {ev.title}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+    const renderNoticeboardView = () => (
+        <div className="noticeboard-view">
+            <div className="view-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                <div>
+                    <h2 className="cine-text" style={{ margin: 0, fontSize: '1.8rem' }}>Noticeboard</h2>
+                    <p style={{ color: 'var(--ad-text-muted)' }}>Broadcast updates and announcements to the team</p>
+                </div>
+                <button className="cta-primary" onClick={() => setShowAddNotice(true)}><Bell size={18} /> Post New Notice</button>
+            </div>
+
+            <div className="notices-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+                <AnimatePresence>
+                    {notices.map(notice => (
+                        <motion.div
+                            key={notice.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="notice-card"
+                            style={{
+                                background: 'var(--ad-card-bg)',
+                                borderRadius: '16px',
+                                padding: '24px',
+                                border: '1px solid var(--ad-border)',
+                                position: 'relative',
+                                display: 'flex',
+                                flexDirection: 'column'
+                            }}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+                                <span style={{
+                                    fontSize: '0.65rem',
+                                    fontWeight: 800,
+                                    textTransform: 'uppercase',
+                                    padding: '4px 10px',
+                                    borderRadius: '20px',
+                                    background: notice.priority === 'high' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                                    color: notice.priority === 'high' ? '#ef4444' : '#10b981'
+                                }}>
+                                    {notice.priority}
+                                </span>
+                                {isSuperAdmin && (
+                                    <button onClick={() => deleteNotice(notice.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', opacity: 0.6 }}>
+                                        <Trash2 size={16} />
+                                    </button>
+                                )}
+                            </div>
+                            <h3 style={{ margin: '0 0 10px 0', fontSize: '1.2rem' }}>{notice.title}</h3>
+                            <p style={{ color: 'var(--ad-text-muted)', fontSize: '0.9rem', lineHeight: 1.6, flex: 1, whiteSpace: 'pre-wrap' }}>{notice.content}</p>
+                            <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid var(--ad-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div className="avatar" style={{ width: '24px', height: '24px', fontSize: '0.6rem' }}>{notice.author.charAt(0)}</div>
+                                    <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{notice.author}</span>
+                                </div>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--ad-text-muted)' }}>{new Date(notice.timestamp).toLocaleDateString()}</span>
+                            </div>
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
+                {notices.length === 0 && (
+                    <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '60px', background: 'rgba(255,255,255,0.02)', borderRadius: '20px', border: '2px dashed var(--ad-border)' }}>
+                        <Bell size={48} style={{ opacity: 0.2, marginBottom: '15px' }} />
+                        <h3 style={{ opacity: 0.5 }}>No active notices</h3>
+                        <p style={{ opacity: 0.3 }}>Post an update to get started</p>
+                    </div>
+                )}
+            </div>
+
+            {showAddNotice && (
+                <div className="modal-overlay">
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="modal-card">
+                        <div className="modal-header">
+                            <h2>Post New Notice</h2>
+                            <button onClick={() => setShowAddNotice(false)} className="close-btn"><X size={20} /></button>
+                        </div>
+                        <form onSubmit={postNotice}>
+                            <div className="form-group">
+                                <label>Title</label>
+                                <input type="text" required value={newNotice.title} onChange={e => setNewNotice({ ...newNotice, title: e.target.value })} placeholder="Enter notice headline" />
+                            </div>
+                            <div className="form-group">
+                                <label>Message</label>
+                                <textarea required value={newNotice.content} onChange={e => setNewNotice({ ...newNotice, content: e.target.value })} placeholder="What's the update?" style={{ minHeight: '120px' }} />
+                            </div>
+                            <div className="form-group">
+                                <label>Priority</label>
+                                <select value={newNotice.priority} onChange={e => setNewNotice({ ...newNotice, priority: e.target.value })}>
+                                    <option value="normal">Normal</option>
+                                    <option value="high">High Priority</option>
+                                </select>
+                            </div>
+                            <button type="submit" className="cta-primary" style={{ width: '100%', marginTop: '10px' }}>Post Announcement</button>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
+        </div>
+    );
+
+    const renderSystemStatusModal = () => {
+        if (!systemStatus) return null;
+        const memUsed = ((systemStatus.totalMem - systemStatus.freeMem) / (1024 * 1024 * 1024)).toFixed(2);
+        const memTotal = (systemStatus.totalMem / (1024 * 1024 * 1024)).toFixed(2);
+        const uptimeH = (systemStatus.uptime / 3600).toFixed(1);
+
+        return (
+            <div className="modal-overlay" style={{ zIndex: 3000 }}>
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="modal-card" style={{ maxWidth: '500px' }}>
+                    <div className="modal-header">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Activity size={20} color="var(--ad-accent)" />
+                            <h2>Server Diagnostics</h2>
+                        </div>
+                        <button onClick={() => setShowSystemStatus(false)} className="close-btn"><X size={20} /></button>
+                    </div>
+                    <div className="status-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '10px' }}>
+                        <div className="status-item" style={{ background: 'var(--ad-bg-alt)', padding: '15px', borderRadius: '12px' }}>
+                            <label style={{ fontSize: '0.7rem', color: 'var(--ad-text-muted)', textTransform: 'uppercase' }}>Uptime</label>
+                            <p style={{ fontSize: '1.2rem', fontWeight: 800, margin: '5px 0 0 0' }}>{uptimeH}h</p>
+                        </div>
+                        <div className="status-item" style={{ background: 'var(--ad-bg-alt)', padding: '15px', borderRadius: '12px' }}>
+                            <label style={{ fontSize: '0.7rem', color: 'var(--ad-text-muted)', textTransform: 'uppercase' }}>Memory</label>
+                            <p style={{ fontSize: '1.2rem', fontWeight: 800, margin: '5px 0 0 0' }}>{memUsed} / {memTotal} GB</p>
+                        </div>
+                        <div className="status-item" style={{ background: 'var(--ad-bg-alt)', padding: '15px', borderRadius: '12px' }}>
+                            <label style={{ fontSize: '0.7rem', color: 'var(--ad-text-muted)', textTransform: 'uppercase' }}>OS</label>
+                            <p style={{ fontSize: '0.9rem', fontWeight: 700, margin: '5px 0 0 0' }}>{systemStatus.platform} ({systemStatus.arch})</p>
+                        </div>
+                        <div className="status-item" style={{ background: 'var(--ad-bg-alt)', padding: '15px', borderRadius: '12px' }}>
+                            <label style={{ fontSize: '0.7rem', color: 'var(--ad-text-muted)', textTransform: 'uppercase' }}>Active Clients</label>
+                            <p style={{ fontSize: '1.2rem', fontWeight: 800, margin: '5px 0 0 0' }}>{systemStatus.dbStats.activeSockets}</p>
+                        </div>
+                    </div>
+                    <div style={{ marginTop: '20px', padding: '15px', background: 'var(--ad-accent-light)', borderRadius: '12px', border: '1px solid var(--ad-accent)' }}>
+                        <h4 style={{ margin: '0 0 10px 0', color: 'var(--ad-accent)', fontSize: '0.8rem' }}>Database Overview</h4>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                            <span>Registrations: <b>{systemStatus.dbStats.registrations}</b></span>
+                            <span>Live Events: <b>{systemStatus.dbStats.events}</b></span>
+                        </div>
+                    </div>
+                    <p style={{ textAlign: 'center', fontSize: '0.7rem', color: 'var(--ad-text-muted)', marginTop: '20px' }}>Last Heartbeat: {new Date(systemStatus.timestamp).toLocaleTimeString()}</p>
+                </motion.div>
+            </div>
+        );
+    };
+
+    // Helper to resolve workshop name from ID
 
     const removeAdmin = async (username) => {
         if (!window.confirm(`Remove admin "${username}"?`)) return;
@@ -655,10 +908,26 @@ const AdminDashboard = () => {
             id: 'inventory',
             title: 'Inventory',
             icon: <Package size={24} />,
-            color: '#ff7b00',
-            count: `${inventory.length} Items`,
+            color: '#f59e0b',
+            count: `${inventory.length} SKUs`,
             action: () => setActiveView('inventory')
         }] : []),
+        {
+            id: 'noticeboard',
+            title: 'Noticeboard',
+            icon: <Bell size={24} />,
+            color: '#8b5cf6',
+            count: `${notices.length} Active`,
+            action: () => setActiveView('noticeboard')
+        },
+        {
+            id: 'calendar',
+            title: 'Event Calendar',
+            icon: <Calendar size={24} />,
+            color: '#ec4899',
+            count: `${adilitixEvents.length} Events`,
+            action: () => setActiveView('calendar')
+        },
         ...(hasPerm('issueCertificates') ? [{
             id: 'certificates',
             title: 'Manage Certificates',
@@ -1653,6 +1922,9 @@ const AdminDashboard = () => {
                     <button onClick={() => setActiveView('verification')} className={`db-nav-item ${activeView === 'verification' ? 'active' : ''}`}><ShieldCheck size={18} /> Verification</button>
                     {hasPerm('manageInventory') && <button onClick={() => setActiveView('inventory')} className={`db-nav-item ${activeView === 'inventory' ? 'active' : ''}`}><Package size={18} /> Inventory</button>}
                     {hasPerm('issueCertificates') && <button onClick={() => setActiveView('certificates')} className={`db-nav-item ${activeView === 'certificates' ? 'active' : ''}`}><Award size={18} /> Certificates</button>}
+                    <div style={{ borderTop: '1px solid var(--ad-border)', margin: '8px 0', opacity: 0.3 }} />
+                    <button onClick={() => setActiveView('noticeboard')} className={`db-nav-item ${activeView === 'noticeboard' ? 'active' : ''}`}><Bell size={18} /> Noticeboard</button>
+                    <button onClick={() => setActiveView('calendar')} className={`db-nav-item ${activeView === 'calendar' ? 'active' : ''}`}><Calendar size={18} /> Calendar</button>
                     {isSuperAdmin && (
                         <>
                             <div style={{ borderTop: '1px solid var(--ad-border)', margin: '8px 0', opacity: 0.3 }} />
@@ -1673,9 +1945,16 @@ const AdminDashboard = () => {
             <main className="db-main">
                 <header className="db-header">
                     <div className="header-breadcrumbs"><span>Adilitix Admin</span>{activeView !== 'dashboard' && <><ChevronRight size={14} /><span>{activeView}</span></>}</div>
-                    <div className="admin-user-info">
-                        <span>Welcome, <b>{adminUsername}</b></span>
-                        {isSuperAdmin && <span style={{ fontSize: '0.7rem', background: 'rgba(225,29,72,0.1)', color: '#e11d48', padding: '2px 10px', borderRadius: '20px', fontWeight: 800 }}>SUPERADMIN</span>}
+                    <div className="admin-user-info" style={{ gap: '15px' }}>
+                        {isSuperAdmin && (
+                            <button className="status-trigger" onClick={() => setShowSystemStatus(true)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--ad-border)', borderRadius: '10px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}>
+                                <Activity size={18} color="var(--ad-primary)" />
+                            </button>
+                        )}
+                        <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{adminUsername}</div>
+                            {isSuperAdmin && <div style={{ fontSize: '0.65rem', color: '#e11d48', fontWeight: 800 }}>SUPERADMIN</div>}
+                        </div>
                         <div className="avatar">{adminUsername.charAt(0).toUpperCase()}</div>
                     </div>
                 </header>
@@ -1699,6 +1978,8 @@ const AdminDashboard = () => {
                             {activeView === 'orders' && renderOrdersListView()}
                             {activeView === 'verification' && renderVerificationView()}
                             {activeView === 'certificates' && renderCertificatesView()}
+                            {activeView === 'noticeboard' && renderNoticeboardView()}
+                            {activeView === 'calendar' && renderCalendarView()}
                             {isSuperAdmin && activeView === 'admin-mgmt' && renderAdminManagementView()}
                             {hasPerm('importSheets') && activeView === 'import-sheet' && renderImportSheetView()}
                             {activeView === 'settings' && renderSettingsView()}
@@ -1706,6 +1987,9 @@ const AdminDashboard = () => {
                     )}
                 </div>
             </main>
+
+            {showSystemStatus && renderSystemStatusModal()}
+
             {/* Certificate Preview Overlay */}
             {showCertificatePreview && certificateData && (
                 <div className="certificate-preview-overlay" style={{
