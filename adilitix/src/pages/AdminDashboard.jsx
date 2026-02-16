@@ -19,7 +19,11 @@ import {
     CheckCircle,
     Clock,
     ShieldCheck,
-    UserPlus
+    UserPlus,
+    Settings,
+    FileSpreadsheet,
+    Crown,
+    Upload
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 
@@ -225,6 +229,17 @@ const AdminDashboard = () => {
     const [showAddCompletion, setShowAddCompletion] = useState(false);
     const [newCompletion, setNewCompletion] = useState({ studentName: '', username: '', workshopId: '' });
 
+    // Superadmin features
+    const adminRole = localStorage.getItem('adilitix_role') || 'admin';
+    const adminUsername = localStorage.getItem('adilitix_username') || 'Admin';
+    const isSuperAdmin = adminRole === 'superadmin';
+    const [adminList, setAdminList] = useState([]);
+    const [showAddAdmin, setShowAddAdmin] = useState(false);
+    const [newAdmin, setNewAdmin] = useState({ username: '', password: '', role: 'admin' });
+    const [sheetImport, setSheetImport] = useState({ spreadsheetId: '', sheetName: '' });
+    const [importResult, setImportResult] = useState(null);
+    const [importLoading, setImportLoading] = useState(false);
+
     const rawBase = import.meta.env.VITE_SERVER_URL ||
         (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://hyperclass.onrender.com');
     const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
@@ -254,14 +269,16 @@ const AdminDashboard = () => {
     const fetchData = async (silent = false) => {
         if (!silent) setLoading(true);
         try {
-            const [regRes, invRes, ordRes, compRes, setRes, wsRes] = await Promise.all([
+            const fetches = [
                 fetch(`${BASE_URL}/api/adilitix/registrations`),
                 fetch(`${BASE_URL}/api/adilitix/inventory`),
                 fetch(`${BASE_URL}/api/adilitix/orders`),
                 fetch(`${BASE_URL}/api/adilitix/completions`),
                 fetch(`${BASE_URL}/api/adilitix/certificates/settings`),
-                fetch(`${BASE_URL}/api/workshops`)
-            ]);
+                fetch(`${BASE_URL}/api/workshops`),
+                fetch(`${BASE_URL}/api/adilitix/admins`)
+            ];
+            const [regRes, invRes, ordRes, compRes, setRes, wsRes, admRes] = await Promise.all(fetches);
             setRegistrations(await regRes.json());
             setInventory(await invRes.json());
             setOrders(await ordRes.json());
@@ -270,6 +287,8 @@ const AdminDashboard = () => {
             if (settings && settings.title) setCertSettings(settings);
             const wsData = await wsRes.json();
             if (Array.isArray(wsData)) setWorkshops(wsData);
+            const admData = await admRes.json();
+            if (Array.isArray(admData)) setAdminList(admData);
         } catch (err) {
             console.error('Failed to fetch admin data:', err);
         } finally {
@@ -279,6 +298,8 @@ const AdminDashboard = () => {
 
     const handleLogout = () => {
         localStorage.removeItem('adilitix_admin');
+        localStorage.removeItem('adilitix_username');
+        localStorage.removeItem('adilitix_role');
         navigate('/');
     };
 
@@ -408,6 +429,53 @@ const AdminDashboard = () => {
         return ws ? ws.title : workshopId;
     };
 
+    // Admin management
+    const addAdmin = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await fetch(`${BASE_URL}/api/adilitix/admins`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newAdmin)
+            });
+            const data = await res.json();
+            if (data.success) {
+                setShowAddAdmin(false);
+                setNewAdmin({ username: '', password: '', role: 'admin' });
+                fetchData(true);
+            } else {
+                alert(data.message || 'Failed');
+            }
+        } catch (err) { alert(err.message); }
+    };
+
+    const removeAdmin = async (username) => {
+        if (!window.confirm(`Remove admin "${username}"?`)) return;
+        await fetch(`${BASE_URL}/api/adilitix/admins/${encodeURIComponent(username)}`, { method: 'DELETE' });
+        fetchData(true);
+    };
+
+    // Google Sheets Import
+    const importFromSheet = async (e) => {
+        e.preventDefault();
+        setImportLoading(true);
+        setImportResult(null);
+        try {
+            const res = await fetch(`${BASE_URL}/api/adilitix/import-sheet`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(sheetImport)
+            });
+            const data = await res.json();
+            setImportResult(data);
+            if (data.success) fetchData(true);
+        } catch (err) {
+            setImportResult({ success: false, message: err.message });
+        } finally {
+            setImportLoading(false);
+        }
+    };
+
     const dashboardCards = [
         {
             id: 'registrations',
@@ -448,7 +516,25 @@ const AdminDashboard = () => {
             color: '#8b5cf6',
             count: `${completions.length} Completed`,
             action: () => setActiveView('certificates')
-        }
+        },
+        ...(isSuperAdmin ? [
+            {
+                id: 'admin-mgmt',
+                title: 'Admin Management',
+                icon: <Crown size={24} />,
+                color: '#e11d48',
+                count: `${adminList.length} Admins`,
+                action: () => setActiveView('admin-mgmt')
+            },
+            {
+                id: 'import-sheet',
+                title: 'Import from Sheets',
+                icon: <FileSpreadsheet size={24} />,
+                color: '#16a34a',
+                count: 'Google Forms',
+                action: () => setActiveView('import-sheet')
+            }
+        ] : [])
     ];
 
     const renderRegistrationListView = () => (
@@ -831,6 +917,173 @@ const AdminDashboard = () => {
         );
     };
 
+    // ---- SUPERADMIN VIEWS ----
+    const renderAdminManagementView = () => (
+        <motion.div key="admin-mgmt" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="view-container">
+            <div className="view-header">
+                <h2>Admin Management</h2>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button onClick={() => setShowAddAdmin(true)} className="cta-primary-sm"><UserPlus size={18} /> Add Admin</button>
+                    <button onClick={() => setActiveView('dashboard')} className="close-view-btn"><X size={20} /></button>
+                </div>
+            </div>
+            <div className="data-table-wrapper">
+                <table className="data-table">
+                    <thead><tr><th>Username</th><th>Role</th><th>Added</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        {adminList.map((adm, idx) => (
+                            <tr key={idx}>
+                                <td>
+                                    <div className="user-cell">
+                                        <div className="user-avatar-sm" style={adm.role === 'superadmin' ? { background: 'linear-gradient(135deg, #e11d48, #f59e0b)' } : {}}>
+                                            {adm.username?.charAt(0)?.toUpperCase()}
+                                        </div>
+                                        <b>{adm.username}</b>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style={{
+                                        padding: '4px 14px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 800,
+                                        textTransform: 'uppercase', letterSpacing: '0.5px',
+                                        background: adm.role === 'superadmin' ? 'rgba(225,29,72,0.1)' : 'rgba(6,182,212,0.1)',
+                                        color: adm.role === 'superadmin' ? '#e11d48' : '#06b6d4'
+                                    }}>
+                                        {adm.role === 'superadmin' ? '👑 Superadmin' : '🔑 Admin'}
+                                    </span>
+                                </td>
+                                <td>{adm.createdAt ? new Date(adm.createdAt).toLocaleDateString() : '—'}</td>
+                                <td>
+                                    {adm.role !== 'superadmin' ? (
+                                        <button onClick={() => removeAdmin(adm.username)} className="icon-btn-red" title="Remove"><Trash2 size={16} /></button>
+                                    ) : (
+                                        <span style={{ color: 'var(--ad-text-dim)', fontSize: '0.8rem' }}>Protected</span>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Add Admin Modal */}
+            {showAddAdmin && (
+                <div className="overlay-glass" style={{
+                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)'
+                }}>
+                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{
+                        background: 'var(--ad-card)', padding: '30px', borderRadius: '24px', width: '420px',
+                        border: '1px solid var(--ad-border)', boxShadow: '0 20px 50px rgba(0,0,0,0.2)'
+                    }}>
+                        <h3 style={{ marginBottom: '20px', fontSize: '1.3rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Crown size={22} style={{ color: '#e11d48' }} /> Add New Admin
+                        </h3>
+                        <form onSubmit={addAdmin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                            <div className="form-group">
+                                <label>Username</label>
+                                <input autoFocus type="text" value={newAdmin.username} onChange={e => setNewAdmin({ ...newAdmin, username: e.target.value })} required placeholder="e.g. manager1" />
+                            </div>
+                            <div className="form-group">
+                                <label>Password</label>
+                                <input type="password" value={newAdmin.password} onChange={e => setNewAdmin({ ...newAdmin, password: e.target.value })} required placeholder="Set a strong password" />
+                            </div>
+                            <div className="form-group">
+                                <label>Role</label>
+                                <select value={newAdmin.role} onChange={e => setNewAdmin({ ...newAdmin, role: e.target.value })}>
+                                    <option value="admin">Admin (Manager)</option>
+                                    <option value="superadmin">Superadmin</option>
+                                </select>
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                                <button type="button" onClick={() => setShowAddAdmin(false)} className="cta-secondary" style={{ flex: 1, padding: '12px', justifyContent: 'center' }}>Cancel</button>
+                                <button type="submit" className="cta-primary" style={{ flex: 1, padding: '12px', justifyContent: 'center' }}>Add Admin</button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
+        </motion.div>
+    );
+
+    const renderImportSheetView = () => (
+        <motion.div key="import-sheet" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="view-container">
+            <div className="view-header">
+                <h2>Import from Google Sheets</h2>
+                <button onClick={() => setActiveView('dashboard')} className="close-view-btn"><X size={20} /></button>
+            </div>
+
+            <div style={{ maxWidth: '700px' }}>
+                <div style={{
+                    background: 'rgba(22, 163, 106, 0.08)', border: '1px solid rgba(22, 163, 106, 0.2)',
+                    borderRadius: '16px', padding: '20px', marginBottom: '24px', lineHeight: '1.7'
+                }}>
+                    <h4 style={{ marginBottom: '10px', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <FileSpreadsheet size={18} /> How to connect any Google Sheet
+                    </h4>
+                    <ol style={{ paddingLeft: '20px', fontSize: '0.9rem', color: 'var(--ad-text-dim)' }}>
+                        <li>Open your Google Sheet (any account) → click <b>Share</b></li>
+                        <li>Add the service account email as <b>Viewer</b>:<br />
+                            <code style={{ background: 'rgba(0,0,0,0.15)', padding: '3px 8px', borderRadius: '6px', fontSize: '0.8rem', wordBreak: 'break-all' }}>
+                                Check your server/credentials.json → client_email field
+                            </code>
+                        </li>
+                        <li>Copy the <b>Spreadsheet ID</b> from the URL:<br />
+                            <code style={{ background: 'rgba(0,0,0,0.15)', padding: '3px 8px', borderRadius: '6px', fontSize: '0.8rem' }}>
+                                docs.google.com/spreadsheets/d/<b>THIS_IS_THE_ID</b>/edit
+                            </code>
+                        </li>
+                        <li>Paste it below and import. Column headers are auto-detected!</li>
+                    </ol>
+                </div>
+
+                <form onSubmit={importFromSheet} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    <div className="form-group">
+                        <label>Spreadsheet ID *</label>
+                        <input
+                            type="text" required
+                            value={sheetImport.spreadsheetId}
+                            onChange={e => setSheetImport({ ...sheetImport, spreadsheetId: e.target.value })}
+                            placeholder="e.g. 1ydMS7fpnvWN1jzVe0Tww3uNQ9OiJx4tRfv-uf7zI5WE"
+                            style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Sheet Name (optional, defaults to first sheet)</label>
+                        <input
+                            type="text"
+                            value={sheetImport.sheetName}
+                            onChange={e => setSheetImport({ ...sheetImport, sheetName: e.target.value })}
+                            placeholder="e.g. Sheet1 or Form Responses 1"
+                        />
+                    </div>
+                    <button type="submit" className="cta-primary" disabled={importLoading} style={{ alignSelf: 'flex-start', padding: '12px 28px' }}>
+                        {importLoading ? (<><Clock size={18} /> Importing...</>) : (<><Upload size={18} /> Import Registrations</>)}
+                    </button>
+                </form>
+
+                {importResult && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{
+                        marginTop: '24px', padding: '20px', borderRadius: '16px',
+                        background: importResult.success ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+                        border: `1px solid ${importResult.success ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                    }}>
+                        <h4 style={{ color: importResult.success ? '#10b981' : '#ef4444', marginBottom: '10px' }}>
+                            {importResult.success ? '✅ Import Successful' : '❌ Import Failed'}
+                        </h4>
+                        <p style={{ fontSize: '0.9rem', lineHeight: '1.8' }}>{importResult.message}</p>
+                        {importResult.success && (
+                            <div style={{ fontSize: '0.85rem', marginTop: '10px', color: 'var(--ad-text-dim)' }}>
+                                <p>Sheet: <b>{importResult.sheetTitle}</b> → <b>{importResult.sheetName}</b></p>
+                                <p>Detected Headers: <code>{importResult.headers?.join(', ')}</code></p>
+                                <p>Total Rows: {importResult.totalRows} | Imported: <b>{importResult.imported}</b> | Skipped: {importResult.skipped}</p>
+                            </div>
+                        )}
+                    </motion.div>
+                )}
+            </div>
+        </motion.div>
+    );
+
     return (
         <div className="admin-dashboard-layout">
             <aside className="db-sidebar">
@@ -842,6 +1095,13 @@ const AdminDashboard = () => {
                     <button onClick={() => setActiveView('verification')} className={`db-nav-item ${activeView === 'verification' ? 'active' : ''}`}><ShieldCheck size={18} /> Verification</button>
                     <button onClick={() => setActiveView('inventory')} className={`db-nav-item ${activeView === 'inventory' ? 'active' : ''}`}><Package size={18} /> Inventory</button>
                     <button onClick={() => setActiveView('certificates')} className={`db-nav-item ${activeView === 'certificates' ? 'active' : ''}`}><Award size={18} /> Certificates</button>
+                    {isSuperAdmin && (
+                        <>
+                            <div style={{ borderTop: '1px solid var(--ad-border)', margin: '8px 0', opacity: 0.3 }} />
+                            <button onClick={() => setActiveView('admin-mgmt')} className={`db-nav-item ${activeView === 'admin-mgmt' ? 'active' : ''}`}><Crown size={18} /> Admins</button>
+                            <button onClick={() => setActiveView('import-sheet')} className={`db-nav-item ${activeView === 'import-sheet' ? 'active' : ''}`}><FileSpreadsheet size={18} /> Sheet Import</button>
+                        </>
+                    )}
                     <a href={HYPERCLASS_URL} target="_blank" rel="noopener noreferrer" className="db-nav-item">
                         <ExternalLink size={18} /> Hyperclass App
                     </a>
@@ -853,7 +1113,11 @@ const AdminDashboard = () => {
             <main className="db-main">
                 <header className="db-header">
                     <div className="header-breadcrumbs"><span>Adilitix Admin</span>{activeView !== 'dashboard' && <><ChevronRight size={14} /><span>{activeView}</span></>}</div>
-                    <div className="admin-user-info"><span>Welcome, <b>Aadil</b></span><div className="avatar">A</div></div>
+                    <div className="admin-user-info">
+                        <span>Welcome, <b>{adminUsername}</b></span>
+                        {isSuperAdmin && <span style={{ fontSize: '0.7rem', background: 'rgba(225,29,72,0.1)', color: '#e11d48', padding: '2px 10px', borderRadius: '20px', fontWeight: 800 }}>SUPERADMIN</span>}
+                        <div className="avatar">{adminUsername.charAt(0).toUpperCase()}</div>
+                    </div>
                 </header>
 
                 <div className="db-content">
@@ -875,6 +1139,8 @@ const AdminDashboard = () => {
                             {activeView === 'orders' && renderOrdersListView()}
                             {activeView === 'verification' && renderVerificationView()}
                             {activeView === 'certificates' && renderCertificatesView()}
+                            {isSuperAdmin && activeView === 'admin-mgmt' && renderAdminManagementView()}
+                            {isSuperAdmin && activeView === 'import-sheet' && renderImportSheetView()}
                         </AnimatePresence>
                     )}
                 </div>

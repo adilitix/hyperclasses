@@ -14,6 +14,7 @@ const ADILITIX_REGISTRATIONS_FILE = path.join(DB_DIR, 'adilitix_registrations.js
 const ADILITIX_INVENTORY_FILE = path.join(DB_DIR, 'adilitix_inventory.json');
 const ADILITIX_ORDERS_FILE = path.join(DB_DIR, 'adilitix_orders.json');
 const ADILITIX_CERT_SETTINGS_FILE = path.join(DB_DIR, 'adilitix_certificate_settings.json');
+const ADILITIX_ADMINS_FILE = path.join(DB_DIR, 'adilitix_admins.json');
 
 // Ensure database directories exist
 function initDatabase() {
@@ -419,10 +420,27 @@ function saveAdilitixOrders(orders) {
 function loadAdilitixCertificateSettings() {
     try {
         if (fs.existsSync(ADILITIX_CERT_SETTINGS_FILE)) {
-            return JSON.parse(fs.readFileSync(ADILITIX_CERT_SETTINGS_FILE, 'utf8'));
+            const data = JSON.parse(fs.readFileSync(ADILITIX_CERT_SETTINGS_FILE, 'utf8'));
+            // Merge with defaults in case some fields are missing
+            return {
+                title: 'Certificate of Achievement',
+                subtitle: 'This is to certify that',
+                description: 'has successfully completed the workshop on',
+                signatureName: 'Aadil',
+                signatureRole: 'Program Director',
+                themeColor: '#059669',
+                ...data
+            };
         }
     } catch (err) { console.error('Error loading cert settings:', err); }
-    return {};
+    return {
+        title: 'Certificate of Achievement',
+        subtitle: 'This is to certify that',
+        description: 'has successfully completed the workshop on',
+        signatureName: 'Aadil',
+        signatureRole: 'Program Director',
+        themeColor: '#059669'
+    };
 }
 
 function saveAdilitixCertificateSettings(settings) {
@@ -430,6 +448,25 @@ function saveAdilitixCertificateSettings(settings) {
         fs.writeFileSync(ADILITIX_CERT_SETTINGS_FILE, JSON.stringify(settings, null, 2));
     } catch (err) { console.error('Error saving cert settings:', err); }
     supabase.syncToCloud('adilitix_certificate_settings', settings).catch(console.error);
+}
+
+// Adilitix Admin Management
+function loadAdilitixAdmins() {
+    try {
+        if (fs.existsSync(ADILITIX_ADMINS_FILE)) {
+            return JSON.parse(fs.readFileSync(ADILITIX_ADMINS_FILE, 'utf8'));
+        }
+    } catch (err) { console.error('Error loading Adilitix admins:', err); }
+    return [
+        { username: 'aadil', password: 'Aadil@123', role: 'superadmin', createdAt: new Date().toISOString() }
+    ];
+}
+
+function saveAdilitixAdmins(admins) {
+    try {
+        fs.writeFileSync(ADILITIX_ADMINS_FILE, JSON.stringify(admins, null, 2));
+    } catch (err) { console.error('Error saving Adilitix admins:', err); }
+    supabase.syncToCloud('adilitix_admins', admins).catch(console.error);
 }
 
 module.exports = {
@@ -443,6 +480,7 @@ module.exports = {
     loadAdilitixInventory, saveAdilitixInventory,
     loadAdilitixOrders, saveAdilitixOrders,
     loadAdilitixCertificateSettings, saveAdilitixCertificateSettings,
+    loadAdilitixAdmins, saveAdilitixAdmins,
     restoreFromCloud,
     syncLocalToCloud
 };

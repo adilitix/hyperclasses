@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Lock } from 'lucide-react';
+import { ArrowLeft, Lock, ShieldCheck } from 'lucide-react';
 
 const AdminLogin = () => {
     const navigate = useNavigate();
@@ -10,14 +10,37 @@ const AdminLogin = () => {
         password: ''
     });
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e) => {
+    const rawBase = import.meta.env.VITE_SERVER_URL ||
+        (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://hyperclass.onrender.com');
+    const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (credentials.username === 'aadil' && credentials.password === 'Aadil@123') {
-            localStorage.setItem('adilitix_admin', 'true');
-            navigate('/admin-dashboard');
-        } else {
-            setError('Invalid credentials for Adilitix Admin.');
+        setError('');
+        setLoading(true);
+
+        try {
+            const res = await fetch(`${BASE_URL}/api/adilitix/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(credentials)
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                localStorage.setItem('adilitix_admin', 'true');
+                localStorage.setItem('adilitix_username', data.username);
+                localStorage.setItem('adilitix_role', data.role);
+                navigate('/admin-dashboard');
+            } else {
+                setError(data.message || 'Invalid credentials');
+            }
+        } catch (err) {
+            setError('Server connection failed. Try again.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -60,7 +83,9 @@ const AdminLogin = () => {
                             />
                         </div>
                         {error && <p className="error-msg">{error}</p>}
-                        <button type="submit" className="login-btn">Login to Dashboard</button>
+                        <button type="submit" className="login-btn" disabled={loading}>
+                            {loading ? 'Authenticating...' : 'Login to Dashboard'}
+                        </button>
                     </form>
                 </motion.div>
             </div>

@@ -79,7 +79,8 @@ const GLOBAL_STATE = {
     adilitix_registrations: db.loadAdilitixRegistrations(),
     adilitix_inventory: db.loadAdilitixInventory(),
     adilitix_orders: db.loadAdilitixOrders(),
-    adilitix_certificate_settings: db.loadAdilitixCertificateSettings()
+    adilitix_certificate_settings: db.loadAdilitixCertificateSettings(),
+    adilitix_admins: db.loadAdilitixAdmins()
 };
 
 // Initial Cloud Sync (Bidirectional)
@@ -396,6 +397,163 @@ app.delete('/api/workshops/:id', (req, res) => {
 
 
 // --- ADILITIX PORTAL ROUTES ---
+
+// Adilitix Admin Auth
+app.post('/api/adilitix/auth/login', (req, res) => {
+    const { username, password } = req.body;
+    const admin = GLOBAL_STATE.adilitix_admins.find(
+        a => a.username === username && a.password === password
+    );
+    if (admin) {
+        res.json({ success: true, username: admin.username, role: admin.role });
+    } else {
+        res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+});
+
+// Adilitix Admin Management (superadmin only)
+app.get('/api/adilitix/admins', (req, res) => {
+    // Return admins list without passwords
+    const safe = GLOBAL_STATE.adilitix_admins.map(a => ({
+        username: a.username,
+        role: a.role,
+        createdAt: a.createdAt
+    }));
+    res.json(safe);
+});
+
+app.post('/api/adilitix/admins', (req, res) => {
+    const { username, password, role } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ success: false, message: 'Username and password required' });
+    }
+    if (GLOBAL_STATE.adilitix_admins.find(a => a.username === username)) {
+        return res.status(400).json({ success: false, message: 'Admin already exists' });
+    }
+    const newAdmin = {
+        username,
+        password,
+        role: role || 'admin',
+        createdAt: new Date().toISOString()
+    };
+    GLOBAL_STATE.adilitix_admins.push(newAdmin);
+    db.saveAdilitixAdmins(GLOBAL_STATE.adilitix_admins);
+    res.json({ success: true });
+});
+
+app.delete('/api/adilitix/admins/:username', (req, res) => {
+    const { username } = req.params;
+    // Cannot delete superadmin 'aadil'
+    if (username === 'aadil') {
+        return res.status(403).json({ success: false, message: 'Cannot remove the superadmin' });
+    }
+    const idx = GLOBAL_STATE.adilitix_admins.findIndex(a => a.username === username);
+    if (idx === -1) {
+        return res.status(404).json({ success: false, message: 'Admin not found' });
+    }
+    GLOBAL_STATE.adilitix_admins.splice(idx, 1);
+    db.saveAdilitixAdmins(GLOBAL_STATE.adilitix_admins);
+    res.json({ success: true });
+});
+
+// Google Sheets Import — pull registrations from any Google Sheet
+app.post('/api/adilitix/import-sheet', async (req, res) => {
+    const { spreadsheetId, sheetName } = req.body;
+    if (!spreadsheetId) {
+        return res.status(400).json({ success: false, message: 'spreadsheetId is required' });
+    }
+
+    try {
+        const { GoogleSpreadsheet } = require('google-spreadsheet');
+        const { JWT } = require('google-auth-library');
+        const fs = require('fs');
+        const credPath = require('path').join(__dirname, 'credentials.json');
+
+        let credentials;
+        if (fs.existsSync(credPath)) {
+            credentials = JSON.parse(fs.readFileSync(credPath, 'utf8'));
+        } else if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
+            credentials = {
+                client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+                private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+            };
+        } else {
+            return res.status(500).json({ success: false, message: 'Google credentials not configured on server' });
+        }
+
+        const auth = new JWT({
+            email: credentials.client_email,
+            key: credentials.private_key,
+            scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+        });
+
+        const doc = new GoogleSpreadsheet(spreadsheetId, auth);
+        await doc.loadInfo();
+
+        const sheet = sheetName ? doc.sheetsByTitle[sheetName] : doc.sheetsByIndex[0];
+        if (!sheet) {
+            return res.status(404).json({ success: false, message: `Sheet "${sheetName || 'first sheet'}" not found` });
+        }
+
+        const rows = await sheet.getRows();
+        const headers = sheet.headerValues.map(h => h.toLowerCase().trim());
+
+        // Auto-detect column mappings
+        const findCol = (options) => headers.findIndex(h => options.some(o => h.includes(o)));
+        const nameIdx = findCol(['name', 'full name', 'student name']);
+        const emailIdx = findCol(['email', 'e-mail', 'mail']);
+        const phoneIdx = findCol(['phone', 'ph no', 'mobile', 'contact', 'whatsapp']);
+        const courseIdx = findCol(['course', 'department', 'branch', 'stream', 'degree']);
+        const eventIdx = findCol(['event', 'workshop', 'session']);
+
+        let imported = 0;
+        let skipped = 0;
+        const existingEmails = new Set(GLOBAL_STATE.adilitix_registrations.map(r => r.email?.toLowerCase()));
+
+        for (const row of rows) {
+            const vals = row._rawData;
+            const email = emailIdx >= 0 ? (vals[emailIdx] || '').trim() : '';
+            const name = nameIdx >= 0 ? (vals[nameIdx] || '').trim() : '';
+
+            if (!name && !email) { skipped++; continue; }
+            // Deduplicate by email
+            if (email && existingEmails.has(email.toLowerCase())) { skipped++; continue; }
+
+            const reg = {
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 4),
+                name: name || 'Unknown',
+                email: email || '',
+                phone: phoneIdx >= 0 ? (vals[phoneIdx] || '').trim() : '',
+                course: courseIdx >= 0 ? (vals[courseIdx] || '').trim() : '',
+                eventId: eventIdx >= 0 ? (vals[eventIdx] || '').trim() : '',
+                eventName: eventIdx >= 0 ? (vals[eventIdx] || '').trim() : 'Imported',
+                status: 'pending',
+                timestamp: new Date().toISOString(),
+                source: 'google-sheet-import'
+            };
+            GLOBAL_STATE.adilitix_registrations.push(reg);
+            if (email) existingEmails.add(email.toLowerCase());
+            imported++;
+        }
+
+        db.saveAdilitixRegistrations(GLOBAL_STATE.adilitix_registrations);
+        io.emit('adilitix_update');
+
+        res.json({
+            success: true,
+            sheetTitle: doc.title,
+            sheetName: sheet.title,
+            headers: sheet.headerValues,
+            totalRows: rows.length,
+            imported,
+            skipped,
+            message: `Imported ${imported} new registrations (${skipped} skipped/duplicates)`
+        });
+    } catch (err) {
+        console.error('Sheet import error:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
 
 app.post('/api/adilitix/register', (req, res) => {
     // events is a Map, use .get() not .find()
