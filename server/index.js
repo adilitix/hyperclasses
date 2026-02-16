@@ -12,17 +12,59 @@ const googleSheets = require('./googleSheets');
 const app = express();
 const server = http.createServer(app);
 
-// Configure CORS
+// Configure CORS + Socket.IO with stability tuning
 const io = new Server(server, {
     cors: {
-        origin: "*", // Allow all for workshop environment
+        origin: "*",
         methods: ["GET", "POST"]
-    }
+    },
+    pingTimeout: 30000,         // 30s before considering dead
+    pingInterval: 15000,        // Ping every 15s
+    maxHttpBufferSize: 1e6,     // 1MB max per message
+    connectTimeout: 20000,      // 20s connection timeout
+    transports: ['websocket', 'polling'] // Prefer websocket
 });
 
 app.use(cors());
-app.use(express.json());
-app.use('/uploads', express.static('uploads')); // Serve uploaded files at /uploads path
+app.use(express.json({ limit: '5mb' }));
+app.use('/uploads', express.static('uploads'));
+
+// --- STABILITY: Debounced event saving ---
+// Prevents hammering disk/cloud when 20+ users are active simultaneously
+const _saveTimers = {};
+function debouncedSaveEvent(event, delay = 2000) {
+    if (!event || !event.id) return;
+    if (_saveTimers[event.id]) clearTimeout(_saveTimers[event.id]);
+    _saveTimers[event.id] = setTimeout(() => {
+        try {
+            db.saveEvent(event);
+        } catch (e) {
+            console.error(`Error saving event ${event.id}:`, e.message);
+        }
+        delete _saveTimers[event.id];
+    }, delay);
+}
+
+// Immediate save (for critical operations)
+function immediateSaveEvent(event) {
+    if (!event || !event.id) return;
+    if (_saveTimers[event.id]) clearTimeout(_saveTimers[event.id]);
+    delete _saveTimers[event.id];
+    try {
+        db.saveEvent(event);
+    } catch (e) {
+        console.error(`Error saving event ${event.id}:`, e.message);
+    }
+}
+
+// --- GLOBAL ERROR HANDLERS --- (prevent crashes)
+process.on('uncaughtException', (err) => {
+    console.error('UNCAUGHT EXCEPTION (server stays alive):', err.message);
+    console.error(err.stack);
+});
+process.on('unhandledRejection', (reason) => {
+    console.error('UNHANDLED REJECTION (server stays alive):', reason);
+});
 
 // Storage for uploaded files (Global for now, referenced per event)
 const storage = multer.diskStorage({
@@ -422,10 +464,89 @@ app.post('/api/adilitix/auth/login', (req, res) => {
         a => a.username === username && a.password === password
     );
     if (admin) {
-        res.json({ success: true, username: admin.username, role: admin.role });
+        res.json({
+            success: true,
+            username: admin.username,
+            role: admin.role,
+            permissions: admin.permissions || null
+        });
     } else {
         res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
+});
+
+// Change own password
+app.post('/api/adilitix/auth/change-password', (req, res) => {
+    const { username, currentPassword, newPassword } = req.body;
+    if (!username || !currentPassword || !newPassword) {
+        return res.status(400).json({ success: false, message: 'All fields required' });
+    }
+    const admin = GLOBAL_STATE.adilitix_admins.find(
+        a => a.username === username && a.password === currentPassword
+    );
+    if (!admin) {
+        return res.status(401).json({ success: false, message: 'Current password is incorrect' });
+    }
+    if (newPassword.length < 4) {
+        return res.status(400).json({ success: false, message: 'New password too short (min 4 chars)' });
+    }
+    admin.password = newPassword;
+    db.saveAdilitixAdmins(GLOBAL_STATE.adilitix_admins);
+    res.json({ success: true, message: 'Password updated successfully' });
+});
+
+// Update admin permissions (superadmin only)
+app.patch('/api/adilitix/admins/:username/permissions', (req, res) => {
+    const { username } = req.params;
+    const { permissions } = req.body;
+    const admin = GLOBAL_STATE.adilitix_admins.find(a => a.username === username);
+    if (!admin) return res.status(404).json({ success: false, message: 'Admin not found' });
+    if (admin.role === 'superadmin') return res.status(403).json({ success: false, message: 'Cannot modify superadmin permissions' });
+    admin.permissions = { ...admin.permissions, ...permissions };
+    db.saveAdilitixAdmins(GLOBAL_STATE.adilitix_admins);
+    res.json({ success: true, permissions: admin.permissions });
+});
+
+// Mark attendance for Adilitix event registrations
+app.patch('/api/adilitix/registrations/:id/attendance', (req, res) => {
+    const { attendance } = req.body; // 'present', 'absent', 'late'
+    const reg = GLOBAL_STATE.adilitix_registrations.find(r => r.id === req.params.id);
+    if (!reg) return res.status(404).json({ success: false, message: 'Registration not found' });
+    reg.attendance = attendance;
+    db.saveAdilitixRegistrations(GLOBAL_STATE.adilitix_registrations);
+    res.json({ success: true });
+});
+
+// Bulk update attendance
+app.post('/api/adilitix/registrations/bulk-attendance', (req, res) => {
+    const { ids, attendance } = req.body;
+    if (!ids || !Array.isArray(ids)) return res.status(400).json({ success: false });
+    let updated = 0;
+    ids.forEach(id => {
+        const reg = GLOBAL_STATE.adilitix_registrations.find(r => r.id === id);
+        if (reg) { reg.attendance = attendance; updated++; }
+    });
+    db.saveAdilitixRegistrations(GLOBAL_STATE.adilitix_registrations);
+    res.json({ success: true, updated });
+});
+
+// Export registrations as CSV
+app.get('/api/adilitix/registrations/export', (req, res) => {
+    const { eventId } = req.query;
+    let regs = GLOBAL_STATE.adilitix_registrations;
+    if (eventId) regs = regs.filter(r => r.eventId === eventId);
+
+    const headers = ['Name', 'Email', 'Phone', 'Course', 'Event', 'Status', 'Attendance', 'Registered'];
+    const rows = regs.map(r => [
+        r.name || '', r.email || '', r.phone || '', r.course || '',
+        r.eventName || r.eventId || '', r.status || 'pending',
+        r.attendance || 'N/A', r.timestamp || ''
+    ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+
+    const csv = [headers.join(','), ...rows].join('\n');
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="registrations_${Date.now()}.csv"`);
+    res.send(csv);
 });
 
 // Adilitix Admin Management (superadmin only)
@@ -451,7 +572,17 @@ app.post('/api/adilitix/admins', (req, res) => {
         username,
         password,
         role: role || 'admin',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        permissions: {
+            viewRegistrations: true,
+            editRegistrationStatus: true,
+            deleteRegistrations: true,
+            manageInventory: true,
+            viewOrders: true,
+            issueCertificates: true,
+            createEditEvents: true,
+            importSheets: true
+        }
     };
     GLOBAL_STATE.adilitix_admins.push(newAdmin);
     db.saveAdilitixAdmins(GLOBAL_STATE.adilitix_admins);
@@ -515,9 +646,10 @@ app.put('/api/adilitix/events/:id', (req, res) => {
     const idx = GLOBAL_STATE.adilitix_events.findIndex(e => e.id === req.params.id);
     if (idx === -1) return res.status(404).json({ success: false, message: 'Event not found' });
 
-    const { title, description } = req.body;
+    const { title, description, status } = req.body;
     if (title) GLOBAL_STATE.adilitix_events[idx].title = title;
     if (description !== undefined) GLOBAL_STATE.adilitix_events[idx].description = description;
+    if (status) GLOBAL_STATE.adilitix_events[idx].status = status; // 'upcoming', 'active', 'completed'
     // workshopId is NEVER changed — it's permanent
 
     db.saveAdilitixEvents(GLOBAL_STATE.adilitix_events);
@@ -906,6 +1038,24 @@ app.post('/api/adilitix/certificates/issue', (req, res) => {
     }
 });
 
+app.post('/api/adilitix/certificates/issue-all', (req, res) => {
+    let count = 0;
+    Object.keys(GLOBAL_STATE.workshop_progress).forEach(wsId => {
+        Object.keys(GLOBAL_STATE.workshop_progress[wsId]).forEach(uname => {
+            const progress = GLOBAL_STATE.workshop_progress[wsId][uname];
+            if ((progress.completed || progress.verified) && !progress.certificateIssued) {
+                progress.certificateIssued = true;
+                count++;
+            }
+        });
+    });
+    if (count > 0) {
+        db.saveWorkshopProgress(GLOBAL_STATE.workshop_progress);
+        io.emit('adilitix_update');
+    }
+    res.json({ success: true, count });
+});
+
 // Certificate Settings
 app.get('/api/adilitix/certificates/settings', (req, res) => {
     res.json(GLOBAL_STATE.adilitix_certificate_settings);
@@ -1226,97 +1376,102 @@ io.on('connection', (socket) => {
     socket.emit('settings_update', GLOBAL_STATE.settings);
 
     socket.on('join_event', ({ username, role, eventId }) => {
-        if (!eventId) return; // Admins might not join event immediately
+        try {
+            if (!eventId) return;
 
-        const event = GLOBAL_STATE.events.get(eventId);
-        if (!event) {
-            socket.emit('error', 'Event not found');
-            return;
-        }
-
-        // Join the socket room
-        socket.join(eventId);
-
-        // Store session info on socket
-        socket.data.eventId = eventId;
-        socket.data.username = username;
-        socket.data.role = role;
-        socket.data.ip = clientIp;
-
-        // Track attendance - record login
-        const attendanceRecord = {
-            id: Date.now().toString(),
-            username,
-            role,
-            ip: clientIp,
-            loginTime: new Date().toISOString(),
-            logoutTime: null
-        };
-        event.attendance.push(attendanceRecord);
-        socket.data.attendanceId = attendanceRecord.id; // Store for logout tracking
-        db.saveEvent(event); // Persist
-
-        // Send Initial State for this Event
-        socket.emit('content_update', event.currentContent);
-        socket.emit('file_list_update', event.files);
-        socket.emit('chat_status', { disabled: event.chatDisabled });
-        if (event.activePoll) socket.emit('poll_update', event.activePoll);
-        if (event.timerEnd) socket.emit('timer_update', event.timerEnd);
-        socket.emit('history_update', event.history);
-
-        // Send chat history to the user
-        socket.emit('chat_history_update', event.chatHistory);
-
-        // Notify others
-        // Roster Update: We need to get all sockets in this room
-        sendRosterUpdate(eventId);
-
-        // Send attendance update
-        sendAttendanceUpdate(eventId);
-
-        // System Message
-        const systemMsg = {
-            id: Date.now(),
-            username: 'System',
-            text: `${username} joined the session.`,
-            timestamp: new Date().toISOString(),
-            isSystem: true
-        };
-        event.chatHistory.push(systemMsg);
-        db.saveEvent(event);
-        io.to(eventId).emit('chat_message', systemMsg);
-    });
-
-    socket.on('disconnect', () => {
-        const eventId = socket.data.eventId;
-        if (eventId) {
             const event = GLOBAL_STATE.events.get(eventId);
-
-            // Track logout time in attendance
-            if (event && socket.data.attendanceId) {
-                const record = event.attendance.find(r => r.id === socket.data.attendanceId);
-                if (record && !record.logoutTime) {
-                    record.logoutTime = new Date().toISOString();
-                    db.saveEvent(event);
-                }
+            if (!event) {
+                socket.emit('error', 'Event not found');
+                return;
             }
 
+            // Join the socket room
+            socket.join(eventId);
+
+            // Store session info on socket
+            socket.data.eventId = eventId;
+            socket.data.username = username;
+            socket.data.role = role;
+            socket.data.ip = clientIp;
+
+            // Track attendance - record login
+            const attendanceRecord = {
+                id: Date.now().toString(),
+                username,
+                role,
+                ip: clientIp,
+                loginTime: new Date().toISOString(),
+                logoutTime: null
+            };
+            event.attendance.push(attendanceRecord);
+            socket.data.attendanceId = attendanceRecord.id;
+            debouncedSaveEvent(event); // Debounced — many joins at once
+
+            // Send Initial State for this Event
+            socket.emit('content_update', event.currentContent);
+            socket.emit('file_list_update', event.files);
+            socket.emit('chat_status', { disabled: event.chatDisabled });
+            if (event.activePoll) socket.emit('poll_update', event.activePoll);
+            if (event.timerEnd) socket.emit('timer_update', event.timerEnd);
+            socket.emit('history_update', event.history);
+
+            // Send chat history to the user (cap to last 200 for performance)
+            const recentChat = (event.chatHistory || []).slice(-200);
+            socket.emit('chat_history_update', recentChat);
+
+            // Notify others
             sendRosterUpdate(eventId);
             sendAttendanceUpdate(eventId);
 
-            if (socket.data.username && event) {
-                const systemMsg = {
-                    id: Date.now(),
-                    username: 'System',
-                    text: `${socket.data.username} left the session.`,
-                    timestamp: new Date().toISOString(),
-                    isSystem: true
-                };
-                event.chatHistory.push(systemMsg);
-                db.saveEvent(event);
-                io.to(eventId).emit('chat_message', systemMsg);
+            // System Message
+            const systemMsg = {
+                id: Date.now(),
+                username: 'System',
+                text: `${username} joined the session.`,
+                timestamp: new Date().toISOString(),
+                isSystem: true
+            };
+            event.chatHistory.push(systemMsg);
+            // Cap chat history at 500 messages to prevent unbounded memory growth
+            if (event.chatHistory.length > 500) event.chatHistory = event.chatHistory.slice(-500);
+            debouncedSaveEvent(event);
+            io.to(eventId).emit('chat_message', systemMsg);
+        } catch (e) { console.error('join_event error:', e.message); }
+    });
+
+    socket.on('disconnect', () => {
+        try {
+            const eventId = socket.data.eventId;
+            if (eventId) {
+                const event = GLOBAL_STATE.events.get(eventId);
+
+                // Track logout time in attendance
+                if (event && socket.data.attendanceId) {
+                    const record = event.attendance.find(r => r.id === socket.data.attendanceId);
+                    if (record && !record.logoutTime) {
+                        record.logoutTime = new Date().toISOString();
+                        debouncedSaveEvent(event); // Debounced — many disconnects at once
+                    }
+                }
+
+                sendRosterUpdate(eventId);
+                sendAttendanceUpdate(eventId);
+
+                if (socket.data.username && event) {
+                    const systemMsg = {
+                        id: Date.now(),
+                        username: 'System',
+                        text: `${socket.data.username} left the session.`,
+                        timestamp: new Date().toISOString(),
+                        isSystem: true
+                    };
+                    event.chatHistory.push(systemMsg);
+                    if (event.chatHistory.length > 500) event.chatHistory = event.chatHistory.slice(-500);
+                    debouncedSaveEvent(event);
+                    io.to(eventId).emit('chat_message', systemMsg);
+                }
             }
-        }
+        } catch (e) { console.error('disconnect error:', e.message); }
     });
 
     // --- EVENT SPECIFIC HANDLERS ---
@@ -1328,11 +1483,13 @@ io.on('connection', (socket) => {
     }
 
     socket.on('broadcast_content', (content) => {
-        const event = getEvent();
-        if (!event) return;
-        event.currentContent = content;
-        db.saveEvent(event); // Persist
-        socket.to(event.id).emit('content_update', content); // To others
+        try {
+            const event = getEvent();
+            if (!event) return;
+            event.currentContent = content;
+            debouncedSaveEvent(event, 3000); // 3s debounce — very high frequency
+            socket.to(event.id).emit('content_update', content);
+        } catch (e) { console.error('broadcast_content error:', e.message); }
     });
 
     socket.on('get_current_content', () => {
@@ -1343,18 +1500,20 @@ io.on('connection', (socket) => {
     });
 
     socket.on('save_snapshot', (data) => {
-        const event = getEvent();
-        if (!event) return;
+        try {
+            const event = getEvent();
+            if (!event) return;
 
-        const snapshot = {
-            id: Date.now(),
-            timestamp: new Date().toISOString(),
-            name: data?.name || 'Untitled Snapshot',
-            ...event.currentContent
-        };
-        event.history.push(snapshot);
-        db.saveEvent(event); // Persist
-        io.to(event.id).emit('history_update', event.history);
+            const snapshot = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                name: data?.name || 'Untitled Snapshot',
+                ...event.currentContent
+            };
+            event.history.push(snapshot);
+            immediateSaveEvent(event); // Snapshots are critical - save immediately
+            io.to(event.id).emit('history_update', event.history);
+        } catch (e) { console.error('save_snapshot error:', e.message); }
     });
 
     socket.on('get_history', () => {
@@ -1363,20 +1522,24 @@ io.on('connection', (socket) => {
     });
 
     socket.on('send_message', (msg) => {
-        const event = getEvent();
-        if (!event) return;
+        try {
+            const event = getEvent();
+            if (!event) return;
 
-        if (event.chatDisabled && socket.data.role !== 'admin' && socket.data.role !== 'superadmin') return;
+            if (event.chatDisabled && socket.data.role !== 'admin' && socket.data.role !== 'superadmin') return;
 
-        const fullMsg = {
-            id: Date.now(),
-            ...msg,
-            timestamp: new Date().toISOString()
-        };
-        event.chatHistory.push(fullMsg);
-        db.saveEvent(event); // Persist
+            const fullMsg = {
+                id: Date.now(),
+                ...msg,
+                timestamp: new Date().toISOString()
+            };
+            event.chatHistory.push(fullMsg);
+            // Cap chat history
+            if (event.chatHistory.length > 500) event.chatHistory = event.chatHistory.slice(-500);
+            debouncedSaveEvent(event); // Debounced — chat is high frequency
 
-        io.to(event.id).emit('chat_message', fullMsg);
+            io.to(event.id).emit('chat_message', fullMsg);
+        } catch (e) { console.error('send_message error:', e.message); }
     });
 
     socket.on('toggle_chat', (disabled) => {
@@ -1575,50 +1738,53 @@ io.on('connection', (socket) => {
     // --- TICKET HANDLERS ---
 
     socket.on('create_ticket', (ticketData) => {
-        const event = getEvent();
-        if (!event) return;
+        try {
+            const event = getEvent();
+            if (!event) return;
 
-        const newTicket = {
-            id: Date.now().toString(),
-            studentName: socket.data.username,
-            ...ticketData,
-            status: 'open',
-            isPublic: false,
-            messages: [],
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
+            const newTicket = {
+                id: Date.now().toString(),
+                studentName: socket.data.username,
+                ...ticketData,
+                status: 'open',
+                isPublic: false,
+                messages: [],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
 
-        event.tickets.push(newTicket);
-        db.saveEvent(event); // Persist
+            if (!event.tickets) event.tickets = [];
+            event.tickets.push(newTicket);
+            immediateSaveEvent(event); // Tickets are critical — save immediately
 
-        // Notify all admins in this event
-        io.to(event.id).emit('ticket_created', newTicket);
+            io.to(event.id).emit('ticket_created', newTicket);
+        } catch (e) { console.error('create_ticket error:', e.message); }
     });
 
     socket.on('update_ticket', ({ ticketId, updates }) => {
-        const event = getEvent();
-        if (!event) return;
+        try {
+            const event = getEvent();
+            if (!event) return;
 
-        const ticket = event.tickets.find(t => t.id === ticketId);
-        if (!ticket) return;
+            const ticket = (event.tickets || []).find(t => t.id === ticketId);
+            if (!ticket) return;
 
-        // Apply updates
-        if (updates.status) ticket.status = updates.status;
-        if (updates.isPublic !== undefined) ticket.isPublic = updates.isPublic;
-        if (updates.message) {
-            ticket.messages.push({
-                id: Date.now().toString(),
-                ...updates.message,
-                timestamp: new Date().toISOString()
-            });
-        }
+            if (updates.status) ticket.status = updates.status;
+            if (updates.isPublic !== undefined) ticket.isPublic = updates.isPublic;
+            if (updates.message) {
+                if (!ticket.messages) ticket.messages = [];
+                ticket.messages.push({
+                    id: Date.now().toString(),
+                    ...updates.message,
+                    timestamp: new Date().toISOString()
+                });
+            }
 
-        ticket.updatedAt = new Date().toISOString();
-        db.saveEvent(event); // Persist
+            ticket.updatedAt = new Date().toISOString();
+            immediateSaveEvent(event); // Tickets are critical
 
-        // Broadcast update
-        io.to(event.id).emit('ticket_updated', ticket);
+            io.to(event.id).emit('ticket_updated', ticket);
+        } catch (e) { console.error('update_ticket error:', e.message); }
     });
 
     socket.on('get_tickets', () => {

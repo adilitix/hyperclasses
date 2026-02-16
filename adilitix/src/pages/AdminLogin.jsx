@@ -33,6 +33,11 @@ const AdminLogin = () => {
                 localStorage.setItem('adilitix_admin', 'true');
                 localStorage.setItem('adilitix_username', data.username);
                 localStorage.setItem('adilitix_role', data.role);
+                if (data.permissions) {
+                    localStorage.setItem('adilitix_permissions', JSON.stringify(data.permissions));
+                } else {
+                    localStorage.removeItem('adilitix_permissions');
+                }
                 navigate('/admin-dashboard');
             } else {
                 setError(data.message || 'Invalid credentials');

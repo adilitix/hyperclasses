@@ -238,9 +238,16 @@ const AdminDashboard = () => {
     const adminRole = localStorage.getItem('adilitix_role') || 'admin';
     const adminUsername = localStorage.getItem('adilitix_username') || 'Admin';
     const isSuperAdmin = adminRole === 'superadmin';
+    const [adminPerms, setAdminPerms] = useState(() => {
+        try { return JSON.parse(localStorage.getItem('adilitix_permissions') || 'null'); } catch { return null; }
+    });
+    const hasPerm = (perm) => isSuperAdmin || !adminPerms || adminPerms[perm] !== false;
     const [adminList, setAdminList] = useState([]);
     const [showAddAdmin, setShowAddAdmin] = useState(false);
     const [newAdmin, setNewAdmin] = useState({ username: '', password: '', role: 'admin' });
+    const [editingPermsAdmin, setEditingPermsAdmin] = useState(null);
+    const [pwChange, setPwChange] = useState({ current: '', newPw: '', confirm: '' });
+    const [pwChangeMsg, setPwChangeMsg] = useState('');
     const [sheetImport, setSheetImport] = useState({ spreadsheetId: '', sheetName: '', eventId: '' });
     const [importResult, setImportResult] = useState(null);
     const [importLoading, setImportLoading] = useState(false);
@@ -255,6 +262,11 @@ const AdminDashboard = () => {
     const [regEventFilter, setRegEventFilter] = useState('all');
     const [selectedRegs, setSelectedRegs] = useState(new Set());
     const [copiedWsId, setCopiedWsId] = useState('');
+
+    // Settings / Password Change
+    const [pwChange, setPwChange] = useState({ current: '', newPw: '', confirm: '' });
+    const [pwChangeMsg, setPwChangeMsg] = useState('');
+    const [editingPermsAdmin, setEditingPermsAdmin] = useState(null);
 
     const rawBase = import.meta.env.VITE_SERVER_URL ||
         (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://hyperclass.onrender.com');
@@ -384,6 +396,74 @@ const AdminDashboard = () => {
         await fetch(`${BASE_URL}/api/adilitix/events/${id}`, { method: 'DELETE' });
         if (regEventFilter === id) setRegEventFilter('all');
         fetchData(true);
+    };
+
+    // --- PASSWORD CHANGE ---
+    const changePassword = async (e) => {
+        e.preventDefault();
+        setPwChangeMsg('');
+        if (pwChange.newPw !== pwChange.confirm) {
+            setPwChangeMsg('Passwords do not match'); return;
+        }
+        try {
+            const res = await fetch(`${BASE_URL}/api/adilitix/auth/change-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: adminUsername, currentPassword: pwChange.current, newPassword: pwChange.newPw })
+            });
+            const data = await res.json();
+            setPwChangeMsg(data.message || (data.success ? 'Updated!' : 'Failed'));
+            if (data.success) setPwChange({ current: '', newPw: '', confirm: '' });
+        } catch (err) {
+            setPwChangeMsg('Error: ' + err.message);
+        }
+    };
+
+    // --- ATTENDANCE ---
+    const markAttendance = async (regId, attendance) => {
+        await fetch(`${BASE_URL}/api/adilitix/registrations/${regId}/attendance`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ attendance })
+        });
+        fetchData(true);
+    };
+
+    // --- EVENT STATUS ---
+    const updateEventStatus = async (eventId, status) => {
+        await fetch(`${BASE_URL}/api/adilitix/events/${eventId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        fetchData(true);
+    };
+
+    // --- CSV EXPORT ---
+    const exportCSV = (eventId) => {
+        const url = `${BASE_URL}/api/adilitix/registrations/export${eventId ? `?eventId=${eventId}` : ''}`;
+        window.open(url, '_blank');
+    };
+
+    // --- ADMIN PERMISSIONS ---
+    const updateAdminPermissions = async (username, permissions) => {
+        await fetch(`${BASE_URL}/api/adilitix/admins/${encodeURIComponent(username)}/permissions`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ permissions })
+        });
+        fetchData(true);
+    };
+
+    // --- QUICK CONTACT ---
+    const openWhatsApp = (phone, name) => {
+        const cleanPhone = (phone || '').replace(/[^0-9+]/g, '');
+        if (!cleanPhone) { alert('No phone number available'); return; }
+        window.open(`https://wa.me/${cleanPhone.startsWith('+') ? cleanPhone.slice(1) : cleanPhone}?text=${encodeURIComponent(`Hi ${name}, `)}`, '_blank');
+    };
+    const openEmail = (email, name) => {
+        if (!email) { alert('No email available'); return; }
+        window.open(`mailto:${email}?subject=Regarding your registration&body=Hi ${encodeURIComponent(name)},%0A%0A`, '_blank');
     };
 
     const updateRegStatus = async (id, status) => {
@@ -554,14 +634,14 @@ const AdminDashboard = () => {
     };
 
     const dashboardCards = [
-        {
+        ...(hasPerm('viewRegistrations') ? [{
             id: 'registrations',
             title: 'Registrations',
             icon: <Users size={24} />,
             color: '#0066ff',
             count: `${registrations.length} Total • ${adilitixEvents.length} Events`,
             action: () => setActiveView('registrations')
-        },
+        }] : []),
         {
             id: 'verification',
             title: 'Verification',
@@ -570,48 +650,54 @@ const AdminDashboard = () => {
             count: `${completions.length} Verified`,
             action: () => setActiveView('verification')
         },
-        {
+        ...(hasPerm('viewOrders') ? [{
             id: 'orders',
             title: 'Store Orders',
             icon: <ShoppingCart size={24} />,
             color: '#10b981',
             count: `${orders.length} Pending`,
             action: () => setActiveView('orders')
-        },
-        {
+        }] : []),
+        ...(hasPerm('manageInventory') ? [{
             id: 'inventory',
             title: 'Inventory',
             icon: <Package size={24} />,
             color: '#ff7b00',
             count: `${inventory.length} Items`,
             action: () => setActiveView('inventory')
-        },
-        {
+        }] : []),
+        ...(hasPerm('issueCertificates') ? [{
             id: 'certificates',
             title: 'Manage Certificates',
             icon: <Award size={24} />,
             color: '#8b5cf6',
             count: `${completions.length} Completed`,
             action: () => setActiveView('certificates')
-        },
-        ...(isSuperAdmin ? [
-            {
-                id: 'admin-mgmt',
-                title: 'Admin Management',
-                icon: <Crown size={24} />,
-                color: '#e11d48',
-                count: `${adminList.length} Admins`,
-                action: () => setActiveView('admin-mgmt')
-            },
-            {
-                id: 'import-sheet',
-                title: 'Import from Sheets',
-                icon: <FileSpreadsheet size={24} />,
-                color: '#16a34a',
-                count: 'Google Forms',
-                action: () => setActiveView('import-sheet')
-            }
-        ] : [])
+        }] : []),
+        ...(isSuperAdmin ? [{
+            id: 'admin-mgmt',
+            title: 'Admin Management',
+            icon: <Crown size={24} />,
+            color: '#e11d48',
+            count: `${adminList.length} Admins`,
+            action: () => setActiveView('admin-mgmt')
+        }] : []),
+        ...(hasPerm('importSheets') ? [{
+            id: 'import-sheet',
+            title: 'Import from Sheets',
+            icon: <FileSpreadsheet size={24} />,
+            color: '#16a34a',
+            count: 'Google Forms',
+            action: () => setActiveView('import-sheet')
+        }] : []),
+        {
+            id: 'settings',
+            title: 'Settings',
+            icon: <Settings size={24} />,
+            color: '#6b7280',
+            count: adminUsername,
+            action: () => setActiveView('settings')
+        }
     ];
 
     const renderRegistrationListView = () => {
@@ -648,8 +734,16 @@ const AdminDashboard = () => {
             <motion.div key="registrations" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="view-container">
                 <div className="view-header">
                     <h2>Registration Management</h2>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <button onClick={() => setShowCreateEvent(true)} className="cta-primary-sm"><Plus size={16} /> New Event</button>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <button onClick={() => fetchData(true)} className="cta-secondary" style={{ padding: '8px 14px', fontSize: '0.8rem' }} title="Refresh data">
+                            🔄 Refresh
+                        </button>
+                        <button onClick={() => exportCSV(regEventFilter === 'all' ? '' : regEventFilter)} className="cta-secondary" style={{ padding: '8px 14px', fontSize: '0.8rem' }} title="Download CSV">
+                            📥 Export CSV
+                        </button>
+                        {hasPerm('createEditEvents') && (
+                            <button onClick={() => setShowCreateEvent(true)} className="cta-primary-sm"><Plus size={16} /> New Event</button>
+                        )}
                         <button onClick={() => setActiveView('dashboard')} className="close-view-btn"><X size={20} /></button>
                     </div>
                 </div>
@@ -691,6 +785,10 @@ const AdminDashboard = () => {
                 {regEventFilter !== 'all' && (() => {
                     const ev = adilitixEvents.find(e => e.id === regEventFilter);
                     if (!ev) return null;
+                    const evRegs = registrations.filter(r => r.eventId === ev.id);
+                    const attended = evRegs.filter(r => r.attendance === 'present').length;
+                    const statusColors = { upcoming: '#3b82f6', active: '#10b981', completed: '#6b7280' };
+                    const evStatus = ev.status || 'upcoming';
                     return (
                         <div style={{
                             background: 'rgba(5,150,105,0.06)', border: '1px solid rgba(5,150,105,0.15)',
@@ -698,7 +796,22 @@ const AdminDashboard = () => {
                             display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px'
                         }}>
                             <div>
-                                <h3 style={{ fontSize: '1.1rem', marginBottom: '4px' }}>{ev.title}</h3>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                                    <h3 style={{ fontSize: '1.1rem', margin: 0 }}>{ev.title}</h3>
+                                    <select
+                                        value={evStatus}
+                                        onChange={e => updateEventStatus(ev.id, e.target.value)}
+                                        style={{
+                                            background: statusColors[evStatus] || '#6b7280', color: '#fff',
+                                            border: 'none', borderRadius: '20px', padding: '2px 12px',
+                                            fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer', textTransform: 'uppercase'
+                                        }}
+                                    >
+                                        <option value="upcoming">Upcoming</option>
+                                        <option value="active">Active</option>
+                                        <option value="completed">Completed</option>
+                                    </select>
+                                </div>
                                 {ev.description && <p style={{ fontSize: '0.85rem', color: 'var(--ad-text-dim)', margin: 0 }}>{ev.description}</p>}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
                                     <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--ad-primary)', background: 'rgba(5,150,105,0.1)', padding: '3px 12px', borderRadius: '20px', fontFamily: 'monospace' }}>
@@ -710,6 +823,9 @@ const AdminDashboard = () => {
                                     >
                                         {copiedWsId === ev.workshopId ? '✓' : 'Copy ID'}
                                     </button>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--ad-text-dim)', marginLeft: '8px' }}>
+                                        📊 {attended}/{evRegs.length} attended
+                                    </span>
                                 </div>
                             </div>
                             <div style={{ display: 'flex', gap: '8px' }}>
@@ -737,7 +853,7 @@ const AdminDashboard = () => {
                                 <th style={{ width: '40px' }}>
                                     <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: 'var(--ad-primary)' }} />
                                 </th>
-                                <th>Student</th><th>Course</th><th>Event</th><th>Status (Reject | Mid | Appr)</th><th>Actions</th>
+                                <th>Student</th><th>Course</th><th>Event</th><th>Status</th><th>Attendance</th><th>Contact</th><th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -750,6 +866,28 @@ const AdminDashboard = () => {
                                     <td>{reg.course}</td>
                                     <td><span className="event-badge">{reg.eventName || getWorkshopName(reg.eventId) || 'General'}</span></td>
                                     <td><ApprovalToggle status={reg.status || 'pending'} onToggle={(s) => updateRegStatus(reg.id, s)} /></td>
+                                    <td>
+                                        <select
+                                            value={reg.attendance || ''}
+                                            onChange={e => markAttendance(reg.id, e.target.value)}
+                                            style={{
+                                                padding: '4px 8px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 700, border: '1px solid var(--ad-border)', cursor: 'pointer',
+                                                background: reg.attendance === 'present' ? '#dcfce7' : reg.attendance === 'absent' ? '#fee2e2' : reg.attendance === 'late' ? '#fef3c7' : 'transparent',
+                                                color: reg.attendance === 'present' ? '#166534' : reg.attendance === 'absent' ? '#991b1b' : reg.attendance === 'late' ? '#92400e' : 'var(--ad-text-dim)'
+                                            }}
+                                        >
+                                            <option value="">—</option>
+                                            <option value="present">✅ Present</option>
+                                            <option value="absent">❌ Absent</option>
+                                            <option value="late">⏰ Late</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <div style={{ display: 'flex', gap: '4px' }}>
+                                            <button onClick={() => openWhatsApp(reg.phone, reg.name)} title="WhatsApp" style={{ background: '#25d366', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 7px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>WA</button>
+                                            <button onClick={() => openEmail(reg.email, reg.name)} title="Email" style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 7px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>✉️</button>
+                                        </div>
+                                    </td>
                                     <td><button onClick={() => deleteRegistration(reg.id)} className="icon-btn-red"><Trash2 size={18} /></button></td>
                                 </tr>
                             ))}
@@ -1048,6 +1186,14 @@ const AdminDashboard = () => {
         </motion.div>
     );
 
+    const issueAllPending = async () => {
+        if (!window.confirm('Issue certificates to ALL pending verified students?')) return;
+        const res = await fetch(`${BASE_URL}/api/adilitix/certificates/issue-all`, { method: 'POST' });
+        const data = await res.json();
+        alert(`Issued ${data.count} new certificates.`);
+        fetchData(true);
+    };
+
     const renderCertificatesView = () => {
         const mockData = {
             studentName: 'John Doe',
@@ -1061,6 +1207,9 @@ const AdminDashboard = () => {
                 <div className="view-header">
                     <h2>Certificate Management</h2>
                     <div style={{ display: 'flex', gap: '10px' }}>
+                        <button onClick={issueAllPending} className="cta-primary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
+                            <Award size={16} style={{ marginRight: '6px' }} /> Issue Pending
+                        </button>
                         <button onClick={() => setShowCertSettings(true)} className="cta-secondary" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
                             Certificate Template
                         </button>
@@ -1184,7 +1333,7 @@ const AdminDashboard = () => {
             </div>
             <div className="data-table-wrapper">
                 <table className="data-table">
-                    <thead><tr><th>Username</th><th>Role</th><th>Added</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Username</th><th>Role</th><th>Added</th><th>Permissions</th><th>Actions</th></tr></thead>
                     <tbody>
                         {adminList.map((adm, idx) => (
                             <tr key={idx}>
@@ -1209,6 +1358,15 @@ const AdminDashboard = () => {
                                 <td>{adm.createdAt ? new Date(adm.createdAt).toLocaleDateString() : '—'}</td>
                                 <td>
                                     {adm.role !== 'superadmin' ? (
+                                        <button onClick={() => setEditingPermsAdmin(adm)} className="cta-secondary" style={{ padding: '4px 12px', fontSize: '0.75rem' }}>
+                                            <Settings size={14} /> Edit
+                                        </button>
+                                    ) : (
+                                        <span style={{ color: 'var(--ad-text-dim)', fontSize: '0.8rem' }}>Full Access</span>
+                                    )}
+                                </td>
+                                <td>
+                                    {adm.role !== 'superadmin' ? (
                                         <button onClick={() => removeAdmin(adm.username)} className="icon-btn-red" title="Remove"><Trash2 size={16} /></button>
                                     ) : (
                                         <span style={{ color: 'var(--ad-text-dim)', fontSize: '0.8rem' }}>Protected</span>
@@ -1219,6 +1377,45 @@ const AdminDashboard = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Permissions Editor Modal */}
+            {editingPermsAdmin && (
+                <div className="overlay-glass" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)' }}>
+                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ background: 'var(--ad-card)', padding: '30px', borderRadius: '24px', width: '480px', border: '1px solid var(--ad-border)', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }}>
+                        <h3 style={{ marginBottom: '20px', fontSize: '1.2rem' }}>Permissions — {editingPermsAdmin.username}</h3>
+                        {[
+                            { key: 'viewRegistrations', label: 'View Registrations' },
+                            { key: 'editRegistrationStatus', label: 'Edit Registration Status' },
+                            { key: 'deleteRegistrations', label: 'Delete Registrations' },
+                            { key: 'manageInventory', label: 'Manage Inventory' },
+                            { key: 'viewOrders', label: 'View Orders' },
+                            { key: 'issueCertificates', label: 'Issue Certificates' },
+                            { key: 'createEditEvents', label: 'Create/Edit Events' },
+                            { key: 'importSheets', label: 'Import from Sheets' }
+                        ].map(perm => (
+                            <label key={perm.key} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: '1px solid var(--ad-border)', cursor: 'pointer' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={(editingPermsAdmin.permissions || {})[perm.key] !== false}
+                                    onChange={e => {
+                                        const updated = { ...editingPermsAdmin, permissions: { ...editingPermsAdmin.permissions, [perm.key]: e.target.checked } };
+                                        setEditingPermsAdmin(updated);
+                                    }}
+                                    style={{ width: '18px', height: '18px', accentColor: 'var(--ad-primary)' }}
+                                />
+                                <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{perm.label}</span>
+                            </label>
+                        ))}
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                            <button onClick={() => setEditingPermsAdmin(null)} className="cta-secondary" style={{ flex: 1, padding: '12px', justifyContent: 'center' }}>Cancel</button>
+                            <button onClick={() => {
+                                updateAdminPermissions(editingPermsAdmin.username, editingPermsAdmin.permissions);
+                                setEditingPermsAdmin(null);
+                            }} className="cta-primary" style={{ flex: 1, padding: '12px', justifyContent: 'center' }}>Save</button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
 
             {/* Add Admin Modal */}
             {showAddAdmin && (
@@ -1257,6 +1454,85 @@ const AdminDashboard = () => {
                     </motion.div>
                 </div>
             )}
+        </motion.div>
+    );
+
+    // --- SETTINGS VIEW ---
+    const renderSettingsView = () => (
+        <motion.div key="settings" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="view-container">
+            <div className="view-header">
+                <h2>Settings</h2>
+                <button onClick={() => setActiveView('dashboard')} className="close-view-btn"><X size={20} /></button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '24px' }}>
+                {/* Profile Card */}
+                <div style={{ background: 'var(--ad-card)', borderRadius: '20px', border: '1px solid var(--ad-border)', padding: '28px' }}>
+                    <h3 style={{ fontSize: '1.1rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Users size={20} /> Account Info
+                    </h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
+                        <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'linear-gradient(135deg, var(--ad-primary), #10b981)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: '1.5rem' }}>
+                            {adminUsername.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>{adminUsername}</div>
+                            <span style={{
+                                padding: '3px 12px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 800,
+                                textTransform: 'uppercase',
+                                background: isSuperAdmin ? 'rgba(225,29,72,0.1)' : 'rgba(6,182,212,0.1)',
+                                color: isSuperAdmin ? '#e11d48' : '#06b6d4'
+                            }}>
+                                {isSuperAdmin ? '👑 Superadmin' : '🔑 Admin'}
+                            </span>
+                        </div>
+                    </div>
+                    {adminPerms && !isSuperAdmin && (
+                        <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(0,0,0,0.04)', borderRadius: '12px', fontSize: '0.82rem' }}>
+                            <div style={{ fontWeight: 700, marginBottom: '8px', color: 'var(--ad-text-dim)' }}>Your Permissions:</div>
+                            {Object.entries(adminPerms).map(([k, v]) => (
+                                <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}>
+                                    <span>{k.replace(/([A-Z])/g, ' $1').trim()}</span>
+                                    <span style={{ color: v !== false ? '#10b981' : '#ef4444', fontWeight: 700 }}>{v !== false ? '✓' : '✗'}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Password Change Card */}
+                <div style={{ background: 'var(--ad-card)', borderRadius: '20px', border: '1px solid var(--ad-border)', padding: '28px' }}>
+                    <h3 style={{ fontSize: '1.1rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        🔒 Change Password
+                    </h3>
+                    <form onSubmit={changePassword} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div className="form-group">
+                            <label>Current Password</label>
+                            <input type="password" value={pwChange.current} onChange={e => setPwChange({ ...pwChange, current: e.target.value })} required placeholder="Enter current password" />
+                        </div>
+                        <div className="form-group">
+                            <label>New Password</label>
+                            <input type="password" value={pwChange.newPw} onChange={e => setPwChange({ ...pwChange, newPw: e.target.value })} required placeholder="Enter new password" />
+                        </div>
+                        <div className="form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" value={pwChange.confirm} onChange={e => setPwChange({ ...pwChange, confirm: e.target.value })} required placeholder="Confirm new password" />
+                        </div>
+                        {pwChangeMsg && (
+                            <div style={{
+                                padding: '10px 16px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 600,
+                                background: pwChangeMsg.includes('success') || pwChangeMsg.includes('Updated') ? '#dcfce7' : '#fee2e2',
+                                color: pwChangeMsg.includes('success') || pwChangeMsg.includes('Updated') ? '#166534' : '#991b1b'
+                            }}>
+                                {pwChangeMsg}
+                            </div>
+                        )}
+                        <button type="submit" className="cta-primary" style={{ padding: '12px', justifyContent: 'center', marginTop: '4px' }}>
+                            Update Password
+                        </button>
+                    </form>
+                </div>
+            </div>
         </motion.div>
     );
 
@@ -1379,18 +1655,20 @@ const AdminDashboard = () => {
                 <div className="logo">ADILITIX</div>
                 <nav className="db-nav">
                     <button onClick={() => setActiveView('dashboard')} className={`db-nav-item ${activeView === 'dashboard' ? 'active' : ''}`}><LayoutDashboard size={18} /> Dashboard</button>
-                    <button onClick={() => setActiveView('registrations')} className={`db-nav-item ${activeView === 'registrations' ? 'active' : ''}`}><Users size={18} /> Registrations</button>
-                    <button onClick={() => setActiveView('orders')} className={`db-nav-item ${activeView === 'orders' ? 'active' : ''}`}><ShoppingCart size={18} /> View Orders</button>
+                    {hasPerm('viewRegistrations') && <button onClick={() => setActiveView('registrations')} className={`db-nav-item ${activeView === 'registrations' ? 'active' : ''}`}><Users size={18} /> Registrations</button>}
+                    {hasPerm('viewOrders') && <button onClick={() => setActiveView('orders')} className={`db-nav-item ${activeView === 'orders' ? 'active' : ''}`}><ShoppingCart size={18} /> View Orders</button>}
                     <button onClick={() => setActiveView('verification')} className={`db-nav-item ${activeView === 'verification' ? 'active' : ''}`}><ShieldCheck size={18} /> Verification</button>
-                    <button onClick={() => setActiveView('inventory')} className={`db-nav-item ${activeView === 'inventory' ? 'active' : ''}`}><Package size={18} /> Inventory</button>
-                    <button onClick={() => setActiveView('certificates')} className={`db-nav-item ${activeView === 'certificates' ? 'active' : ''}`}><Award size={18} /> Certificates</button>
+                    {hasPerm('manageInventory') && <button onClick={() => setActiveView('inventory')} className={`db-nav-item ${activeView === 'inventory' ? 'active' : ''}`}><Package size={18} /> Inventory</button>}
+                    {hasPerm('issueCertificates') && <button onClick={() => setActiveView('certificates')} className={`db-nav-item ${activeView === 'certificates' ? 'active' : ''}`}><Award size={18} /> Certificates</button>}
                     {isSuperAdmin && (
                         <>
                             <div style={{ borderTop: '1px solid var(--ad-border)', margin: '8px 0', opacity: 0.3 }} />
                             <button onClick={() => setActiveView('admin-mgmt')} className={`db-nav-item ${activeView === 'admin-mgmt' ? 'active' : ''}`}><Crown size={18} /> Admins</button>
-                            <button onClick={() => setActiveView('import-sheet')} className={`db-nav-item ${activeView === 'import-sheet' ? 'active' : ''}`}><FileSpreadsheet size={18} /> Sheet Import</button>
                         </>
                     )}
+                    {hasPerm('importSheets') && <button onClick={() => setActiveView('import-sheet')} className={`db-nav-item ${activeView === 'import-sheet' ? 'active' : ''}`}><FileSpreadsheet size={18} /> Sheet Import</button>}
+                    <div style={{ borderTop: '1px solid var(--ad-border)', margin: '8px 0', opacity: 0.3 }} />
+                    <button onClick={() => setActiveView('settings')} className={`db-nav-item ${activeView === 'settings' ? 'active' : ''}`}><Settings size={18} /> Settings</button>
                     <a href={HYPERCLASS_URL} target="_blank" rel="noopener noreferrer" className="db-nav-item">
                         <ExternalLink size={18} /> Hyperclass App
                     </a>
@@ -1429,7 +1707,8 @@ const AdminDashboard = () => {
                             {activeView === 'verification' && renderVerificationView()}
                             {activeView === 'certificates' && renderCertificatesView()}
                             {isSuperAdmin && activeView === 'admin-mgmt' && renderAdminManagementView()}
-                            {isSuperAdmin && activeView === 'import-sheet' && renderImportSheetView()}
+                            {hasPerm('importSheets') && activeView === 'import-sheet' && renderImportSheetView()}
+                            {activeView === 'settings' && renderSettingsView()}
                         </AnimatePresence>
                     )}
                 </div>
