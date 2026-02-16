@@ -265,7 +265,7 @@ const AdminDashboard = () => {
     // Adilitix Events (Workshop Events with permanent IDs)
     const [adilitixEvents, setAdilitixEvents] = useState([]);
     const [showCreateEvent, setShowCreateEvent] = useState(false);
-    const [newEvent, setNewEvent] = useState({ title: '', description: '', workshopId: '' });
+    const [newEvent, setNewEvent] = useState({ title: '', description: '', workshopId: '', date: new Date().toISOString().split('T')[0] });
     const [editingEvent, setEditingEvent] = useState(null);
     const [regEventFilter, setRegEventFilter] = useState('all');
     const [selectedRegs, setSelectedRegs] = useState(new Set());
@@ -389,7 +389,7 @@ const AdminDashboard = () => {
         const data = await res.json();
         if (data.success) {
             setShowCreateEvent(false);
-            setNewEvent({ title: '', description: '', workshopId: '' });
+            setNewEvent({ title: '', description: '', workshopId: '', date: new Date().toISOString().split('T')[0] });
             fetchData(true);
         } else {
             alert(data.message || 'Failed');
@@ -648,6 +648,11 @@ const AdminDashboard = () => {
     const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
     const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
 
+    const handleDayClick = (dayStr) => {
+        setNewEvent({ ...newEvent, date: dayStr });
+        setShowCreateEvent(true);
+    };
+
     const renderCalendarView = () => {
         const year = calendarDate.getFullYear();
         const month = calendarDate.getMonth();
@@ -679,11 +684,14 @@ const AdminDashboard = () => {
                     ))}
                     {days.map((day, idx) => {
                         const dateStr = day ? `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}` : null;
-                        const dayEvents = adilitixEvents.filter(ev => ev.createdAt && ev.createdAt.startsWith(dateStr));
+                        const dayEvents = adilitixEvents.filter(ev =>
+                            (ev.date && ev.date.startsWith(dateStr)) ||
+                            (!ev.date && ev.createdAt && ev.createdAt.startsWith(dateStr))
+                        );
                         const isToday = day && new Date().toDateString() === new Date(year, month, day).toDateString();
 
                         return (
-                            <div key={idx} style={{ background: 'var(--ad-card-bg)', minHeight: '120px', padding: '10px', position: 'relative' }}>
+                            <div key={idx} onClick={() => day && handleDayClick(dateStr)} style={{ background: 'var(--ad-card-bg)', minHeight: '120px', padding: '10px', position: 'relative', cursor: day ? 'pointer' : 'default' }}>
                                 {day && (
                                     <>
                                         <span style={{ fontSize: '0.9rem', fontWeight: 600, color: isToday ? 'var(--ad-accent)' : 'inherit' }}>{day}</span>
@@ -1175,6 +1183,10 @@ const AdminDashboard = () => {
                                 <div className="form-group">
                                     <label>Description</label>
                                     <input type="text" value={newEvent.description} onChange={e => setNewEvent({ ...newEvent, description: e.target.value })} placeholder="e.g. 3-day robotics masterclass" />
+                                </div>
+                                <div className="form-group">
+                                    <label>Event Date *</label>
+                                    <input type="date" value={newEvent.date} onChange={e => setNewEvent({ ...newEvent, date: e.target.value })} required />
                                 </div>
                                 <div className="form-group">
                                     <label>Workshop ID

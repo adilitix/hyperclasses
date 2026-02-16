@@ -664,7 +664,7 @@ app.get('/api/adilitix/events', (req, res) => {
 });
 
 app.post('/api/adilitix/events', (req, res) => {
-    const { title, description, workshopId } = req.body;
+    const { title, description, workshopId, date } = req.body;
     if (!title) return res.status(400).json({ success: false, message: 'Title required' });
 
     // Generate or use provided workshop ID (permanent, never changes)
@@ -686,6 +686,7 @@ app.post('/api/adilitix/events', (req, res) => {
         title,
         description: description || '',
         workshopId: finalWorkshopId,
+        date: date || new Date().toISOString().split('T')[0], // Pickable event date
         createdAt: new Date().toISOString()
     };
 
