@@ -30,7 +30,8 @@ import {
     Info,
     Activity,
     MessageSquare,
-    ChevronLeft
+    ChevronLeft,
+    Calendar
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 
@@ -281,20 +282,23 @@ const AdminDashboard = () => {
         : 'https://hyperclass.vercel.app';
 
     useEffect(() => {
+        console.log('AdminDashboard: Initializing...');
         const isAdmin = localStorage.getItem('adilitix_admin');
         if (!isAdmin) {
+            console.log('AdminDashboard: Not logged in, redirecting...');
             navigate('/admin-login');
         } else {
+            console.log('AdminDashboard: Logged in as', adminUsername);
             fetchData();
 
-            // Setup real-time updates
+            /* Socket temporarily disabled for stability diagnostic
             const socket = io(BASE_URL);
             socket.on('adilitix_update', () => {
                 console.log('🔄 Data update received via socket');
                 fetchData(true);
             });
-
             return () => socket.disconnect();
+            */
         }
     }, [navigate]);
 
@@ -684,10 +688,11 @@ const AdminDashboard = () => {
                     ))}
                     {days.map((day, idx) => {
                         const dateStr = day ? `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}` : null;
-                        const dayEvents = adilitixEvents.filter(ev =>
-                            (ev.date && ev.date.startsWith(dateStr)) ||
-                            (!ev.date && ev.createdAt && ev.createdAt.startsWith(dateStr))
-                        );
+                        const dayEvents = adilitixEvents.filter(ev => {
+                            if (!dateStr) return false;
+                            const evDate = ev.date || ev.createdAt;
+                            return evDate && typeof evDate === 'string' && evDate.startsWith(dateStr);
+                        });
                         const isToday = day && new Date().toDateString() === new Date(year, month, day).toDateString();
 
                         return (
@@ -1972,7 +1977,7 @@ const AdminDashboard = () => {
                 </header>
 
                 <div className="db-content">
-                    {loading ? <div className="db-loader">Fetching latest data...</div> : (
+                    {!loading && (
                         <AnimatePresence mode="wait">
                             {activeView === 'dashboard' && (
                                 <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="db-grid">
@@ -1997,6 +2002,7 @@ const AdminDashboard = () => {
                             {activeView === 'settings' && renderSettingsView()}
                         </AnimatePresence>
                     )}
+                    {loading && <div className="db-loader">Fetching latest data...</div>}
                 </div>
             </main>
 
