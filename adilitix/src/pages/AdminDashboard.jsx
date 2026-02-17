@@ -212,6 +212,7 @@ const CertificatePaper = ({ data, settings, scale = 1 }) => {
 };
 
 const AdminDashboard = () => {
+    console.log('AdminDashboard: Component Render Start');
     const navigate = useNavigate();
     const [registrations, setRegistrations] = useState([]);
     const [inventory, setInventory] = useState([]);

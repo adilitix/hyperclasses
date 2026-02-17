@@ -13,6 +13,8 @@ function App() {
     return window.location.pathname.startsWith('/adilitix') ? '/adilitix' : '';
   };
 
+  console.log('App: Current path:', window.location.pathname, 'Basename:', getBasename());
+
   return (
     <Router basename={getBasename()}>
       <Routes>
