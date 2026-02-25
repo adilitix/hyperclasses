@@ -9,6 +9,7 @@ const fs = require('fs');
 const db = require('./database');
 const supabase = require('./supabase');
 const googleSheets = require('./googleSheets');
+const remoteSync = require('./remoteSync');
 
 const app = express();
 const server = http.createServer(app);
@@ -144,6 +145,8 @@ const GLOBAL_STATE = {
     }
 })();
 
+remoteSync.setDependencies(io, GLOBAL_STATE, db);
+
 const SUPERADMIN_CREDENTIALS = {
     username: 'superadmin',
     password: 'mammoosashi'
@@ -162,7 +165,100 @@ app.use((req, res, next) => {
     next();
 });
 
+// --- LIVE SYNC RECEIVER ---
+app.post('/api/sync/receive', (req, res) => {
+    const { key, data, secret } = req.body;
+    const SYNC_SECRET = process.env.SYNC_SECRET || 'hyper-sync-123';
+
+    if (secret !== SYNC_SECRET) {
+        return res.status(401).json({ success: false, message: 'Invalid sync secret' });
+    }
+
+    try {
+        if (key === 'admins') {
+            GLOBAL_STATE.admins = data;
+            db.saveAdmins(data);
+        } else if (key.startsWith('event_')) {
+            const eventId = key.replace('event_', '');
+            GLOBAL_STATE.events.set(eventId, data);
+            db.saveEvent(data);
+            // Notify active participants if they are in this room
+            io.to(eventId).emit('content_update', data.currentContent);
+            io.to(eventId).emit('file_list_update', data.files);
+            io.to(eventId).emit('chat_status', { disabled: data.chatDisabled });
+            if (data.activePoll) io.to(eventId).emit('poll_update', data.activePoll);
+            if (data.timerEnd) io.to(eventId).emit('timer_update', data.timerEnd);
+            io.to(eventId).emit('history_update', data.history);
+        } else if (key === 'workshops') {
+            GLOBAL_STATE.workshops = data;
+            db.saveWorkshops(data);
+            io.emit('workshops_update', data);
+        } else if (key === 'settings') {
+            GLOBAL_STATE.settings = data;
+            db.saveSettings(data);
+            io.emit('settings_update', data);
+        } else if (key === 'workshop_progress') {
+            GLOBAL_STATE.workshop_progress = data;
+            db.saveWorkshopProgress(data);
+            io.emit('adilitix_update');
+        } else if (key === 'adilitix_registrations') {
+            GLOBAL_STATE.adilitix_registrations = data;
+            db.saveAdilitixRegistrations(data);
+            io.emit('adilitix_update');
+        } else if (key === 'adilitix_inventory') {
+            GLOBAL_STATE.adilitix_inventory = data;
+            db.saveAdilitixInventory(data);
+            io.emit('adilitix_update');
+        } else if (key === 'adilitix_orders') {
+            GLOBAL_STATE.adilitix_orders = data;
+            db.saveAdilitixOrders(data);
+            io.emit('adilitix_update');
+        } else if (key === 'adilitix_certificate_settings') {
+            GLOBAL_STATE.adilitix_certificate_settings = data;
+            db.saveAdilitixCertificateSettings(data);
+        } else if (key === 'adilitix_admins') {
+            GLOBAL_STATE.adilitix_admins = data;
+            db.saveAdilitixAdmins(data);
+        } else if (key === 'adilitix_events') {
+            GLOBAL_STATE.adilitix_events = data;
+            db.saveAdilitixEvents(data);
+        } else if (key === 'adilitix_notices') {
+            GLOBAL_STATE.adilitix_notices = data;
+            db.saveAdilitixNotices(data);
+        } else if (key.startsWith('roster_')) {
+            const eventId = key.replace('roster_', '');
+            io.to(eventId).emit('remote_roster_update', data);
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error(`Sync processing failed for ${key}:`, err.message);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 // --- API ROUTES ---
+
+app.get('/api/sync/status', (req, res) => {
+    res.json({
+        enabled: remoteSync.isEnabled,
+        targetUrl: remoteSync.targetUrl,
+        connected: remoteSync.socket ? remoteSync.socket.connected : false
+    });
+});
+
+app.post('/api/sync/toggle', (req, res) => {
+    const { enabled } = req.body;
+    const newState = remoteSync.toggleSync(enabled);
+    GLOBAL_STATE.settings.sync_enabled = newState;
+    db.saveSettings(GLOBAL_STATE.settings);
+    res.json({ success: true, enabled: newState });
+});
+
+// Sync status initialization from settings
+if (GLOBAL_STATE.settings.sync_enabled) {
+    remoteSync.toggleSync(true);
+}
 
 // Login
 app.post('/api/login', (req, res) => {
@@ -373,6 +469,10 @@ app.post('/api/events', (req, res) => {
     console.log(`Creating event: ${name} (ID: ${id}, isWorkshop: ${newEvent.isWorkshop})`);
     GLOBAL_STATE.events.set(id, newEvent);
     db.saveEvent(newEvent);
+
+    // Ensure relay joins this new room
+    remoteSync.syncActiveRooms();
+
     res.json({ success: true, event: newEvent });
 });
 
@@ -1477,6 +1577,10 @@ io.on('connection', (socket) => {
             sendRosterUpdate(eventId);
             sendAttendanceUpdate(eventId);
 
+            socket.on('get_roster', () => {
+                sendRosterUpdate(eventId);
+            });
+
             // System Message
             const systemMsg = {
                 id: Date.now(),
@@ -1541,8 +1645,11 @@ io.on('connection', (socket) => {
             const event = getEvent();
             if (!event) return;
             event.currentContent = content;
-            debouncedSaveEvent(event, 3000); // 3s debounce — very high frequency
-            socket.to(event.id).emit('content_update', content);
+            debouncedSaveEvent(event, 3000);
+            socket.to(event.id).emit('content_update', content, event.id);
+
+            // Instant Live Sync for Broadcast
+            remoteSync.pushSync(`event_${event.id}`, event);
         } catch (e) { console.error('broadcast_content error:', e.message); }
     });
 
@@ -1585,6 +1692,7 @@ io.on('connection', (socket) => {
             const fullMsg = {
                 id: Date.now(),
                 ...msg,
+                eventId: event.id,
                 timestamp: new Date().toISOString()
             };
             event.chatHistory.push(fullMsg);
@@ -1593,6 +1701,9 @@ io.on('connection', (socket) => {
             debouncedSaveEvent(event); // Debounced — chat is high frequency
 
             io.to(event.id).emit('chat_message', fullMsg);
+
+            // Relay to Remote Server
+            remoteSync.relayMessage(fullMsg);
         } catch (e) { console.error('send_message error:', e.message); }
     });
 
@@ -1919,7 +2030,17 @@ async function sendRosterUpdate(eventId) {
         role: s.data.role || 'uknown',
         ip: s.data.ip
     }));
-    io.to(eventId).emit('roster_update', roster);
+    io.to(eventId).emit('roster_update', roster, eventId);
+
+    // Update global event counts for admins
+    const eventsList = Array.from(GLOBAL_STATE.events.values()).map(e => ({
+        id: e.id,
+        userCount: io.sockets.adapter.rooms.get(e.id)?.size || 0
+    }));
+    io.emit('event_counts_update', eventsList);
+
+    // Push roster to Live Sync
+    remoteSync.pushSync(`roster_${eventId}`, roster);
 }
 
 async function sendAttendanceUpdate(eventId) {

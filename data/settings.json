@@ -15,5 +15,6 @@
       "Modern Glassmorphic UI",
       "Comprehensive Admin Controls"
     ]
-  }
+  },
+  "sync_enabled": false
 }

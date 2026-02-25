@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth, API_BASE_URL } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useSocket } from '../contexts/SocketContext';
 
 function UniversalEventsPanel({ onEnterEvent }) {
     const { user } = useAuth();
@@ -15,6 +16,7 @@ function UniversalEventsPanel({ onEnterEvent }) {
     const [type, setType] = useState('flow'); // 'flow' (HyperFlow) or 'go' (HyperGo)
     const [showInfo, setShowInfo] = useState(false);
 
+    const socket = useSocket();
     const fetchData = async () => {
         try {
             const res = await fetch(`${API_BASE_URL}/api/events`);
@@ -27,9 +29,28 @@ function UniversalEventsPanel({ onEnterEvent }) {
 
     useEffect(() => {
         fetchData();
-        const interval = setInterval(fetchData, 5000);
-        return () => clearInterval(interval);
-    }, []);
+        const interval = setInterval(fetchData, 10000); // Poll less frequently now that we have sockets
+
+        if (socket) {
+            socket.on('event_counts_update', (counts) => {
+                setEvents(prev => prev.map(evt => {
+                    const match = counts.find(c => c.id === evt.id);
+                    return match ? { ...evt, userCount: match.userCount } : evt;
+                }));
+            });
+            socket.on('adilitix_update', fetchData);
+            socket.on('roster_update', fetchData); // Refresh on join/leave
+        }
+
+        return () => {
+            clearInterval(interval);
+            if (socket) {
+                socket.off('event_counts_update');
+                socket.off('adilitix_update');
+                socket.off('roster_update');
+            }
+        };
+    }, [socket]);
 
     const handleCreate = async (e) => {
         e.preventDefault();
@@ -253,8 +274,20 @@ function UniversalEventsPanel({ onEnterEvent }) {
                             </div>
 
                             <h3 style={{ margin: '5px 0 2px 0', fontSize: window.innerWidth < 768 ? '0.9rem' : '1.25rem', fontWeight: 800 }}>{evt.name}</h3>
-                            <div style={{ fontSize: window.innerWidth < 768 ? '0.65rem' : '0.8rem', color: '#64748b' }}>
-                                ID: <span style={{ fontFamily: 'Fira Code, monospace', color: evt.isWorkshop ? '#ff7b00' : '#00f0ff' }}>{evt.id}</span>
+                            <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                                <div style={{ fontSize: window.innerWidth < 768 ? '0.65rem' : '0.8rem', color: '#64748b' }}>
+                                    ID: <span style={{ fontFamily: 'Fira Code, monospace', color: evt.isWorkshop ? '#ff7b00' : '#00f0ff' }}>{evt.id}</span>
+                                </div>
+                                <div style={{
+                                    fontSize: '0.7rem',
+                                    background: evt.userCount > 0 ? 'rgba(34, 197, 94, 0.1)' : 'rgba(255,255,255,0.05)',
+                                    padding: '2px 8px',
+                                    borderRadius: '10px',
+                                    color: evt.userCount > 0 ? '#22c55e' : '#64748b',
+                                    fontWeight: 700
+                                }}>
+                                    ● {evt.userCount || 0} online
+                                </div>
                             </div>
 
                             <div style={{ marginTop: window.innerWidth < 768 ? '10px' : '20px' }}>

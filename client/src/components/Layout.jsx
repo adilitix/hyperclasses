@@ -142,6 +142,7 @@ function Layout() {
     const [viewingSnapshot, setViewingSnapshot] = useState(null);
     const [showTimeline, setShowTimeline] = useState(false);
     const [storageActive, setStorageActive] = useState(false);
+    const [syncEnabled, setSyncEnabled] = useState(false);
 
     useEffect(() => {
         const checkCloud = async () => {
@@ -149,10 +150,31 @@ function Layout() {
                 const res = await fetch(`${import.meta.env.VITE_SERVER_URL || ''}/api/storage-status`);
                 const data = await res.json();
                 setStorageActive(data.connected);
+
+                // Also check live sync status
+                const syncRes = await fetch(`${import.meta.env.VITE_SERVER_URL || ''}/api/sync/status`);
+                const syncData = await syncRes.json();
+                setSyncEnabled(syncData.enabled);
             } catch (e) { }
         };
         checkCloud();
     }, []);
+
+    const toggleLiveSync = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_SERVER_URL || ''}/api/sync/toggle`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled: !syncEnabled })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setSyncEnabled(data.enabled);
+            }
+        } catch (e) {
+            alert('Failed to toggle live sync');
+        }
+    };
 
     useEffect(() => {
         if (!socket) return;
@@ -528,6 +550,48 @@ function Layout() {
                 </div>
 
                 <div className="sidebar-footer">
+                    {(user.role === 'admin' || user.role === 'superadmin') && (
+                        <div style={{
+                            padding: '1rem',
+                            background: 'rgba(56, 189, 248, 0.05)',
+                            borderRadius: '12px',
+                            marginBottom: '1rem',
+                            border: '1px solid rgba(56, 189, 248, 0.1)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                        }}>
+                            <div>
+                                <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary)' }}>LIVE CLOUD SYNC</div>
+                                <div style={{ fontSize: '0.6rem', opacity: 0.5 }}>Broadcasting to Web</div>
+                            </div>
+                            <div
+                                onClick={toggleLiveSync}
+                                style={{
+                                    width: '40px',
+                                    height: '20px',
+                                    background: syncEnabled ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
+                                    borderRadius: '10px',
+                                    position: 'relative',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s'
+                                }}
+                            >
+                                <div style={{
+                                    width: '16px',
+                                    height: '16px',
+                                    background: '#fff',
+                                    borderRadius: '50%',
+                                    position: 'absolute',
+                                    top: '2px',
+                                    left: syncEnabled ? '22px' : '2px',
+                                    transition: 'all 0.3s',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                }} />
+                            </div>
+                        </div>
+                    )}
+
                     <div className="user-badge" style={{ marginBottom: '1rem', background: 'rgba(255,255,255,0.03)', border: 'none', padding: '0.75rem' }}>
                         <span>{user.role === 'admin' ? '🛡️' : user.role === 'superadmin' ? '⚡' : '👤'}</span>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>

@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const supabase = require('./supabase');
+const remoteSync = require('./remoteSync');
 
 const DB_DIR = path.join(__dirname, '../database');
 const EVENTS_DIR = path.join(DB_DIR, 'events');
@@ -26,6 +27,15 @@ function initDatabase() {
     if (!fs.existsSync(EVENTS_DIR)) {
         fs.mkdirSync(EVENTS_DIR, { recursive: true });
     }
+}
+
+// Unified Cloud Sync (Supabase + Optional Remote HTTP Push)
+function performCloudSync(key, value) {
+    // 1. Existing Supabase Storage Sync
+    supabase.syncToCloud(key, value).catch(console.error);
+
+    // 2. Optional Live HTTP Sync to another server
+    remoteSync.pushSync(key, value).catch(console.error);
 }
 
 // Load admins from file
@@ -54,7 +64,7 @@ function saveAdmins(admins) {
         console.error('Error saving admins:', err);
     }
     // Sync to Cloud
-    supabase.syncToCloud('admins', admins).catch(console.error);
+    performCloudSync('admins', admins);
 }
 
 // Load all events from disk
@@ -163,7 +173,7 @@ function saveEvent(event) {
         }
 
         // Sync to Cloud
-        supabase.syncToCloud(`event_${event.id}`, event).catch(console.error);
+        performCloudSync(`event_${event.id}`, event);
     } catch (err) {
         console.error('Error saving event:', err);
     }
@@ -359,7 +369,7 @@ function saveWorkshops(workshops) {
         console.error('Error saving workshops:', err);
     }
     // Sync to Cloud
-    supabase.syncToCloud('workshops', workshops).catch(console.error);
+    performCloudSync('workshops', workshops);
 }
 
 
@@ -436,7 +446,7 @@ function saveSettings(settings) {
         console.error('Error saving settings:', err);
     }
     // Sync to Cloud
-    supabase.syncToCloud('settings', settings).catch(console.error);
+    performCloudSync('settings', settings);
 }
 
 function loadWorkshopProgress() {
@@ -455,7 +465,7 @@ function saveWorkshopProgress(progress) {
         }
         fs.writeFileSync(WORKSHOP_PROGRESS_FILE, JSON.stringify(progress, null, 2));
     } catch (err) { console.error(err); }
-    supabase.syncToCloud('workshop_progress', progress).catch(console.error);
+    performCloudSync('workshop_progress', progress);
 }
 
 function loadAdilitixRegistrations() {
@@ -471,7 +481,7 @@ function saveAdilitixRegistrations(registrations) {
     try {
         fs.writeFileSync(ADILITIX_REGISTRATIONS_FILE, JSON.stringify(registrations, null, 2));
     } catch (err) { console.error('Error saving Adilitix registrations:', err); }
-    supabase.syncToCloud('adilitix_registrations', registrations).catch(console.error);
+    performCloudSync('adilitix_registrations', registrations);
 }
 
 function loadAdilitixInventory() {
@@ -491,7 +501,7 @@ function saveAdilitixInventory(inventory) {
     try {
         fs.writeFileSync(ADILITIX_INVENTORY_FILE, JSON.stringify(inventory, null, 2));
     } catch (err) { console.error('Error saving Adilitix inventory:', err); }
-    supabase.syncToCloud('adilitix_inventory', inventory).catch(console.error);
+    performCloudSync('adilitix_inventory', inventory);
 }
 
 function loadAdilitixOrders() {
@@ -507,7 +517,7 @@ function saveAdilitixOrders(orders) {
     try {
         fs.writeFileSync(ADILITIX_ORDERS_FILE, JSON.stringify(orders, null, 2));
     } catch (err) { console.error('Error saving Adilitix orders:', err); }
-    supabase.syncToCloud('adilitix_orders', orders).catch(console.error);
+    performCloudSync('adilitix_orders', orders);
 }
 
 function loadAdilitixCertificateSettings() {
@@ -540,7 +550,7 @@ function saveAdilitixCertificateSettings(settings) {
     try {
         fs.writeFileSync(ADILITIX_CERT_SETTINGS_FILE, JSON.stringify(settings, null, 2));
     } catch (err) { console.error('Error saving cert settings:', err); }
-    supabase.syncToCloud('adilitix_certificate_settings', settings).catch(console.error);
+    performCloudSync('adilitix_certificate_settings', settings);
 }
 
 // Adilitix Admin Management
@@ -559,7 +569,7 @@ function saveAdilitixAdmins(admins) {
     try {
         fs.writeFileSync(ADILITIX_ADMINS_FILE, JSON.stringify(admins, null, 2));
     } catch (err) { console.error('Error saving Adilitix admins:', err); }
-    supabase.syncToCloud('adilitix_admins', admins).catch(console.error);
+    performCloudSync('adilitix_admins', admins);
 }
 
 // Adilitix Events (Workshop Events with permanent IDs)
@@ -576,7 +586,7 @@ function saveAdilitixEvents(events) {
     try {
         fs.writeFileSync(ADILITIX_EVENTS_FILE, JSON.stringify(events, null, 2));
     } catch (err) { console.error('Error saving Adilitix events:', err); }
-    supabase.syncToCloud('adilitix_events', events).catch(console.error);
+    performCloudSync('adilitix_events', events);
 }
 
 // Adilitix Noticeboard
@@ -593,7 +603,7 @@ function saveAdilitixNotices(notices) {
     try {
         fs.writeFileSync(ADILITIX_NOTICES_FILE, JSON.stringify(notices, null, 2));
     } catch (err) { console.error('Error saving Adilitix notices:', err); }
-    supabase.syncToCloud('adilitix_notices', notices).catch(console.error);
+    performCloudSync('adilitix_notices', notices);
 }
 
 module.exports = {

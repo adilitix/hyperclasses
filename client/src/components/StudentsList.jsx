@@ -6,21 +6,33 @@ function StudentsList() {
     const socket = useSocket();
     const { user } = useAuth();
     const [onlineUsers, setOnlineUsers] = useState([]);
+    const [remoteOnlineUsers, setRemoteOnlineUsers] = useState([]);
 
     useEffect(() => {
         if (!socket) return;
 
         socket.on('roster_update', (users) => {
-            // Filter out admins from the student list if desired, or show everyone with roles
             setOnlineUsers(users);
         });
 
+        socket.on('remote_roster_update', (users) => {
+            setRemoteOnlineUsers(users);
+        });
+
+        // Request initial roster
+        socket.emit('get_roster');
+
         return () => {
             socket.off('roster_update');
+            socket.off('remote_roster_update');
         };
     }, [socket]);
 
-    const students = onlineUsers;
+    // Merge rosters, evitando duplicados por nombre de usuario
+    const students = [
+        ...onlineUsers,
+        ...remoteOnlineUsers.filter(ru => !onlineUsers.some(ou => ou.username === ru.username))
+    ];
 
     return (
         <div style={{ padding: '1.5rem' }}>
