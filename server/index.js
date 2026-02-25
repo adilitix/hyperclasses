@@ -2008,3 +2008,173 @@ server.listen(PORT, '0.0.0.0', () => {
 app.get('/api/ping', (req, res) => {
     res.json({ status: 'alive', timestamp: Date.now() });
 });
+
+// ==========================================================
+// M5StickC PLUS 2 — SUPERADMIN REMOTE API  /api/m5/*
+// All routes require superadmin credentials in the JSON body:
+//   { username, password, eventId, ...payload }
+// ==========================================================
+
+const m5AuthCheck = (req, res) => {
+    const { username, password } = req.body;
+    if (username !== SUPERADMIN_CREDENTIALS.username ||
+        password !== SUPERADMIN_CREDENTIALS.password) {
+        res.status(403).json({ success: false, message: 'Superadmin auth required' });
+        return false;
+    }
+    return true;
+};
+
+// GET /api/m5/session/:eventId — session snapshot for the device
+app.get('/api/m5/session/:eventId', (req, res) => {
+    const event = GLOBAL_STATE.events.get(req.params.eventId);
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    res.json({
+        id: event.id,
+        name: event.name,
+        chatDisabled: !!event.chatDisabled,
+        timerActive: !!event.timerEnd && event.timerEnd > Date.now(),
+        timerEnd: event.timerEnd || null,
+        activePoll: !!event.activePoll,
+        userCount: io.sockets.adapter.rooms.get(event.id)?.size || 0,
+        workshopGate: GLOBAL_STATE.workshop_gates[event.id] || 0,
+        ticketCount: (event.tickets || []).filter(t => t.status === 'open').length
+    });
+});
+
+// POST /api/m5/timer/start — start a countdown timer in a session
+app.post('/api/m5/timer/start', (req, res) => {
+    if (!m5AuthCheck(req, res)) return;
+    const { eventId, minutes } = req.body;
+    const event = GLOBAL_STATE.events.get(eventId);
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    const mins = parseInt(minutes) || 5;
+    event.timerEnd = Date.now() + mins * 60 * 1000;
+    io.to(eventId).emit('timer_update', event.timerEnd);
+    debouncedSaveEvent(event);
+    console.log(`[M5] Timer started: ${mins} min on ${eventId}`);
+    res.json({ success: true, timerEnd: event.timerEnd });
+});
+
+// POST /api/m5/timer/stop — stop the timer
+app.post('/api/m5/timer/stop', (req, res) => {
+    if (!m5AuthCheck(req, res)) return;
+    const { eventId } = req.body;
+    const event = GLOBAL_STATE.events.get(eventId);
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    event.timerEnd = null;
+    io.to(eventId).emit('timer_update', null);
+    debouncedSaveEvent(event);
+    console.log(`[M5] Timer stopped on ${eventId}`);
+    res.json({ success: true });
+});
+
+// POST /api/m5/broadcast — inject a system-style chat message from teacher
+app.post('/api/m5/broadcast', (req, res) => {
+    if (!m5AuthCheck(req, res)) return;
+    const { eventId, message } = req.body;
+    if (!message || !eventId) return res.status(400).json({ success: false });
+    const event = GLOBAL_STATE.events.get(eventId);
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    const msg = {
+        id: Date.now(),
+        username: '📢 Teacher',
+        text: message,
+        timestamp: new Date().toISOString(),
+        isSystem: true,
+        fromDevice: 'm5stick'
+    };
+    event.chatHistory.push(msg);
+    if (event.chatHistory.length > 500) event.chatHistory = event.chatHistory.slice(-500);
+    debouncedSaveEvent(event);
+    io.to(eventId).emit('chat_message', msg);
+    console.log(`[M5] Broadcast on ${eventId}: ${message}`);
+    res.json({ success: true });
+});
+
+// POST /api/m5/chat/toggle — enable or disable chat for a session
+app.post('/api/m5/chat/toggle', (req, res) => {
+    if (!m5AuthCheck(req, res)) return;
+    const { eventId, disabled } = req.body;
+    const event = GLOBAL_STATE.events.get(eventId);
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    event.chatDisabled = !!disabled;
+    io.to(eventId).emit('chat_status', { disabled: event.chatDisabled });
+    debouncedSaveEvent(event);
+    console.log(`[M5] Chat ${event.chatDisabled ? 'disabled' : 'enabled'} on ${eventId}`);
+    res.json({ success: true, chatDisabled: event.chatDisabled });
+});
+
+// POST /api/m5/poll/start — launch a quick poll
+app.post('/api/m5/poll/start', (req, res) => {
+    if (!m5AuthCheck(req, res)) return;
+    const { eventId, question, options } = req.body;
+    if (!question || !Array.isArray(options) || options.length < 2) {
+        return res.status(400).json({ success: false, message: 'question and options[] required' });
+    }
+    const event = GLOBAL_STATE.events.get(eventId);
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    event.activePoll = {
+        question,
+        options: options.map(opt => ({ text: opt, count: 0 })),
+        voters: [],
+        startedAt: new Date().toISOString(),
+        fromDevice: 'm5stick'
+    };
+    io.to(eventId).emit('poll_update', event.activePoll);
+    debouncedSaveEvent(event);
+    console.log(`[M5] Poll started on ${eventId}: "${question}" options=${options.join('/')}`);
+    res.json({ success: true });
+});
+
+// POST /api/m5/poll/stop — end the active poll
+app.post('/api/m5/poll/stop', (req, res) => {
+    if (!m5AuthCheck(req, res)) return;
+    const { eventId } = req.body;
+    const event = GLOBAL_STATE.events.get(eventId);
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    event.activePoll = null;
+    io.to(eventId).emit('poll_update', null);
+    debouncedSaveEvent(event);
+    console.log(`[M5] Poll stopped on ${eventId}`);
+    res.json({ success: true });
+});
+
+// POST /api/m5/workshop/gate — set the step gate for workshop participants
+app.post('/api/m5/workshop/gate', (req, res) => {
+    if (!m5AuthCheck(req, res)) return;
+    const { eventId, maxStep } = req.body;
+    if (maxStep === undefined) return res.status(400).json({ success: false });
+    // eventId here is the workshopId (can be the session id or workshop id)
+    const step = parseInt(maxStep);
+    GLOBAL_STATE.workshop_gates[eventId] = step;
+    io.to(`workshop_${eventId}`).emit('workshop_gate_update', step);
+    io.to(`workshop_monitor_${eventId}`).emit('workshop_gate_update', step);
+    console.log(`[M5] Workshop gate set to step ${step} for ${eventId}`);
+    res.json({ success: true, maxStep: step });
+});
+
+// GET /api/m5/overview — lightweight dashboard snapshot (home screen data)
+app.get('/api/m5/overview', (req, res) => {
+    const liveSessions = [];
+    GLOBAL_STATE.events.forEach((ev) => {
+        liveSessions.push({
+            id: ev.id,
+            name: ev.name,
+            userCount: io.sockets.adapter.rooms.get(ev.id)?.size || 0
+        });
+    });
+    res.json({
+        liveSessions,
+        registrations: GLOBAL_STATE.adilitix_registrations.length,
+        workshops: GLOBAL_STATE.workshops.length,
+        completions: (() => {
+            let c = 0;
+            Object.values(GLOBAL_STATE.workshop_progress).forEach(ws => {
+                Object.values(ws).forEach(u => { if (u.completed) c++; });
+            });
+            return c;
+        })()
+    });
+});
+

@@ -509,7 +509,7 @@ function LeftPanel({ viewingSnapshot, setViewingSnapshot }) {
             )}
 
             {/* Content View Area */}
-            <div style={{ flex: 1, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ flex: 1, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', overflowY: 'auto' }}>
 
                 {/* Permanent Notification Banner */}
                 {notificationSettings?.enabled && (
