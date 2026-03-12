@@ -59,13 +59,11 @@ class RemoteSyncService {
 
         this.socket.on('roster_update', (roster, eventId) => {
             if (this.localIo && eventId) {
-                // Relay Remote roster to Local clients as remote_roster_update
                 this.localIo.to(eventId).emit('remote_roster_update', roster);
             }
         });
 
         this.socket.on('content_update', (content, eventId) => {
-            // If remote has a content update, we should probably update local
             if (this.localIo && eventId) {
                 const event = this.globalState.events.get(eventId);
                 if (event) {
@@ -126,6 +124,39 @@ class RemoteSyncService {
                 timeout: 5000
             });
         } catch (error) { }
+    }
+
+    async syncAll() {
+        if (!this.isEnabled || !this.globalState || !this.targetUrl) return;
+
+        console.log('🔄 Performing Full Manual Sync to Live...');
+
+        try {
+            // Core Data
+            await this.pushSync('admins', this.globalState.admins);
+            await this.pushSync('workshops', this.globalState.workshops);
+            await this.pushSync('settings', this.globalState.settings);
+
+            // Events Data
+            for (const [id, event] of this.globalState.events) {
+                await this.pushSync(`event_${id}`, event);
+            }
+
+            // Adilitix Data
+            await this.pushSync('adilitix_registrations', this.globalState.adilitix_registrations);
+            await this.pushSync('adilitix_inventory', this.globalState.adilitix_inventory);
+            await this.pushSync('adilitix_orders', this.globalState.adilitix_orders);
+            await this.pushSync('adilitix_certificate_settings', this.globalState.adilitix_certificate_settings);
+            await this.pushSync('adilitix_admins', this.globalState.adilitix_admins);
+            await this.pushSync('adilitix_events', this.globalState.adilitix_events);
+            await this.pushSync('adilitix_notices', this.globalState.adilitix_notices);
+
+            console.log('✅ Full Manual Sync Complete.');
+            return true;
+        } catch (error) {
+            console.error('❌ Full Manual Sync Failed:', error.message);
+            return false;
+        }
     }
 }
 

@@ -189,6 +189,29 @@ function LeftPanel({ viewingSnapshot, setViewingSnapshot }) {
         }
     };
 
+    const triggerFileDownload = async (fileUrl, filename) => {
+        try {
+            // If it's a relative URL, prepend the API_BASE_URL
+            const url = fileUrl.startsWith('http') ? fileUrl : `${API_BASE_URL}${fileUrl}`;
+
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            console.error('Download failed:', error);
+            // Fallback: open in new tab
+            const url = fileUrl.startsWith('http') ? fileUrl : `${API_BASE_URL}${fileUrl}`;
+            window.open(url, '_blank');
+        }
+    };
+
     // Derived content to show (Live vs Snapshot)
     const displayedContent = viewingSnapshot || content;
 
@@ -551,33 +574,57 @@ function LeftPanel({ viewingSnapshot, setViewingSnapshot }) {
                         <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Shared Resources</h4>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
                             {files.map((file, i) => (
-                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.5rem 0.75rem', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--glass-border)' }}>
-                                    <a
-                                        href={file.url || `/uploads/${file.filename}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        download={!file.url}
-                                        style={{ textDecoration: 'none', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 500 }}
+                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'rgba(255,255,255,0.05)', padding: '0.6rem 0.8rem', borderRadius: '12px', border: '1px solid var(--glass-border)', transition: 'all 0.2s' }}>
+                                    <div
+                                        onClick={() => triggerFileDownload(file.url || `/uploads/${file.filename}`, file.filename)}
+                                        style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 600 }}
+                                        title="Click to Download"
                                     >
-                                        📄 {file.filename}
-                                    </a>
-                                    {isAdmin && (
+                                        <span style={{ fontSize: '1.2rem' }}>📄</span>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ textDecoration: 'none', borderBottom: '1px dashed transparent' }}>{file.filename}</span>
+                                            <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>{(file.size / 1024).toFixed(1)} KB</span>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: '0.4rem', marginLeft: 'auto', borderLeft: '1px solid var(--glass-border)', paddingLeft: '0.6rem' }}>
                                         <button
-                                            onClick={async () => {
-                                                if (confirm('Delete this file?')) {
-                                                    await fetch(`${API_BASE_URL}/api/files/${file.filename}`, { method: 'DELETE' });
-                                                }
-                                            }}
-                                            className="btn"
+                                            onClick={() => triggerFileDownload(file.url || `/uploads/${file.filename}`, file.filename)}
+                                            className="btn btn-ghost"
                                             style={{
-                                                background: 'var(--danger)',
-                                                padding: '0.4rem 0.6rem',
-                                                fontSize: '0.8rem'
+                                                padding: '0.4rem',
+                                                fontSize: '1rem',
+                                                background: 'rgba(var(--primary-rgb), 0.1)',
+                                                border: '1px solid rgba(var(--primary-rgb), 0.2)',
+                                                borderRadius: '8px'
                                             }}
+                                            title="Download File"
                                         >
-                                            ✕
+                                            📥
                                         </button>
-                                    )}
+
+                                        {isAdmin && (
+                                            <button
+                                                onClick={async () => {
+                                                    if (confirm('Delete this file?')) {
+                                                        await fetch(`${API_BASE_URL}/api/files/${file.filename}`, { method: 'DELETE' });
+                                                    }
+                                                }}
+                                                className="btn"
+                                                style={{
+                                                    background: 'rgba(255, 77, 77, 0.1)',
+                                                    border: '1px solid rgba(255, 77, 77, 0.2)',
+                                                    color: '#ff4d4d',
+                                                    padding: '0.4rem',
+                                                    fontSize: '0.8rem',
+                                                    borderRadius: '8px'
+                                                }}
+                                                title="Delete File"
+                                            >
+                                                ✕
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                         </div>

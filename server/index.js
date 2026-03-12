@@ -40,6 +40,8 @@ function debouncedSaveEvent(event, delay = 2000) {
     _saveTimers[event.id] = setTimeout(() => {
         try {
             db.saveEvent(event);
+            // Live Sync Push
+            remoteSync.pushSync(`event_${event.id}`, event);
         } catch (e) {
             console.error(`Error saving event ${event.id}:`, e.message);
         }
@@ -54,6 +56,8 @@ function immediateSaveEvent(event) {
     delete _saveTimers[event.id];
     try {
         db.saveEvent(event);
+        // Live Sync Push
+        remoteSync.pushSync(`event_${event.id}`, event);
     } catch (e) {
         console.error(`Error saving event ${event.id}:`, e.message);
     }
@@ -132,13 +136,8 @@ const GLOBAL_STATE = {
 // Initial Cloud Sync (Bidirectional)
 (async () => {
     try {
-        // First restore missing local data from cloud
         await db.restoreFromCloud(GLOBAL_STATE);
-
-        // Then push any local data to cloud (helps if localhost has more data than cloud)
-        // This is safe because saveEvent etc. use upsert
         await db.syncLocalToCloud(GLOBAL_STATE);
-
         console.log('✅ Cloud synchronization complete.');
     } catch (err) {
         console.error('❌ Cloud synchronization failed:', err);
@@ -253,6 +252,11 @@ app.post('/api/sync/toggle', (req, res) => {
     GLOBAL_STATE.settings.sync_enabled = newState;
     db.saveSettings(GLOBAL_STATE.settings);
     res.json({ success: true, enabled: newState });
+});
+
+app.post('/api/sync/push-all', async (req, res) => {
+    const success = await remoteSync.syncAll();
+    res.json({ success });
 });
 
 // Sync status initialization from settings
@@ -967,6 +971,8 @@ app.post('/api/adilitix/register', (req, res) => {
     GLOBAL_STATE.adilitix_registrations.push(registration);
     db.saveAdilitixRegistrations(GLOBAL_STATE.adilitix_registrations);
     io.emit('adilitix_update');
+    // Live Sync
+    remoteSync.pushSync('adilitix_registrations', GLOBAL_STATE.adilitix_registrations);
 
     // Sync to Google Sheets
     googleSheets.appendRegistration(registration).catch(console.error);
@@ -982,6 +988,8 @@ app.patch('/api/adilitix/registrations/:id', (req, res) => {
         reg.status = status;
         db.saveAdilitixRegistrations(GLOBAL_STATE.adilitix_registrations);
         io.emit('adilitix_update');
+        // Live Sync
+        remoteSync.pushSync('adilitix_registrations', GLOBAL_STATE.adilitix_registrations);
         res.json({ success: true });
     } else {
         res.status(404).json({ success: false });
@@ -993,6 +1001,8 @@ app.delete('/api/adilitix/registrations/:id', (req, res) => {
     GLOBAL_STATE.adilitix_registrations = GLOBAL_STATE.adilitix_registrations.filter(r => r.id !== id);
     db.saveAdilitixRegistrations(GLOBAL_STATE.adilitix_registrations);
     io.emit('adilitix_update');
+    // Live Sync
+    remoteSync.pushSync('adilitix_registrations', GLOBAL_STATE.adilitix_registrations);
     res.json({ success: true });
 });
 
