@@ -1,0 +1,390 @@
+/* 📱 COMPLETE MOBILE UI OVERHAUL */
+
+@media (max-width: 768px) {
+    :root {
+        --safe-area-bottom: env(safe-area-inset-bottom, 20px);
+    }
+
+    /* 1. Reset Layout for Mobile */
+    .app-container {
+        flex-direction: column !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        overflow: hidden !important;
+    }
+
+    .app-sidebar {
+        display: none !important;
+    }
+
+    .app-main {
+        padding-bottom: calc(65px + var(--safe-area-bottom)) !important;
+        height: 100% !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* 2. Custom Mobile Header */
+    .app-header {
+        padding: 0.75rem 1rem !important;
+        background: rgba(12, 17, 29, 0.95) !important;
+        border-bottom: 1px solid var(--glass-border);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        height: 60px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+
+    .app-title {
+        font-size: 0.9rem !important;
+        letter-spacing: 0.1em !important;
+    }
+
+    .hamburger-btn {
+        display: none !important;
+    }
+
+    /* 3. Modern Bottom Navigation Bar */
+    .mobile-nav-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: calc(65px + var(--safe-area-bottom));
+        background: rgba(13, 17, 23, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top: 1px solid var(--glass-border);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding-bottom: var(--safe-area-bottom);
+        z-index: 2000;
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .mobile-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        color: var(--text-secondary);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        background: none;
+        border: none;
+        padding: 8px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        min-width: 60px;
+        position: relative;
+    }
+
+    .mobile-nav-item i,
+    .mobile-nav-item span.icon {
+        font-size: 1.4rem;
+        transition: transform 0.3s ease;
+    }
+
+    .mobile-nav-item.active {
+        color: var(--primary);
+    }
+
+    .mobile-nav-item.active i,
+    .mobile-nav-item.active span.icon {
+        transform: translateY(-5px);
+        filter: drop-shadow(0 0 8px var(--primary-glow));
+    }
+
+    /* 4. Full-Screen Panels */
+    .app-content {
+        padding: 0.75rem !important;
+        margin-top: 0 !important;
+        flex: 1 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    .glass-panel {
+        border-radius: 20px !important;
+        border: 1px solid var(--glass-border) !important;
+        margin-bottom: 1rem;
+        padding: 1rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+    }
+
+    .glass-panel .glass-panel {
+        padding: 0.75rem !important;
+        /* Reduced padding for nested containers */
+        width: 100% !important;
+    }
+
+    /* 5. Mobile Specific Chat Bubbles */
+    .chat-panel {
+        width: 100% !important;
+        height: 100% !important;
+        background: var(--bg-color) !important;
+        border: none !important;
+        border-radius: 0 !important;
+        margin: -0.75rem !important;
+        width: calc(100% + 1.5rem) !important;
+    }
+
+    .chat-messages-container {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    /* 6. Admin Horizontal Scroll Tabs */
+    .admin-sidebar {
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        padding: 0.75rem !important;
+        background: rgba(0, 0, 0, 0.2) !important;
+        border-bottom: 1px solid var(--glass-border) !important;
+        gap: 0.5rem !important;
+        white-space: nowrap !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .admin-sidebar::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* 7. Monaco Editor Mobile Fix */
+    .monaco-editor-container {
+        height: 350px !important;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    /* 8. SuperAdmin Grid Fix */
+    .super-admin-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    /* 9. Floating Action Button */
+    .mobile-fab {
+        position: fixed;
+        bottom: 85px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        border-radius: 25px;
+        background: var(--primary);
+        color: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        z-index: 1500;
+        border: none;
+    }
+
+    /* 10. Admin Console Mobile Refinement */
+    .admin-console-header {
+        font-size: 1.1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .event-name-display {
+        font-family: 'Outfit', sans-serif !important;
+        background: rgba(56, 189, 248, 0.05) !important;
+        border: 1px solid rgba(56, 189, 248, 0.3) !important;
+        padding: 0.4rem 0.8rem !important;
+        border-radius: 30px !important;
+        box-shadow: 0 0 15px rgba(56, 189, 248, 0.1);
+    }
+
+    .event-name-display span {
+        font-weight: 800 !important;
+        letter-spacing: 1px !important;
+        font-size: 0.7rem !important;
+    }
+
+    /* 11. Hide clunky elements */
+    .mobile-hide {
+        display: none !important;
+    }
+
+    /* 12. Segmented Controls for Editor Type */
+    .segmented-control {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 4px !important;
+        background: rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .segmented-control .tab-btn {
+        flex: 1 !important;
+        font-size: 0.75rem !important;
+        padding: 0.6rem !important;
+        white-space: nowrap !important;
+    }
+
+    .segmented-control .tab-btn.active {
+        background: var(--primary) !important;
+        color: #1a1a1a !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 13. Toolbar Buttons - Icons Only */
+    .toolbar-group {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        gap: 0.5rem !important;
+        padding: 0.5rem 0 !important;
+        width: 100%;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .toolbar-group .btn {
+        flex: 0 0 auto !important;
+        width: 45px !important;
+        height: 45px !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .toolbar-group .btn-text {
+        display: none !important;
+    }
+
+    .toolbar-group .btn-icon {
+        font-size: 1.2rem !important;
+        margin: 0 !important;
+    }
+
+    /* 14. Code Options Row (Live + Language) */
+    .code-options-row {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin-top: 0.75rem !important;
+        gap: 0.5rem !important;
+    }
+
+    .live-btn {
+        flex: 1 !important;
+        height: 42px !important;
+        white-space: nowrap !important;
+    }
+
+    .language-select {
+        width: 80px !important;
+        height: 42px !important;
+        flex: 0 0 auto !important;
+        padding: 0 0.5rem !important;
+        background: rgba(0, 0, 0, 0.6) !important;
+        border-radius: 10px !important;
+    }
+
+    /* 15. Settings & Utility Fixes */
+    .input-field,
+    input,
+    textarea,
+    select {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .mobile-wrap {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 1rem !important;
+    }
+
+    .settings-nav-container {
+        flex-direction: row !important;
+        background: rgba(0, 0, 0, 0.4) !important;
+        padding: 4px !important;
+        border-radius: 12px !important;
+        border: 1px solid var(--glass-border) !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    .settings-tab-btn {
+        flex: 1 !important;
+        font-size: 0.75rem !important;
+        padding: 0.6rem !important;
+    }
+
+    .settings-main-layout {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .settings-content-pane {
+        width: 100% !important;
+        padding: 1.25rem 1rem !important;
+        border-radius: 12px !important;
+        border: 1px solid var(--glass-border) !important;
+        margin-top: 0.5rem !important;
+        box-sizing: border-box !important;
+        background: rgba(255, 255, 255, 0.02) !important;
+    }
+
+    .settings-container {
+        padding: 1rem 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .admin-dashboard-container,
+    .admin-main-content {
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .session-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        /* Force single column on mobile */
+        gap: 1rem !important;
+        width: 100% !important;
+    }
+
+    .delete-event-btn {
+        width: 36px !important;
+        height: 36px !important;
+        right: 8px !important;
+        top: 8px !important;
+    }
+
+    footer {
+        display: none !important;
+    }
+}
+
+/* Global Styles */
+.delete-event-btn {
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+    background: rgba(239, 68, 68, 0.05) !important;
+}
+
+.delete-event-btn:hover {
+    background: rgba(239, 68, 68, 0.2) !important;
+    border-color: rgba(239, 68, 68, 0.8) !important;
+    transform: scale(1.1) rotate(90deg) !important;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.3) !important;
+}

@@ -1,0 +1,358 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+.go-unified-container {
+    width: 100vw;
+    height: 100vh;
+    background: #050505;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.go-header {
+    height: 100px;
+    padding: 0 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+}
+
+.go-logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+}
+
+.logo-box {
+    width: 40px;
+    height: 40px;
+    background: #ff7b00;
+    color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 1.5rem;
+    border-radius: 4px;
+}
+
+.logo-text {
+    font-size: 1.8rem;
+    font-weight: 900;
+    letter-spacing: -1px;
+}
+
+.logo-text span {
+    color: #ff7b00;
+}
+
+.go-tag {
+    font-size: 0.7rem;
+    letter-spacing: 4px;
+    font-weight: 800;
+    opacity: 0.4;
+}
+
+.go-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.go-glass-card {
+    background: rgba(15, 15, 15, 0.6);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 123, 0, 0.2);
+    border-radius: 24px;
+    width: 100%;
+    max-width: 450px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+}
+
+.go-role-tabs {
+    display: flex;
+    width: 100%;
+    background: rgba(255, 123, 0, 0.05);
+    border-radius: 12px;
+    padding: 6px;
+    margin-bottom: 30px;
+}
+
+.go-role-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    padding: 12px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.go-role-tab.active {
+    background: #ff7b00;
+    color: black;
+}
+
+.go-card-title {
+    font-size: 1.5rem;
+    font-weight: 900;
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.go-underline {
+    width: 60px;
+    height: 4px;
+    background: #ff7b00;
+    margin: 15px 0 35px;
+    border-radius: 10px;
+}
+
+.go-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.go-input-group {
+    position: relative;
+    width: 100%;
+}
+
+.go-input-group input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 123, 0, 0.1);
+    border-radius: 12px;
+    padding: 18px 50px;
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.go-input-group input:focus {
+    border-color: #ff7b00;
+    box-shadow: 0 0 20px rgba(255, 123, 0, 0.1);
+}
+
+.go-icon {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.5;
+}
+
+.go-eye {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    opacity: 0.4;
+    transition: opacity 0.3s;
+}
+
+.go-eye:hover {
+    opacity: 1;
+}
+
+.go-submit {
+    margin-top: 10px;
+    background: #ff7b00;
+    color: black;
+    border: none;
+    border-radius: 12px;
+    padding: 20px;
+    font-size: 0.9rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.go-submit:hover {
+    transform: translateY(-3px);
+    filter: brightness(1.2);
+    box-shadow: 0 10px 30px rgba(255, 123, 0, 0.3);
+}
+
+.go-error {
+    color: #ff4444;
+    font-size: 0.85rem;
+    background: rgba(255, 68, 68, 0.1);
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.go-hint {
+    margin-top: 25px;
+    font-size: 0.75rem;
+    opacity: 0.4;
+    text-align: center;
+}
+
+.go-footer {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.back-portal {
+    background: transparent;
+    border: none;
+    color: white;
+    opacity: 0.5;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+
+.back-portal:hover {
+    opacity: 1;
+}
+
+/* FX */
+.fx-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, #ff7b00 0%, transparent 70%);
+    opacity: 0.1;
+    transform: translate(-50%, -50%);
+    filter: blur(80px);
+    z-index: 1;
+}
+
+.fx-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255, 123, 0, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 123, 0, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: 0;
+}
+
+.go-spinner-text {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    animation: textPulse 1.5s infinite;
+}
+
+@keyframes textPulse {
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.6;
+    }
+}
+
+.go-submit:disabled {
+    cursor: wait;
+    opacity: 0.8;
+}
+
+/* Responsiveness */
+@media (max-width: 500px) {
+    .go-header {
+        height: 80px;
+        padding: 0 20px;
+    }
+
+    .go-logo .logo-text {
+        font-size: 1.4rem;
+    }
+
+    .go-tag {
+        display: none;
+    }
+
+    .go-glass-card {
+        padding: 30px 20px;
+        margin: 0 15px;
+        border-radius: 20px;
+    }
+
+    .go-role-tabs {
+        margin-bottom: 20px;
+    }
+
+    .go-role-tab {
+        padding: 10px 5px;
+        font-size: 0.7rem;
+    }
+
+    .go-card-title {
+        font-size: 1.2rem;
+    }
+
+    .go-input-group input {
+        padding: 16px 45px;
+        font-size: 0.9rem;
+    }
+
+    .go-submit {
+        padding: 16px;
+        font-size: 0.85rem;
+    }
+
+    .go-footer {
+        height: 60px;
+    }
+}
+
+@media (max-height: 700px) {
+    .go-header {
+        height: 60px;
+    }
+
+    .go-glass-card {
+        padding: 20px;
+    }
+
+    .go-role-tabs {
+        margin-bottom: 15px;
+    }
+
+    .go-underline {
+        margin: 10px 0 20px;
+    }
+}

@@ -1,0 +1,334 @@
+.go-catalog-container {
+    background: #050505;
+    color: white;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+.go-catalog-header {
+    min-height: 80px;
+    padding: 10px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: #000;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.catalog-nav {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.nav-item {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.nav-item.active,
+.nav-item:hover {
+    color: #ff7b00;
+}
+
+.register-workshop-btn {
+    background: #ff7b00;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: 800;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.register-workshop-btn:hover {
+    filter: brightness(1.2);
+    transform: translateY(-2px);
+}
+
+.catalog-main {
+    flex: 1;
+    padding: 60px 5%;
+}
+
+.catalog-hero {
+    text-align: center;
+    margin-bottom: 80px;
+}
+
+.catalog-hero h1 {
+    font-size: 4rem;
+    font-weight: 900;
+    margin: 0;
+    letter-spacing: -2px;
+}
+
+.catalog-hero h1 .highlight {
+    color: #ff7b00;
+    -webkit-text-stroke: 1px #ff7b00;
+    -webkit-text-fill-color: transparent;
+}
+
+.catalog-filters {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.filter-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 10px 25px;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.filter-btn.active {
+    background: #ff7b00;
+    color: black;
+    border-color: #ff7b00;
+}
+
+.workshop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 30px;
+}
+
+.workshop-go-card {
+    background: #111;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 30px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 123, 0, 0.1);
+    color: #ff7b00;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 800;
+}
+
+.card-vis {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.huge-icon {
+    font-size: 4rem;
+}
+
+.card-info h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.4rem;
+}
+
+.meta {
+    font-size: 0.8rem;
+    opacity: 0.5;
+    margin-bottom: 15px;
+}
+
+.card-info p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 30px;
+}
+
+.card-footer {
+    margin-top: auto;
+}
+
+.enroll-btn {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.enroll-btn:hover {
+    background: #ff7b00;
+    color: black;
+    border-color: #ff7b00;
+}
+
+.tier-reveal {
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.tier-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tier-go-item {
+    background: #1a1a1a;
+    padding: 15px 5px;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.tier-go-item:hover {
+    background: #252525;
+}
+
+.tier-days {
+    font-size: 0.65rem;
+    font-weight: 800;
+    opacity: 0.5;
+}
+
+.tier-price {
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: #ff7b00;
+}
+
+/* Registration Modal */
+.registration-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.registration-card {
+    background: #111;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    width: 100%;
+    max-width: 500px;
+    padding: 50px;
+    position: relative;
+    text-align: center;
+}
+
+.close-reg {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.reg-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.reg-form input,
+.reg-form select {
+    background: #000;
+    border: 1px solid #333;
+    padding: 12px;
+    border-radius: 6px;
+    color: white;
+    outline: none;
+}
+
+.reg-submit {
+    background: #ff7b00;
+    color: black;
+    border: none;
+    padding: 15px;
+    border-radius: 6px;
+    font-weight: 900;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+    .go-catalog-header {
+        flex-direction: column;
+        gap: 15px;
+        padding-bottom: 20px;
+    }
+
+    .catalog-nav {
+        gap: 15px;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .nav-item {
+        font-size: 0.7rem;
+    }
+
+    .register-workshop-btn {
+        padding: 8px 15px;
+        font-size: 0.7rem;
+    }
+
+    .catalog-hero h1 {
+        font-size: 2.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .tier-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .tier-go-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 20px;
+    }
+}

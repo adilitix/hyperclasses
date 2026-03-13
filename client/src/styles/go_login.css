@@ -1,0 +1,262 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+.go-login-container {
+    width: 100vw;
+    height: 100vh;
+    background-image: url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop');
+    /* Fallback technical background */
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Use the generated image if available, else CSS overlay */
+.go-login-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.8) 100%);
+    z-index: 1;
+}
+
+.go-login-header {
+    height: 80px;
+    padding: 0 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+
+.go-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.logo-symbol {
+    width: 40px;
+    height: 40px;
+    background: #ff7b00;
+    clip-path: polygon(25% 0%, 100% 0%, 75% 100%, 0% 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    color: black;
+    font-size: 1.5rem;
+}
+
+.logo-text {
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+}
+
+.logo-text span {
+    font-weight: 300;
+    opacity: 0.8;
+}
+
+.admin-login-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 123, 0, 0.5);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.admin-login-btn:hover {
+    background: rgba(255, 123, 0, 0.1);
+    border-color: #ff7b00;
+}
+
+.go-login-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.login-glass-card {
+    background: rgba(10, 10, 10, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    width: 100%;
+    max-width: 500px;
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.login-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: 2px;
+}
+
+.title-underline {
+    width: 120px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #ff7b00, transparent);
+    margin: 15px 0 40px;
+}
+
+.login-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.input-group {
+    position: relative;
+    width: 100%;
+}
+
+.input-group input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 123, 0, 0.3);
+    border-radius: 12px;
+    padding: 16px 50px;
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+    border-color: #ff7b00;
+    box-shadow: 0 0 15px rgba(255, 123, 0, 0.2);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.6;
+    font-size: 1.2rem;
+}
+
+.lock-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.6;
+}
+
+.login-submit-btn {
+    margin-top: 20px;
+    background: linear-gradient(90deg, #ff7b00 0%, #000000 100%);
+    border: none;
+    border-radius: 40px;
+    padding: 18px;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.login-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(255, 123, 0, 0.2);
+    filter: brightness(1.2);
+}
+
+.star-element {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    font-size: 3rem;
+    opacity: 0.4;
+    z-index: 5;
+    animation: pulse 4s infinite ease-in-out;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.2;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.5;
+    }
+}
+
+@media (max-width: 600px) {
+    .go-login-header {
+        padding: 0 20px;
+        height: 70px;
+    }
+
+    .logo-text {
+        font-size: 1.2rem;
+    }
+
+    .logo-symbol {
+        width: 30px;
+        height: 30px;
+        font-size: 1.1rem;
+    }
+
+    .admin-login-btn {
+        padding: 6px 10px;
+        font-size: 0.7rem;
+    }
+
+    .login-glass-card {
+        padding: 40px 20px;
+        margin: 0 15px;
+    }
+
+    .login-title {
+        font-size: 1.8rem;
+    }
+
+    .input-group input {
+        padding: 14px 45px;
+    }
+}
+
+@media (max-height: 700px) {
+    .login-glass-card {
+        padding: 30px 20px;
+    }
+
+    .title-underline {
+        margin: 10px 0 20px;
+    }
+}

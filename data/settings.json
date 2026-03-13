@@ -1,0 +1,20 @@
+{
+  "aboutWebsite": {
+    "productName": "HyperClass",
+    "companyName": "Adilitix Robotics",
+    "summary": "A real-time interactive workshop management system.",
+    "features": [
+      "Live Code Broadcasting",
+      "Real-time Chat with File Sharing",
+      "Interactive Polls & Assessments",
+      "Ticketing & Support System",
+      "Attendance & History Tracking"
+    ],
+    "specialities": [
+      "Low-latency interaction",
+      "Modern Glassmorphic UI",
+      "Comprehensive Admin Controls"
+    ]
+  },
+  "sync_enabled": true
+}
