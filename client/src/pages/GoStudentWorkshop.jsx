@@ -206,7 +206,23 @@ const GoStudentWorkshop = ({ isEmbedded = false }) => {
                         <span className="ws-title-top">{workshop.title}</span>
                     </div>
                     <div className="student-profile">
-                        <span>{user.username}</span>
+                        <span className="student-name-label">{user.username}</span>
+                        <div className="mobile-header-nav">
+                            <button
+                                onClick={handlePrev}
+                                disabled={currentIndex === 0}
+                                className="hdr-btn-prev"
+                            >
+                                ← BACK
+                            </button>
+                            <button
+                                onClick={handleNext}
+                                disabled={gateStep !== 0 && currentIndex + 1 >= gateStep}
+                                className={`hdr-btn-next ${(gateStep !== 0 && currentIndex + 1 >= gateStep) ? 'locked' : ''}`}
+                            >
+                                {currentIndex === totalPages - 1 ? 'FINISH' : 'NEXT →'}
+                            </button>
+                        </div>
                         <button onClick={handleReturnToPortal} className="exit-ws">EXIT</button>
                     </div>
                 </header>

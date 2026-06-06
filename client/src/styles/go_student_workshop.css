@@ -81,14 +81,72 @@
 .student-profile {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 12px;
 }
 
-.student-profile span {
+.student-name-label {
     font-weight: 700;
     font-size: 0.85rem;
     color: var(--text-dim);
 }
+
+/* Header Navigation Buttons (hidden on desktop, shown on mobile) */
+.mobile-header-nav {
+    display: none;
+    align-items: center;
+    gap: 8px;
+}
+
+.hdr-btn-prev,
+.hdr-btn-next {
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 900;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+
+.hdr-btn-prev {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-dim);
+}
+
+.hdr-btn-prev:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+}
+
+.hdr-btn-prev:disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+}
+
+.hdr-btn-next {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+}
+
+.hdr-btn-next:hover:not(:disabled):not(.locked) {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+}
+
+.hdr-btn-next.locked {
+    background: #1e1e24;
+    color: #444;
+    cursor: not-allowed;
+    box-shadow: none;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
 
 .exit-ws {
     background: rgba(255, 255, 255, 0.05);
@@ -556,4 +614,99 @@
 .return-btn:hover {
     color: #fff;
     border-color: #fff;
+}
+
+/* ============================================
+   📱 MOBILE OVERRIDES
+   ============================================ */
+@media (max-width: 768px) {
+
+    /* Show header nav buttons on mobile */
+    .mobile-header-nav {
+        display: flex !important;
+    }
+
+    /* Hide the student name label on very small screens to save space */
+    .student-name-label {
+        display: none;
+    }
+
+    /* Keep header compact */
+    .workshop-view-header {
+        height: 60px;
+        padding: 0 3%;
+    }
+
+    .ws-title-top {
+        font-size: 0.85rem;
+        max-width: 120px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Fix scrolling: main area should scroll freely */
+    .go-student-workshop-container {
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .workshop-viewer-main {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 24px 4%;
+        /* Remove the fixed justify-content center so content starts at top */
+        justify-content: flex-start;
+    }
+
+    .active-page-content {
+        width: 100%;
+        max-width: 100%;
+        padding-bottom: 20px;
+    }
+
+    /* Hide the bottom footer nav on mobile (nav is in header instead) */
+    .workshop-nav-footer {
+        display: none !important;
+    }
+
+    /* Adjust page title size for mobile */
+    .p-title {
+        font-size: 1.6rem;
+        margin-bottom: 20px;
+    }
+
+    /* Quiz options smaller on mobile */
+    .poll-opt {
+        padding: 16px;
+        gap: 12px;
+    }
+
+    .opt-letter {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+    }
+
+    .opt-text {
+        font-size: 0.95rem;
+    }
+
+    /* Completion card mobile */
+    .completion-card {
+        padding: 30px 20px;
+        border-radius: 24px;
+    }
+
+    .completion-card h1 {
+        font-size: 1.8rem;
+    }
+
+    .medal-icon {
+        font-size: 3.5rem;
+    }
 }
