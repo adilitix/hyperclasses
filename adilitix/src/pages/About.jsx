@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Award, MapPin, Calendar, CheckCircle2, User, ShieldCheck, Cpu, Target, Rocket, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Award, MapPin, Calendar, CheckCircle2, User, ShieldCheck, Cpu, Target, Rocket, ArrowRight, Star, Briefcase, Users } from 'lucide-react';
 import Logo from '../components/Logo';
 
 const About = () => {
@@ -26,9 +26,31 @@ const About = () => {
                         About <span className="highlight">Adilitix Robotics</span>
                     </h1>
                     <p style={{ color: 'var(--ad-text-dim)', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto', lineHeight: '1.7' }}>
-                        Empowering students and institutions with hands-on, practical engineering, Edge AI, and autonomous robotics education.
+                        Kerala's premier robotics training center, project development company, and hardware prototyping hub in Kollam.
                     </p>
                 </header>
+
+                {/* Track Record Stats */}
+                <div style={{ background: 'rgba(14, 26, 52, 0.8)', border: '1px solid var(--ad-border-navy)', borderRadius: '24px', padding: '32px', marginBottom: '60px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '30px', textAlign: 'center' }}>
+                        <div>
+                            <span style={{ color: 'var(--ad-orange)', fontSize: '2.6rem', fontWeight: '900' }}>7+ Years</span>
+                            <p style={{ color: 'var(--ad-text-dim)', fontWeight: '600', marginTop: '4px' }}>Trainer Experience</p>
+                        </div>
+                        <div>
+                            <span style={{ color: '#60a5fa', fontSize: '2.6rem', fontWeight: '900' }}>200+</span>
+                            <p style={{ color: 'var(--ad-text-dim)', fontWeight: '600', marginTop: '4px' }}>Workshops Conducted</p>
+                        </div>
+                        <div>
+                            <span style={{ color: '#10b981', fontSize: '2.6rem', fontWeight: '900' }}>200+</span>
+                            <p style={{ color: 'var(--ad-text-dim)', fontWeight: '600', marginTop: '4px' }}>Students Trained</p>
+                        </div>
+                        <div>
+                            <span style={{ color: '#f59e0b', fontSize: '2.6rem', fontWeight: '900' }}>100%</span>
+                            <p style={{ color: 'var(--ad-text-dim)', fontWeight: '600', marginTop: '4px' }}>Practical Training</p>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Founder & Leadership Spotlight */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px', marginBottom: '60px' }}>
@@ -39,11 +61,11 @@ const About = () => {
                             </div>
                             <div>
                                 <h3 style={{ color: '#fff', fontSize: '1.4rem' }}>Aadil S P</h3>
-                                <p style={{ color: 'var(--ad-orange)', fontWeight: '700', fontSize: '0.9rem' }}>Founder & CEO</p>
+                                <p style={{ color: 'var(--ad-orange)', fontWeight: '700', fontSize: '0.9rem' }}>Founder & CEO (7+ Yrs Exp)</p>
                             </div>
                         </div>
                         <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.98rem', lineHeight: '1.7' }}>
-                            Founded by <b>Aadil S P</b>, Adilitix Robotics was established with a singular mission: to eliminate abstract, theory-only robotics education. We provide students and colleges with industry-standard hardware, embedded firmware mastery, and physical autonomous prototypes.
+                            Founded by <b>Aadil S P</b>, Adilitix Robotics was established to deliver industry-grade robotics training, internships, and project development. Over <b>200+ successful workshops</b> and <b>200+ trained students</b> across Kerala stand testament to our zero-filler-theory approach.
                         </p>
                     </motion.div>
 
@@ -69,7 +91,7 @@ const About = () => {
                     <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '16px' }}>
                         <MapPin size={28} color="var(--ad-orange)" />
                         <div>
-                            <h2 style={{ color: '#fff', fontSize: '1.5rem' }}>Headquarters & Official Address</h2>
+                            <h2 style={{ color: '#fff', fontSize: '1.5rem' }}>Project & Product Development Center</h2>
                             <p style={{ color: 'var(--ad-orange)', fontWeight: '600' }}>Kollam, Kerala, India</p>
                         </div>
                     </div>
@@ -77,7 +99,7 @@ const About = () => {
                         Viva Palace, Convent Road, Kollam, Kerala, India.
                     </p>
                     <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.95rem' }}>
-                        Equipped facility for robotics development, hardware prototyping, 3D printing, embedded firmware engineering, and institutional workshops.
+                        Full-capability R&D laboratory providing 3D printing prototyping, custom PCB & mechanical design, embedded firmware development, and hardware-software integration services for clients across Kerala.
                     </p>
                 </div>
 
@@ -99,22 +121,22 @@ const About = () => {
                         </div>
                         <div className="service-card">
                             <ShieldCheck size={32} color="#10b981" />
-                            <h3>Government Recognized</h3>
-                            <p>Recognized under MSME Udyam, ensuring formal institutional compliance, credit validation, and official certification.</p>
+                            <h3>7+ Years Experienced Trainers</h3>
+                            <p>Proven track record of 200+ workshops and 200+ trained students backed by MSME Udyam government certification.</p>
                         </div>
                     </div>
                 </div>
 
-                {/* R&D Consultancy */}
+                {/* R&D Product Development Consultancy */}
                 <div className="product-card" style={{ cursor: 'default' }}>
                     <div className="product-info">
-                        <span style={{ background: 'rgba(249, 115, 22, 0.2)', color: 'var(--ad-orange)', padding: '4px 14px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: '800' }}>TECHNICAL CONSULTANCY</span>
-                        <h2 style={{ color: '#fff', fontSize: '1.8rem', margin: '12px 0' }}>R&D & Custom Engineering Consultancy</h2>
+                        <span style={{ background: 'rgba(249, 115, 22, 0.2)', color: 'var(--ad-orange)', padding: '4px 14px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: '800' }}>PRODUCT & PROJECT DEVELOPMENT COMPANY</span>
+                        <h2 style={{ color: '#fff', fontSize: '1.8rem', margin: '12px 0' }}>R&D, Prototyping & Custom Project Development</h2>
                         <p style={{ color: 'var(--ad-text-dim)', fontSize: '1rem', lineHeight: '1.6', marginBottom: '20px' }}>
-                            We partner with institutes and research projects for custom mechanical structure design, 3D printing/prototyping, embedded firmware engineering, and Edge AI vision integration.
+                            Looking for a project development or product prototyping partner in Kollam or Kerala? We engineer custom mechanical structures, 3D printed enclosures, embedded firmware, and Edge AI vision systems.
                         </p>
                         <Link to="/inquiry" className="cta-primary">
-                            Contact Founder / Request Proposal <ArrowRight size={18} />
+                            Contact Founder / Request R&D Proposal <ArrowRight size={18} />
                         </Link>
                     </div>
                 </div>
