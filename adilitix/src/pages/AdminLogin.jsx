@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Lock, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Lock } from 'lucide-react';
+import Logo from '../components/Logo';
 
 const AdminLogin = () => {
     const navigate = useNavigate();
@@ -50,35 +51,42 @@ const AdminLogin = () => {
     };
 
     return (
-        <div className="admin-login-page">
-            <nav className="navbar" style={{ position: 'absolute' }}>
-                <Link to="/" className="back-link"><ArrowLeft size={20} /> Home</Link>
-                <div className="logo">ADILITIX</div>
+        <div className="registration-page">
+            <nav className="navbar">
+                <Link to="/" className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <ArrowLeft size={20} color="var(--ad-orange)" /> Home
+                </Link>
+                <Logo size="small" showText={true} textSub="PORTAL" />
             </nav>
 
-            <div className="login-container">
+            <div className="registration-container">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="login-card"
+                    className="registration-form-card"
+                    style={{ maxWidth: '450px' }}
                 >
-                    <div className="login-icon"><Lock size={30} /></div>
-                    <h1>Admin Access</h1>
-                    <p style={{ opacity: 0.6, fontSize: '0.85rem' }}>Restricted to Adilitix Management</p>
+                    <div style={{ background: 'rgba(249, 115, 22, 0.15)', color: 'var(--ad-orange)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', border: '1px solid var(--ad-border)' }}>
+                        <Lock size={28} />
+                    </div>
+                    <h1 style={{ color: '#fff', fontSize: '1.6rem', textAlign: 'center' }}>Enterprise Admin Portal</h1>
+                    <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.85rem', textAlign: 'center', margin: '6px 0 24px' }}>
+                        Restricted Access | Adilitix Robotics Management
+                    </p>
 
-                    <form onSubmit={handleSubmit} className="login-form">
+                    <form onSubmit={handleSubmit} className="reg-form">
                         <div className="form-group">
                             <label>Admin ID</label>
                             <input
                                 type="text"
                                 value={credentials.username}
                                 onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
-                                placeholder="Enter admin ID"
+                                placeholder="Enter admin username"
                                 required
                             />
                         </div>
                         <div className="form-group">
-                            <label>Password</label>
+                            <label>Password / PIN</label>
                             <input
                                 type="password"
                                 value={credentials.password}
@@ -87,9 +95,9 @@ const AdminLogin = () => {
                                 required
                             />
                         </div>
-                        {error && <p className="error-msg">{error}</p>}
-                        <button type="submit" className="login-btn" disabled={loading}>
-                            {loading ? 'Authenticating...' : 'Login to Dashboard'}
+                        {error && <p style={{ color: '#ef4444', fontSize: '0.85rem', marginBottom: '14px', textAlign: 'center' }}>{error}</p>}
+                        <button type="submit" className="submit-btn" style={{ width: '100%', marginTop: '10px' }} disabled={loading}>
+                            {loading ? 'Authenticating...' : 'Login to Management Console'}
                         </button>
                     </form>
                 </motion.div>

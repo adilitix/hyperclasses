@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, Trash2, Send, CheckCircle, X } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Trash2, Send, CheckCircle, X, Cpu } from 'lucide-react';
+import Logo from '../components/Logo';
 
 const Shop = () => {
     const [inventory, setInventory] = useState([]);
@@ -20,10 +21,13 @@ const Shop = () => {
         fetch(`${BASE_URL}/api/adilitix/inventory`)
             .then(res => res.json())
             .then(data => {
-                setInventory(data);
+                setInventory(data || []);
                 setLoading(false);
             })
-            .catch(err => console.error(err));
+            .catch(err => {
+                console.error(err);
+                setLoading(false);
+            });
     }, []);
 
     const addToCart = (item) => {
@@ -98,12 +102,16 @@ const Shop = () => {
 
     if (orderSuccess) {
         return (
-            <div className="registration-success-view">
-                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="success-card">
-                    <div className="success-icon"><CheckCircle size={60} color="#10b981" /></div>
-                    <h2>Order Placed Successfully!</h2>
-                    <p>Thank you <b>{formData.name}</b>. We have received your requirement. We will contact you back shortly on <b>{formData.phone}</b>.</p>
-                    <Link to="/" className="cta-primary" style={{ marginTop: '20px' }}>Back to Home</Link>
+            <div className="registration-container">
+                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="registration-form-card" style={{ textAlign: 'center' }}>
+                    <div style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                        <CheckCircle size={48} />
+                    </div>
+                    <h2>Order Requirement Received!</h2>
+                    <p style={{ color: 'var(--ad-text-dim)', margin: '16px 0 24px' }}>
+                        Thank you <b>{formData.name}</b>. Adilitix Robotics team will review your order requirements and contact you back on <b>{formData.phone}</b>.
+                    </p>
+                    <Link to="/" className="cta-primary" style={{ justifyContent: 'center' }}>Back to Home</Link>
                 </motion.div>
             </div>
         );
@@ -111,37 +119,50 @@ const Shop = () => {
 
     return (
         <div className="shop-page">
-            <nav className="navbar" style={{ position: 'sticky', top: 0, background: 'rgba(5,5,5,0.8)', backdropFilter: 'blur(10px)' }}>
-                <Link to="/" className="back-link"><ArrowLeft size={20} /> Back</Link>
-                <div className="logo">ADILITIX SHOP</div>
+            <nav className="navbar">
+                <Link to="/" className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <ArrowLeft size={20} color="var(--ad-orange)" /> Back to Main
+                </Link>
+                <Logo size="small" showText={true} textSub="STORE" />
                 <button onClick={() => setShowCheckout(true)} className="nav-cart-btn">
-                    <ShoppingCart size={20} />
+                    <ShoppingCart size={20} color="var(--ad-orange)" />
                     {cart.length > 0 && <span className="cart-badge">{cart.reduce((a, b) => a + b.quantity, 0)}</span>}
                 </button>
             </nav>
 
             <div className="shop-container" style={{ padding: '40px 6%' }}>
                 <header className="shop-header" style={{ marginBottom: '40px' }}>
-                    <h1>Robotics Components</h1>
-                    <p style={{ opacity: 0.6 }}>High-quality parts for your next project.</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                        <Cpu size={28} color="var(--ad-orange)" />
+                        <h1 style={{ fontSize: '2.4rem', color: '#fff' }}>Robotics Component Store</h1>
+                    </div>
+                    <p style={{ color: 'var(--ad-text-dim)' }}>
+                        Official hardware components, sensors, microcontrollers, and prototyping modules by <b>Adilitix Robotics</b>.
+                    </p>
                 </header>
 
                 {loading ? (
-                    <div className="db-loader">Loading Parts...</div>
+                    <div style={{ textAlign: 'center', padding: '60px', color: 'var(--ad-orange)' }}>Loading Component Catalog...</div>
                 ) : (
                     <div className="db-grid">
-                        {inventory.map(item => (
-                            <div key={item.id} className="db-card" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '15px' }}>
-                                <div className="card-info" style={{ width: '100%' }}>
-                                    <span className="inv-cat" style={{ fontSize: '0.6rem' }}>{item.category}</span>
-                                    <h3 style={{ margin: '5px 0' }}>{item.name}</h3>
-                                    <p style={{ opacity: 0.8 }}>Available: {item.count} units</p>
-                                </div>
-                                <button onClick={() => addToCart(item)} className="cta-primary" style={{ width: '100%', padding: '10px', fontSize: '0.8rem' }}>
-                                    ADD TO CART
-                                </button>
+                        {inventory.length === 0 ? (
+                            <div style={{ gridColumn: '1 / -1', textFillColor: 'var(--ad-text-dim)', textAlign: 'center', padding: '40px' }}>
+                                No items currently listed. Please check back soon or contact support at +91 8075355024.
                             </div>
-                        ))}
+                        ) : (
+                            inventory.map(item => (
+                                <div key={item.id} className="db-card" style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
+                                    <div className="card-info" style={{ width: '100%' }}>
+                                        <span className="inv-cat">{item.category || 'Hardware'}</span>
+                                        <h3 style={{ margin: '10px 0 6px', color: '#fff', fontSize: '1.2rem' }}>{item.name}</h3>
+                                        <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.85rem' }}>Available Stock: <b>{item.count} units</b></p>
+                                    </div>
+                                    <button onClick={() => addToCart(item)} className="cta-primary" style={{ width: '100%', padding: '12px', fontSize: '0.85rem', justifyContent: 'center' }}>
+                                        <ShoppingCart size={16} /> ADD TO CART
+                                    </button>
+                                </div>
+                            ))
+                        )}
                     </div>
                 )}
             </div>
@@ -151,11 +172,11 @@ const Shop = () => {
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="checkout-overlay">
                         <motion.div initial={{ y: 50 }} animate={{ y: 0 }} className="checkout-modal">
                             <div className="modal-header">
-                                <h2>Your Cart</h2>
+                                <h2 style={{ color: '#fff' }}>Your Requirements Cart</h2>
                                 <div style={{ display: 'flex', gap: '10px' }}>
                                     {cart.length > 0 && (
-                                        <button onClick={() => setCart([])} className="nav-btn-subtle" style={{ padding: '8px 12px' }}>
-                                            <Trash2 size={16} /> Clear
+                                        <button onClick={() => setCart([])} className="nav-btn-subtle" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
+                                            <Trash2 size={14} /> Clear
                                         </button>
                                     )}
                                     <button onClick={() => setShowCheckout(false)} className="close-btn"><X size={20} /></button>
@@ -164,25 +185,25 @@ const Shop = () => {
 
                             <div className="cart-items">
                                 {cart.length === 0 ? (
-                                    <div className="empty-cart-state">
-                                        <ShoppingCart size={40} style={{ opacity: 0.2, marginBottom: '20px' }} />
-                                        <p style={{ opacity: 0.5 }}>Your cart is currently empty.</p>
-                                        <button onClick={() => setShowCheckout(false)} className="cta-primary-sm" style={{ marginTop: '20px' }}>Start Shopping</button>
+                                    <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--ad-text-dim)' }}>
+                                        <ShoppingCart size={48} style={{ opacity: 0.3, marginBottom: '16px' }} />
+                                        <p>Your cart is empty.</p>
+                                        <button onClick={() => setShowCheckout(false)} className="cta-primary" style={{ marginTop: '16px', margin: '16px auto 0' }}>Start Browsing</button>
                                     </div>
                                 ) : (
                                     cart.map(item => (
                                         <div key={item.id} className="cart-item">
-                                            <div className="cart-item-info">
-                                                <h4>{item.name}</h4>
-                                                <small style={{ opacity: 0.6 }}>{item.category}</small>
+                                            <div>
+                                                <h4 style={{ color: '#fff', fontSize: '0.95rem' }}>{item.name}</h4>
+                                                <small style={{ color: 'var(--ad-orange)' }}>{item.category}</small>
                                             </div>
-                                            <div className="cart-actions-right">
-                                                <div className="cart-controls">
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                     <button onClick={() => updateQuantity(item.id, -1)} className="qty-btn">-</button>
-                                                    <span style={{ minWidth: '20px', textAlign: 'center', fontSize: '0.9rem', fontWeight: 'bold' }}>{item.quantity}</span>
+                                                    <span style={{ fontWeight: 'bold', color: '#fff' }}>{item.quantity}</span>
                                                     <button onClick={() => updateQuantity(item.id, 1)} className="qty-btn">+</button>
                                                 </div>
-                                                <button onClick={() => removeFromCart(item.id)} className="remove-item-btn"><Trash2 size={16} /></button>
+                                                <button onClick={() => removeFromCart(item.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={16} /></button>
                                             </div>
                                         </div>
                                     ))
@@ -190,21 +211,21 @@ const Shop = () => {
                             </div>
 
                             {cart.length > 0 && (
-                                <form onSubmit={handleCheckout} className="checkout-form">
+                                <form onSubmit={handleCheckout} className="checkout-form" style={{ marginTop: '20px' }}>
                                     <div className="form-group">
                                         <label>Full Name</label>
-                                        <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required placeholder="Enter name" />
+                                        <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required placeholder="Aadil S P" />
                                     </div>
                                     <div className="form-group">
-                                        <label>Phone Number</label>
-                                        <input type="tel" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} required placeholder="Enter phone" />
+                                        <label>Phone Number (10 Digits)</label>
+                                        <input type="tel" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} required placeholder="+91 8075355024" />
                                     </div>
                                     <div className="form-group">
-                                        <label>Additional Requirements</label>
-                                        <textarea value={formData.requirements} onChange={e => setFormData({ ...formData, requirements: e.target.value })} placeholder="Any special requests?" rows="3" />
+                                        <label>Additional Notes / Project Requirements</label>
+                                        <textarea value={formData.requirements} onChange={e => setFormData({ ...formData, requirements: e.target.value })} placeholder="Mention special specifications or quantities..." rows="3" />
                                     </div>
                                     <button type="submit" className="submit-btn" style={{ width: '100%' }}>
-                                        CONFIRM ORDER <Send size={18} />
+                                        CONFIRM ORDER INQUIRY <Send size={18} />
                                     </button>
                                 </form>
                             )}
@@ -224,16 +245,16 @@ const Shop = () => {
                             bottom: '30px',
                             left: '50%',
                             translateX: '-50%',
-                            background: '#10b981',
+                            background: 'linear-gradient(135deg, #ff6b00 0%, #ea580c 100%)',
                             color: '#fff',
                             padding: '12px 24px',
                             borderRadius: '50px',
-                            boxShadow: '0 10px 30px rgba(16, 185, 129, 0.4)',
+                            boxShadow: '0 10px 30px var(--ad-orange-glow)',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '10px',
-                            fontWeight: '600',
-                            zIndex: 2000
+                            fontWeight: '700',
+                            zIndex: 2500
                         }}
                     >
                         <CheckCircle size={20} /> Item Added to Cart!

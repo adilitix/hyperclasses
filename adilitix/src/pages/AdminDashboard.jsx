@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import Logo from '../components/Logo';
 import {
     Users,
     Package,
@@ -1932,7 +1933,9 @@ const AdminDashboard = () => {
     return (
         <div className="admin-dashboard-layout">
             <aside className="db-sidebar">
-                <div className="logo">ADILITIX</div>
+                <div style={{ padding: '0 0 20px' }}>
+                    <Logo size="small" showText={true} textSub="ADMIN PORTAL" />
+                </div>
                 <nav className="db-nav">
                     <button onClick={() => setActiveView('dashboard')} className={`db-nav-item ${activeView === 'dashboard' ? 'active' : ''}`}><LayoutDashboard size={18} /> Dashboard</button>
                     {hasPerm('viewRegistrations') && <button onClick={() => setActiveView('registrations')} className={`db-nav-item ${activeView === 'registrations' ? 'active' : ''}`}><Users size={18} /> Registrations</button>}

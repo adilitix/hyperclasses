@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, CheckCircle2 } from 'lucide-react';
+import Logo from '../components/Logo';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -21,24 +22,20 @@ const Register = () => {
     const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
 
     useEffect(() => {
-        // Fetch both live Go events and static workshops
         Promise.all([
             fetch(`${BASE_URL}/api/events`).then(res => res.json()).catch(() => []),
             fetch(`${BASE_URL}/api/workshops`).then(res => res.json()).catch(() => [])
         ]).then(([liveEvents, workshops]) => {
-            // Live Go sessions
             const goEvents = (liveEvents || []).filter(e => e.isWorkshop === true).map(e => ({
                 id: e.id,
                 name: e.name,
                 source: 'live'
             }));
-            // Static workshops
             const wsEvents = (workshops || []).map(w => ({
                 id: w.id,
                 name: w.title,
                 source: 'workshop'
             }));
-            // Merge and deduplicate by ID
             const merged = [...goEvents];
             wsEvents.forEach(w => {
                 if (!merged.find(m => m.id === w.id)) {
@@ -78,16 +75,21 @@ const Register = () => {
 
     if (submitted) {
         return (
-            <div className="registration-success-view">
+            <div className="registration-container">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="success-card"
+                    className="registration-form-card"
+                    style={{ textAlign: 'center' }}
                 >
-                    <div className="success-icon">✅</div>
-                    <h2>Registration Successful!</h2>
-                    <p>Thank you <b>{formData.name}</b>. We have received your registration for the workshop. You will receive further details via email.</p>
-                    <Link to="/" className="cta-primary">Back to Home</Link>
+                    <div style={{ background: 'rgba(249, 115, 22, 0.15)', color: 'var(--ad-orange)', width: '70px', height: '70px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                        <CheckCircle2 size={40} />
+                    </div>
+                    <h2>Workshop Enrollment Successful!</h2>
+                    <p style={{ color: 'var(--ad-text-dim)', margin: '14px 0 24px' }}>
+                        Thank you <b>{formData.name}</b>. Your enrollment for <b>Adilitix Robotics Workshop</b> has been received. Venue & access details will be sent to <b>{formData.email}</b>.
+                    </p>
+                    <Link to="/" className="cta-primary" style={{ justifyContent: 'center' }}>Back to Home</Link>
                 </motion.div>
             </div>
         );
@@ -95,9 +97,11 @@ const Register = () => {
 
     return (
         <div className="registration-page">
-            <nav className="navbar" style={{ position: 'absolute' }}>
-                <Link to="/" className="back-link"><ArrowLeft size={20} /> Back</Link>
-                <div className="logo">ADILITIX</div>
+            <nav className="navbar">
+                <Link to="/" className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <ArrowLeft size={20} color="var(--ad-orange)" /> Back to Main
+                </Link>
+                <Logo size="small" showText={true} textSub="WORKSHOPS" />
             </nav>
 
             <div className="registration-container">
@@ -106,9 +110,11 @@ const Register = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="registration-form-card"
                 >
-                    <div className="form-header">
-                        <h1>Workshop Enrollment</h1>
-                        <p>Join the next generation of roboticists.</p>
+                    <div className="form-header" style={{ marginBottom: '28px' }}>
+                        <h1 style={{ color: '#fff', fontSize: '1.8rem' }}>Adilitix Robotics Enrollment</h1>
+                        <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.92rem', marginTop: '6px' }}>
+                            Join our practical robotics, IoT, and embedded firmware workshops at Aswathy Building, Kollam.
+                        </p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="reg-form">
@@ -134,39 +140,37 @@ const Register = () => {
                                 required
                             />
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label>Phone Number</label>
-                                <input
-                                    type="tel"
-                                    name="phone"
-                                    placeholder="+91 9876543210"
-                                    value={formData.phone}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Course of Study</label>
-                                <input
-                                    type="text"
-                                    name="course"
-                                    placeholder="B.Tech Robotics"
-                                    value={formData.course}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
+                        <div className="form-group">
+                            <label>Phone Number</label>
+                            <input
+                                type="tel"
+                                name="phone"
+                                placeholder="+91 8075355024"
+                                value={formData.phone}
+                                onChange={handleChange}
+                                required
+                            />
                         </div>
                         <div className="form-group">
-                            <label>Select Event / Workshop</label>
+                            <label>Institution / Branch of Study</label>
+                            <input
+                                type="text"
+                                name="course"
+                                placeholder="B.Tech Robotics / Mechanical / Electronics"
+                                value={formData.course}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Select Workshop Session</label>
                             <select
                                 name="eventId"
                                 value={formData.eventId}
                                 onChange={handleChange}
                                 required
                             >
-                                <option value="">Select a session</option>
+                                <option value="">Select a robotics workshop session</option>
                                 {events.map(evt => (
                                     <option key={evt.id} value={evt.id}>
                                         {evt.name}
@@ -174,8 +178,8 @@ const Register = () => {
                                 ))}
                             </select>
                         </div>
-                        <button type="submit" disabled={loading} className="submit-btn">
-                            {loading ? 'Processing...' : 'Complete Registration'} <Send size={18} />
+                        <button type="submit" disabled={loading} className="submit-btn" style={{ width: '100%', marginTop: '10px' }}>
+                            {loading ? 'Registering...' : 'Complete Enrollment'} <Send size={18} />
                         </button>
                     </form>
                 </motion.div>
