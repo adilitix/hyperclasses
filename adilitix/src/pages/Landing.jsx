@@ -73,7 +73,7 @@ const Landing = () => {
                                 <UserCheck size={16} /> Founder & CEO: Aadil S P
                             </p>
                             <p style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f8fafc', fontWeight: '600', fontSize: '0.82rem' }}>
-                                <MapPin size={15} color="var(--ad-orange)" /> Viva Palace, Convent Road, Kollam
+                                <MapPin size={15} color="var(--ad-orange)" /> 1st Floor, Aswathy Building, Main Road, Kollam
                             </p>
                             <p style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '0.8rem', marginTop: '6px' }}>
                                 <Phone size={14} color="#60a5fa" /> +91 8075355024
@@ -125,9 +125,9 @@ const Landing = () => {
                         <div className="card-icon-box" style={{ background: 'rgba(29, 59, 151, 0.2)', color: '#60a5fa', borderColor: 'var(--ad-border-navy)' }}>
                             <MapPin size={28} />
                         </div>
-                        <h3>Kollam & Kerala Operations</h3>
+                        <h3>Official Headquarters & Lab</h3>
                         <p style={{ fontSize: '0.95rem', color: '#f8fafc', fontWeight: '600', margin: '8px 0 4px' }}>
-                            Viva Palace, Convent Road, Kollam, Kerala, India.
+                            1st Floor, Aswathy Building, Main Road, Kollam, Kerala, India.
                         </p>
                         <p style={{ fontSize: '0.88rem', color: 'var(--ad-text-dim)' }}>
                             Full-fledged R&D center for product development, 3D printing prototyping, and robotics bootcamps.
@@ -248,7 +248,7 @@ const Landing = () => {
                         <p><b>ADILITIX ROBOTICS</b> | Founder & CEO: <b>Aadil S P</b> (7+ Years Experience)</p>
                         <p>Premier Robotics Workshop, Training, Internship & Product Development Company in Kollam, Kerala.</p>
                         <p>Udyam Reg No: <b>UDYAM-KL-06-0070364</b> (MSME Registered Dec 10, 2025)</p>
-                        <p>Viva Palace, Convent Road, Kollam, Kerala, India. | Ph: <b>+91 8075355024</b></p>
+                        <p>1st Floor, Aswathy Building, Main Road, Kollam, Kerala, India. | Ph: <b>+91 8075355024</b></p>
                     </div>
                     <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '10px' }}>
                         &copy; {new Date().getFullYear()} Adilitix Robotics. All rights reserved. 200+ Workshops Conducted | 200+ Students Trained.

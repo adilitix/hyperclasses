@@ -91,12 +91,12 @@ const About = () => {
                     <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '16px' }}>
                         <MapPin size={28} color="var(--ad-orange)" />
                         <div>
-                            <h2 style={{ color: '#fff', fontSize: '1.5rem' }}>Project & Product Development Center</h2>
+                            <h2 style={{ color: '#fff', fontSize: '1.5rem' }}>Official Headquarters & Lab</h2>
                             <p style={{ color: 'var(--ad-orange)', fontWeight: '600' }}>Kollam, Kerala, India</p>
                         </div>
                     </div>
                     <p style={{ color: '#f8fafc', fontSize: '1.1rem', fontWeight: '700', margin: '10px 0 6px' }}>
-                        Viva Palace, Convent Road, Kollam, Kerala, India.
+                        1st Floor, Aswathy Building, Main Road, Kollam, Kerala, India.
                     </p>
                     <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.95rem' }}>
                         Full-capability R&D laboratory providing 3D printing prototyping, custom PCB & mechanical design, embedded firmware development, and hardware-software integration services for clients across Kerala.

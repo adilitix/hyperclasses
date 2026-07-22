@@ -62,8 +62,8 @@ const Inquiry = () => {
                         Thank you <b>{formData.name}</b>. Founder & CEO <b>Aadil S P</b> and the Adilitix Robotics engineering team (7+ Yrs Exp) will review your request for <b>{formData.program}</b> and contact you on <b>{formData.phone}</b> or <b>{formData.email}</b>.
                     </p>
                     <div style={{ background: 'rgba(5, 7, 10, 0.8)', padding: '16px', borderRadius: '12px', border: '1px solid var(--ad-border-navy)', marginBottom: '24px', textAlign: 'left', fontSize: '0.9rem', color: '#94a3b8' }}>
-                        <p style={{ color: '#fff', fontWeight: 'bold', marginBottom: '4px' }}>Executive Support:</p>
-                        <p>Adilitix Robotics | Viva Palace, Convent Road, Kollam, Kerala</p>
+                        <p style={{ color: '#fff', fontWeight: 'bold', marginBottom: '4px' }}>Official Address & Support:</p>
+                        <p>Adilitix Robotics 1st Floor, Aswathy Building, Main Road, Kollam, Kerala</p>
                         <p>Phone: +91 8075355024</p>
                     </div>
                     <Link to="/" className="cta-primary" style={{ justifyContent: 'center' }}>Back to Home</Link>
