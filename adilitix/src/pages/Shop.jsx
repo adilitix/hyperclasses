@@ -109,7 +109,7 @@ const Shop = () => {
                     </div>
                     <h2>Order Requirement Received!</h2>
                     <p style={{ color: 'var(--ad-text-dim)', margin: '16px 0 24px' }}>
-                        Thank you <b>{formData.name}</b>. Adilitix Robotics team will review your order requirements and contact you back on <b>{formData.phone}</b>.
+                        Thank you <b>{formData.name}</b>. Adilitix Robotics team (Viva Palace, Convent Road, Kollam) will review your requirements and contact you on <b>{formData.phone}</b>.
                     </p>
                     <Link to="/" className="cta-primary" style={{ justifyContent: 'center' }}>Back to Home</Link>
                 </motion.div>
@@ -137,7 +137,7 @@ const Shop = () => {
                         <h1 style={{ fontSize: '2.4rem', color: '#fff' }}>Robotics Component Store</h1>
                     </div>
                     <p style={{ color: 'var(--ad-text-dim)' }}>
-                        Official hardware components, sensors, microcontrollers, and prototyping modules by <b>Adilitix Robotics</b>.
+                        Official hardware components, sensors, microcontrollers, and prototyping modules by <b>Adilitix Robotics</b> (Kollam, Kerala).
                     </p>
                 </header>
 

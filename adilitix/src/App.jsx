@@ -1,6 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Landing from './pages/Landing';
+import Programs from './pages/Programs';
+import About from './pages/About';
+import Inquiry from './pages/Inquiry';
 import Register from './pages/Register';
 import Shop from './pages/Shop';
 import AdminLogin from './pages/AdminLogin';
@@ -13,12 +16,13 @@ function App() {
     return window.location.pathname.startsWith('/adilitix') ? '/adilitix' : '';
   };
 
-  console.log('App: Current path:', window.location.pathname, 'Basename:', getBasename());
-
   return (
     <Router basename={getBasename()}>
       <Routes>
         <Route path="/" element={<Landing />} />
+        <Route path="/programs" element={<Programs />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/inquiry" element={<Inquiry />} />
         <Route path="/register" element={<Register />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/admin-login" element={<AdminLogin />} />

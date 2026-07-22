@@ -87,7 +87,7 @@ const Register = () => {
                     </div>
                     <h2>Workshop Enrollment Successful!</h2>
                     <p style={{ color: 'var(--ad-text-dim)', margin: '14px 0 24px' }}>
-                        Thank you <b>{formData.name}</b>. Your enrollment for <b>Adilitix Robotics Workshop</b> has been received. Venue & access details will be sent to <b>{formData.email}</b>.
+                        Thank you <b>{formData.name}</b>. Your enrollment for <b>Adilitix Robotics Workshop</b> has been received. Venue (Viva Palace, Convent Road, Kollam) & access details will be sent to <b>{formData.email}</b>.
                     </p>
                     <Link to="/" className="cta-primary" style={{ justifyContent: 'center' }}>Back to Home</Link>
                 </motion.div>
@@ -113,7 +113,7 @@ const Register = () => {
                     <div className="form-header" style={{ marginBottom: '28px' }}>
                         <h1 style={{ color: '#fff', fontSize: '1.8rem' }}>Adilitix Robotics Enrollment</h1>
                         <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.92rem', marginTop: '6px' }}>
-                            Join our practical robotics, IoT, and embedded firmware workshops at Aswathy Building, Kollam.
+                            Join our practical robotics, IoT, and embedded firmware workshops at Viva Palace, Convent Road, Kollam.
                         </p>
                     </div>
 
@@ -156,7 +156,7 @@ const Register = () => {
                             <input
                                 type="text"
                                 name="course"
-                                placeholder="B.Tech Robotics / Mechanical / Electronics"
+                                placeholder="B.Tech Robotics / ECE / CS / Mechanical"
                                 value={formData.course}
                                 onChange={handleChange}
                                 required
