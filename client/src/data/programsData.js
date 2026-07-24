@@ -1,354 +1,273 @@
 export const INITIAL_PROGRAMS = [
   {
-    id: "prog-robotics-esp32",
-    title: "Autonomous Mobile Robotics & Microcontrollers with ESP32",
-    code: "HYPER-ROB-101",
-    department: "Robotics & Mechatronics",
-    category: "Robotics",
-    duration: "3-Day Intensive Bootcamp (or 30-Hour VAC)",
+    id: "prog-iot-architecture",
+    title: "Internet of Things (IoT) Architecture & Cloud Integration",
+    code: "ADIL-IOT-301",
+    department: "Electronics & Computer Engineering",
+    category: "IoT & Cloud",
+    duration: "3-Day Intensive Bootcamp",
     level: "All Engineering Streams",
-    targetBatch: "2nd, 3rd & 4th Year B.Tech (ECE/EEE/MECH/CSE)",
-    desc: "A complete hands-on engineering program focused on building sensor-guided autonomous robots using ESP32, FreeRTOS multi-threading, motor drivers, ultrasound LIDAR, and WiFi teleoperation.",
-    imageIcon: "🤖",
-    prerequisites: "Basic C/C++ programming or logic understanding",
-    hardwareKit: [
-      "ESP32 Dual-Core Dev Board with WiFi/BT",
-      "L298N / TB6612FNG Dual Motor Driver",
-      "Ultrasonic Ranging Sensors & HC-SR04",
-      "Infrared Array Sensors (Line Following)",
-      "Robot Chassis, High-Torque Gear Motors & Battery Pack",
-      "Custom PCB Sensor Shield & Wire Harness"
-    ],
-    highlights: [
-      "100% Practical hands-on kit provided to student groups",
-      "Build & keep a working autonomous obstacle-avoiding robot",
-      "Multi-threading & real-time motor control via ESP32 FreeRTOS",
-      "Web Dashboard & Joystick App teleoperation over WebSocket",
-      "Blockchain-Verified QR Certificate + Project GitHub Repo"
-    ],
-    modules: [
-      {
-        moduleNumber: 1,
-        title: "Module 1: Embedded Fundamentals & ESP32 Microcontroller Architecture",
-        duration: "Day 1 (4 Hours)",
-        topics: [
-          "Introduction to Microcontrollers: AVR vs ARM vs ESP32 Tensilica Dual-Core",
-          "ESP32 Pinout, GPIO, PWM Motor Control, ADC, UART, SPI & I2C Protocols",
-          "Setting up the Hyperclass IDE & Arduino Framework",
-          "Timer Interrupts and Hardware PWM Signal Generation"
-        ],
-        project: "Lab 1: Precision Motor Speed Control & RGB Status Indicator Circuit"
-      },
-      {
-        moduleNumber: 2,
-        title: "Module 2: Sensors, Motor Controllers & Kinematic Motion",
-        duration: "Day 2 (4 Hours)",
-        topics: [
-          "Interfacing H-Bridge Driver Circuits (L298N/TB6612) with PWM Signal Calibration",
-          "Sensor Integration: Ultrasonic Ranging & Analog Infrared Sensor Processing",
-          "Kinematic Motion Algorithms: Differential Drive, Smooth Acceleration & PID Control",
-          "Autonomous Obstacle Avoidance & Wall-Following Logic State Machine"
-        ],
-        project: "Lab 2: Autonomous Obstacle-Navigating Robot Challenge"
-      },
-      {
-        moduleNumber: 3,
-        title: "Module 3: Wireless Teleoperation, IoT Cloud & Mini Hackathon Showcase",
-        duration: "Day 3 (4 Hours)",
-        topics: [
-          "ESP32 SoftAP & Web Server: Real-time HTTP/WebSocket Telemetry",
-          "Building a Mobile/Browser Virtual Joystick Control UI",
-          "Live Data Streaming: Sensor Telemetry on Hyperclass Live Dashboard",
-          "Final Inter-Departmental Bot Race & Certificate Presentation"
-        ],
-        project: "Capstone: WiFi Tele-Operated Robot with Live Sensor Data Stream"
-      }
-    ]
-  },
-
-  {
-    id: "prog-mern-fullstack",
-    title: "Full-Stack Web Engineering with MERN & Next.js Architecture",
-    code: "HYPER-CS-201",
-    department: "Computer Science & IT",
-    category: "Full-Stack Dev",
-    duration: "3-Day Bootcamp / 5-Day Intensive",
-    level: "Beginner to Intermediate",
-    targetBatch: "1st, 2nd & 3rd Year B.Tech / BCA / MCA",
-    desc: "Master modern web development by building production-grade scalable web applications using React 18, Node.js, Express, MongoDB Atlas, and TailwindCSS with real-time WebSockets.",
-    imageIcon: "💻",
-    prerequisites: "HTML/CSS fundamentals",
-    hardwareKit: [
-      "Cloud Sandbox Access with Node.js & MongoDB Atlas Cluster",
-      "Vercel / Render Deployment Environment",
-      "HyperFlow Code Studio Live Workspace"
-    ],
-    highlights: [
-      "Build a live multi-tenant Web Application from scratch",
-      "JWT Authentication & Role-Based Access Control (RBAC)",
-      "REST API Design & WebSockets for real-time live features",
-      "One-click Deployment to Cloud Vercel/Render",
-      "Industry Placement Project Portfolio on GitHub"
-    ],
-    modules: [
-      {
-        moduleNumber: 1,
-        title: "Module 1: Modern JavaScript (ES6+), React 18 & Component Systems",
-        duration: "Day 1 (4 Hours)",
-        topics: [
-          "ES6 Modules, Async/Await, Destructuring, and Functional Patterns",
-          "React 18 Architecture: JSX, Virtual DOM, Hooks (useState, useEffect, useRef)",
-          "State Management & Props Drilling Solutions (Context API)",
-          "Modern UI Styling with CSS Modules & Tailwind Utilities"
-        ],
-        project: "Lab 1: Interactive Real-Time Dashboard Component UI"
-      },
-      {
-        moduleNumber: 2,
-        title: "Module 2: Backend Architecture with Node.js, Express & MongoDB",
-        duration: "Day 2 (4 Hours)",
-        topics: [
-          "Node.js Event Loop, Non-blocking I/O & Express Server Setup",
-          "Designing RESTful APIs & Middleware (CORS, Request Validation)",
-          "MongoDB Atlas NoSQL Database Schemas & Mongoose ORM Models",
-          "User Authentication with Password Hashing (Bcrypt) & JWT Tokens"
-        ],
-        project: "Lab 2: Secure User Authentication & REST API Microservice"
-      },
-      {
-        moduleNumber: 3,
-        title: "Module 3: Full-Stack Integration, WebSockets & Production Cloud Deployment",
-        duration: "Day 3 (4 Hours)",
-        topics: [
-          "Connecting React Frontend with Express Backend APIs using Axios/Fetch",
-          "Real-Time Bi-Directional Communication with Socket.IO",
-          "Production Build Optimization, Environment Variables & Security",
-          "Deploying Frontend to Vercel and Backend to Render / AWS"
-        ],
-        project: "Capstone: Live Collaboration App with Real-Time Messaging & Cloud DB"
-      }
-    ]
-  },
-
-  {
-    id: "prog-ai-genai",
-    title: "Applied Generative AI & Large Language Model (LLM) Engineering",
-    code: "HYPER-AI-301",
-    department: "Artificial Intelligence & Data Science",
-    category: "AI & Data",
-    duration: "2-Day / 3-Day Hands-on Workshop",
-    level: "Intermediate",
-    targetBatch: "2nd, 3rd & 4th Year B.Tech (AI/DS/CSE/ECE)",
-    desc: "Learn to build intelligent AI applications using Python, LangChain, OpenAI APIs, HuggingFace Models, Vector Databases (Pinecone/ChromaDB), and RAG (Retrieval-Augmented Generation).",
-    imageIcon: "🧠",
-    prerequisites: "Basic Python programming skills",
-    hardwareKit: [
-      "GPU-Accelerated Cloud Notebook Sandbox (Google Colab Pro)",
-      "OpenAI & HuggingFace API Development Keys",
-      "Vector Database Cloud Accounts"
-    ],
-    highlights: [
-      "Build a custom AI Document Q&A Bot using your own College Syllabi/PDFs",
-      "Implement Retrieval-Augmented Generation (RAG) Architecture",
-      "Prompt Engineering, Fine-tuning vs Prompting, Vector Embeddings",
-      "Deploy Streamlit / Gradio AI Web Interfaces",
-      "Verified Certificate in Generative AI Application Development"
-    ],
-    modules: [
-      {
-        moduleNumber: 1,
-        title: "Module 1: Foundations of LLMs, Prompt Engineering & Embeddings",
-        duration: "Day 1 (4 Hours)",
-        topics: [
-          "Understanding Transformer Architecture & Large Language Models",
-          "API Integration: OpenAI GPT-4, Anthropic Claude & HuggingFace Models",
-          "Advanced Prompt Engineering: Zero-Shot, Few-Shot, Chain-of-Thought",
-          "Text Embeddings, High-Dimensional Vector Spaces & Similarity Metrics"
-        ],
-        project: "Lab 1: Intelligent Automated Code Explainer & Resume Analyzer Bot"
-      },
-      {
-        moduleNumber: 2,
-        title: "Module 2: RAG Architecture & Vector Databases (ChromaDB/Pinecone)",
-        duration: "Day 2 (4 Hours)",
-        topics: [
-          "Retrieval-Augmented Generation (RAG) System Design",
-          "PDF/Document Parsing, Chunking Strategies & Token Limit Management",
-          "Vector Databases: Storing and Querying Embeddings in ChromaDB",
-          "LangChain Framework: Memory, Chains, and Agents"
-        ],
-        project: "Lab 2: Custom Document Assistant (Ask Any PDF / College Manual)"
-      },
-      {
-        moduleNumber: 3,
-        title: "Module 3: AI Agents, Streamlit Web App UI & Deployment",
-        duration: "Day 3 (4 Hours)",
-        topics: [
-          "Building Autonomous AI Agents with Tool Access (Web Search, Math)",
-          "Building Interactive User Interfaces with Streamlit / Gradio",
-          "Rate Limiting, Cost Optimization & Security in AI Applications",
-          "Final Project Presentations & Industry AI Roadmap"
-        ],
-        project: "Capstone: Multi-Modal Institutional Knowledge Assistant Web App"
-      }
-    ]
-  },
-
-  {
-    id: "prog-iot-esp32-cloud",
-    title: "Industrial IoT Systems, Smart Sensors & Cloud Telemetry with ESP32",
-    code: "HYPER-IOT-102",
-    department: "Electronics & Electrical",
-    category: "IoT & Embedded",
-    duration: "2-Day / 3-Day Hands-on Workshop",
-    level: "All Engineering Streams",
-    targetBatch: "2nd & 3rd Year B.Tech (ECE/EEE/CSE/INST)",
-    desc: "Comprehensive practical training on building Industrial IoT nodes, MQTT protocol messaging, sensor data acquisition, cloud telemetry dashboards, and edge trigger alerts.",
+    targetBatch: "2nd, 3rd & 4th Year B.Tech / Diploma",
+    pricePerStudent: "₹600 per student (₹200/day)",
+    baselineBatch: "60 Registered Students (Negotiable for High Volume)",
+    desc: "A targeted, skill-packed 3-day Internet of Things (IoT) workshop establishing core competencies in wireless embedded architecture, ESP32 Wi-Fi stacks, sensor-to-cloud data loops, open-source dashboards, and Adilitix Robotics' proprietary free IoT platform.",
     imageIcon: "⚡",
-    prerequisites: "Basic programming & circuits",
+    prerequisites: "Basic programming logic and electronic circuit fundamentals",
+    featuredTrack: "🐕 Unitree Go2 Pro Experience Track: Includes a complimentary interactive showcase & live field demo of our industrial quadruped robot, breaking down its wireless telemetry and real-time remote communication loops.",
     hardwareKit: [
-      "ESP32 Development Board",
-      "DHT11 Temperature & Humidity Sensor",
-      "Relay Module (AC Load Switching)",
-      "LDR Light Sensor & OLED Display (SSD1306)",
-      "MQ-135 Air Quality Sensor & Buzzer"
+      "ESP32 Dual-Core Dev Board with Wi-Fi & Bluetooth",
+      "Multi-Sensor Suite (Temperature, Humidity, Ultrasonic, Light & Relay Outputs)",
+      "Access to Adilitix Robotics' Proprietary Free IoT Platform",
+      "Open-Source MQTT & HTTP Cloud Dashboards",
+      "Breadboards, Jumper Harness & Power Supply Modules"
     ],
     highlights: [
-      "Connect physical sensors to Cloud Dashboards in real-time",
-      "MQTT Broker Communication (Mosquitto & HiveMQ)",
-      "Node-RED & Blynk Cloud Automation Setup",
-      "SMS & WhatsApp Alert Triggers for threshold violations",
-      "Hands-on Industrial Smart Factory prototype kit"
+      "🐕 Includes live field demo of the Unitree Go2 Pro Quadruped Robot",
+      "🌐 Hands-on access to test Adilitix Robotics' own free proprietary IoT platform",
+      "⚡ Native ESP32 Wi-Fi stack & low-latency localized wireless network engineering",
+      "📊 Open-source MQTT channel routing, payload configuration & web dashboards",
+      "📜 Corporate MSME Verified Certificate (Aadil S P, Founder & CEO)"
     ],
     modules: [
       {
         moduleNumber: 1,
-        title: "Module 1: IoT Hardware, Sensor Interfacing & OLED Displays",
-        duration: "Day 1 (4 Hours)",
+        title: "Day 1: IoT Architectural Basics & Local Network Engineering",
+        duration: "Day 1 (Full Practical Session)",
         topics: [
-          "IoT Architecture: Perception, Network, Application Layers",
-          "Interfacing Digital/Analog Sensors: Temperature, Humidity, Air Quality",
-          "I2C Protocol & OLED Display Graphics Formatting",
-          "Relay Control Circuits & Electrical Safety Protocols"
+          "Demystifying core IoT terminology and sensor-to-cloud data loops",
+          "Initializing embedded Wi-Fi communication stacks natively on ESP32 microcontroller",
+          "Building low-latency localized wireless networks to trigger basic hardware output components",
+          "GPIO configuration, analog-to-digital sensor calibration & PWM outputs"
         ],
-        project: "Lab 1: Smart Environmental Monitoring Node with OLED Display"
+        project: "Lab 1: Localized Wireless Sensor Node & Remote Hardware Relay Control"
       },
       {
         moduleNumber: 2,
-        title: "Module 2: Cloud Protocols (MQTT/HTTP) & Telemetry Dashboards",
-        duration: "Day 2 (4 Hours)",
+        title: "Day 2: Testing Established, Open-Source & Proprietary Platforms",
+        duration: "Day 2 (Full Practical Session)",
         topics: [
-          "Publish-Subscribe Protocol: MQTT Broker vs REST HTTP APIs",
-          "Connecting ESP32 to HiveMQ / Adafruit IO Cloud Brokers",
-          "Designing Web & Mobile Dashboards for Real-Time Telemetry Data",
-          "Automated Threshold Alerts (Email/WhatsApp via Webhooks)"
+          "Practical benchmarking and structural stress-testing of market-standard IoT ecosystems",
+          "Testing popular open-source platforms (MQTT Brokers, HTTP REST Endpoints)",
+          "Exclusive hands-on access to test Adilitix Robotics' own free proprietary IoT platform",
+          "Understanding live channel routing, payload structures, and telemetry configurations"
         ],
-        project: "Capstone: Industrial Smart Factory Telemetry & Automated AC Relay Trigger"
+        project: "Lab 2: Multi-Platform Cloud Telemetry Data Streaming & Analytics Dashboard"
+      },
+      {
+        moduleNumber: 3,
+        title: "Day 3: Embedded IoT System Design & Global Deployment",
+        duration: "Day 3 (Full Practical Session)",
+        topics: [
+          "End-to-end design of a functional smart system leveraging the ESP32",
+          "Coding and integrating multi-tier communication logic",
+          "Manipulating localized hardware outputs alongside real-time internet-driven wide-area network commands over web dashboards",
+          "🐕 Unitree Go2 Pro Quadruped Robot live telemetry breakdown & field demonstration"
+        ],
+        project: "Capstone: Smart Wide-Area IoT Automation System + Unitree Go2 Pro Live Demo"
       }
     ]
   },
 
   {
-    id: "prog-cybersecurity",
-    title: "Cyber Security, Ethical Hacking & Cloud Vulnerability Assessment",
-    code: "HYPER-SEC-401",
-    department: "Cyber Security & Cloud",
-    category: "Cyber Security",
-    duration: "2-Day / 3-Day Hands-on Bootcamp",
-    level: "Beginner to Intermediate",
-    targetBatch: "2nd, 3rd & 4th Year B.Tech / BCA / MCA",
-    desc: "Hands-on offensive and defensive cybersecurity training. Learn penetration testing, web app vulnerabilities (OWASP Top 10), network traffic analysis with Wireshark, and Linux security.",
-    imageIcon: "🔒",
-    prerequisites: "Basic networking & Linux commands",
-    hardwareKit: [
-      "Kali Linux Cloud Virtual Machine Environment",
-      "Metasploitable & OWASP Juice Shop Target Sandboxes",
-      "Wireshark Capture Files & Security Tooling Package"
-    ],
-    highlights: [
-      "Ethical Hacking in an isolated safe sandbox environment",
-      "OWASP Top 10 Web Vulnerabilities (SQLi, XSS, CSRF, IDOR)",
-      "Wireshark Network Packet Sniffing & Analysis",
-      "Capture The Flag (CTF) Competition included",
-      "Industry Certified Cybersecurity Training Certificate"
-    ],
-    modules: [
-      {
-        moduleNumber: 1,
-        title: "Module 1: Linux Fundamentals, Networking & Reconnaissance",
-        duration: "Day 1 (4 Hours)",
-        topics: [
-          "Linux Command Line Mastery & Kali Linux Toolsuite",
-          "TCP/IP Suite, Subnetting, OSI Model & Port Scanning with Nmap",
-          "Information Gathering & OSINT (Open Source Intelligence)",
-          "Wireshark Packet Analysis & Protocol Deconstruction"
-        ],
-        project: "Lab 1: Network Reconnaissance & Port Vulnerability Mapping"
-      },
-      {
-        moduleNumber: 2,
-        title: "Module 2: Web Vulnerabilities (OWASP Top 10) & CTF Challenge",
-        duration: "Day 2 (4 Hours)",
-        topics: [
-          "SQL Injection (SQLi) Exploitation & Defense",
-          "Cross-Site Scripting (XSS) & Session Hijacking",
-          "Password Cracking & Hydra/Burp Suite Fundamentals",
-          "Live Institutional Capture The Flag (CTF) Competition"
-        ],
-        project: "Capstone: Vulnerability Assessment Report & Institutional CTF"
-      }
-    ]
-  },
-
-  {
-    id: "prog-ev-battery",
-    title: "Electric Vehicle (EV) Systems & Battery Management (BMS) Design",
-    code: "HYPER-EV-501",
-    department: "Electronics & Electrical",
-    category: "EV & Green Tech",
-    duration: "3-Day Bootcamp / 5-Day VAC",
+    id: "prog-ai-computer-vision",
+    title: "AI & Computer Vision for Robotics",
+    code: "ADIL-AI-302",
+    department: "Artificial Intelligence, CSE & Robotics",
+    category: "AI & Robotics",
+    duration: "3-Day Intensive Bootcamp",
     level: "Intermediate",
-    targetBatch: "3rd & 4th Year B.Tech (EEE/ECE/MECH/AUTO)",
-    desc: "In-depth engineering workshop covering Lithium-ion cell chemistries, Battery Management System (BMS) hardware design, CAN Bus communication, and EV powertrain motor controllers.",
-    imageIcon: "🔌",
-    prerequisites: "Basic circuit theory and electronics",
+    targetBatch: "2nd, 3rd & 4th Year B.Tech (AI/DS/CSE/ECE/ROB)",
+    pricePerStudent: "₹600 per student (₹200/day)",
+    baselineBatch: "60 Registered Students (Negotiable for High Volume)",
+    desc: "Intensive 3-day hands-on bootcamp on Python automation, OpenCV spatial processing, and Google MediaPipe tracking pipelines. Establishes core competencies in vision-guided automation, edge-compute neural landmark extraction, and direct cross-platform control loops.",
+    imageIcon: "🧠",
+    prerequisites: "Basic Python programming syntax",
+    featuredTrack: "🐕 Unitree Go2 Pro Experience Track: Includes an exclusive technical breakdown of how edge-intelligence models, spatial tracking cameras, and hardware control frameworks interact dynamically to achieve real-time autonomous navigation, followed by a live field interaction session.",
     hardwareKit: [
-      "LiFePO4 / Li-ion Battery Testing Setup",
-      "Hardware BMS Board with Balancing Circuitry",
-      "CAN Bus Transceiver Module (MCP2515)",
-      "Digital Multimeters & Electronic Load Testers"
+      "High-Frame-Rate USB Vision Sensors / Webcams",
+      "Python OpenCV & Google MediaPipe Edge Intelligence Stack",
+      "PySerial Hardware-Software Bridge Modules",
+      "ESP32 Motor Driver Control Interfacing Units",
+      "Adilitix Vision Analytics Sandbox"
     ],
     highlights: [
-      "Lithium Cell Testing, State-of-Charge (SOC) Estimation Algorithms",
-      "BMS Hardware Circuitry & Passive/Active Cell Balancing",
-      "CAN Bus Automotive Communication Protocol Interfacing",
-      "Thermal Runaway Prevention & Safety Protocols",
-      "Certificate in EV Powertrain & BMS Engineering"
+      "🐕 Includes live field interaction with the Unitree Go2 Pro Quadruped Robot",
+      "👁️ OpenCV matrix structures, spatial filtering, color masking & contour detection",
+      "🖐️ Google MediaPipe multi-point hand landmarking & facial skeletal pose estimation",
+      "🔌 PySerial high-speed hardware-software control loops for robotics",
+      "📜 Corporate MSME Verified Certificate (Aadil S P, Founder & CEO)"
     ],
     modules: [
       {
         moduleNumber: 1,
-        title: "Module 1: EV Architecture & Battery Pack Engineering",
-        duration: "Day 1 (4 Hours)",
+        title: "Day 1: Python Essentials & OpenCV Image Processing Foundations",
+        duration: "Day 1 (Full Practical Session)",
         topics: [
-          "EV Powertrain Overview: Motors, Inverters, Battery Packs",
-          "Li-Ion Cell Chemistries (NMC vs LiFePO4), Energy Density & C-Ratings",
-          "Series/Parallel Cell Configurations & Spot Welding Techniques",
-          "Cell Voltage, Current & Temperature Sensing Circuits"
+          "Reviewing high-yield Python paradigms for real-time hardware data streams",
+          "Introducing OpenCV matrix structures and camera video acquisition loops",
+          "Writing image thresholding, spatial filtering, and color-space masking algorithms",
+          "Structural contour detection and spatial boundary isolation math"
         ],
-        project: "Lab 1: Lithium Cell Characterization & SOC Curve Plotting"
+        project: "Lab 1: Real-Time Color & Shape Tracking Vision Filter Pipeline"
       },
       {
         moduleNumber: 2,
-        title: "Module 2: BMS Hardware, Cell Balancing & CAN Bus Protocol",
-        duration: "Day 2 (4 Hours)",
+        title: "Day 2: AI Edge Intelligence & MediaPipe Landmark Extraction",
+        duration: "Day 2 (Full Practical Session)",
         topics: [
-          "BMS Architecture: Master-Slave Units, Protection MOSFETs",
-          "Passive vs Active Cell Balancing Algorithms",
-          "Automotive CAN Bus (ISO 11898) Frame Structure & Transceivers",
-          "Interfacing Microcontrollers with CAN Bus Transceiver (MCP2515)"
+          "Transitioning to lightweight neural network deployments at the edge",
+          "Implementing Google MediaPipe pipelines for high-velocity real-time tracking",
+          "Multi-point hand landmark identification and gesture recognition",
+          "Facial boundary profiling and spatial skeletal pose estimation configurations"
         ],
-        project: "Capstone: Functional 4S Li-Ion BMS with CAN Bus Telemetry"
+        project: "Lab 2: Edge-AI Skeletal Pose & Hand Gesture Tracking Controller"
+      },
+      {
+        moduleNumber: 3,
+        title: "Day 3: Vision-Guided Control Loops & Smart System Automation",
+        duration: "Day 3 (Full Practical Session)",
+        topics: [
+          "Bridging high-level visual math with low-level execution logic",
+          "Designing a complete vision-directed hardware control system",
+          "Mapping extraction coordinate variables to live automation triggers (gesture-controlled inputs / color-tracked item alignment)",
+          "Milestone team showcase & 🐕 Unitree Go2 Pro Quadruped Robot live vision demo"
+        ],
+        project: "Capstone: Vision-Guided Gesture-Controlled Robotics System + Go2 Pro Demo"
+      }
+    ]
+  },
+
+  {
+    id: "prog-additive-manufacturing-3d",
+    title: "Additive Manufacturing & 3D Engineering",
+    code: "ADIL-3D-303",
+    department: "Mechanical, Mechatronics & Production",
+    category: "3D Printing & Design",
+    duration: "3-Day Skill-Packed Bootcamp",
+    level: "All Engineering Streams",
+    targetBatch: "1st, 2nd, 3rd & 4th Year B.Tech / Mechanical",
+    pricePerStudent: "₹600 per student (₹200/day)",
+    baselineBatch: "60 Registered Students (Negotiable for High Volume)",
+    desc: "Intensive 3-day bootcamp shifting students from passive consumers to hardware creators by breaking down 3D visual design frameworks, parametric OpenSCAD script modeling, slicer calibration math, mechanical printer troubleshooting, and tech entrepreneurship.",
+    imageIcon: "🖨️",
+    prerequisites: "No prior 3D printing experience required",
+    featuredTrack: "🖨️ On-Site Production Infrastructure: Adilitix Robotics brings up to three (3) industrial-grade 3D printers directly to the host campus! Includes complimentary Unitree Go2 Pro Quadruped Robot showcase.",
+    hardwareKit: [
+      "3x Industrial-Grade FDM 3D Printers brought on-site by Adilitix Robotics",
+      "PLA/PETG High-Precision Filament Spools & Nozzle Toolkits",
+      "Parametric OpenSCAD & Tinkercad Design Sandboxes",
+      "Slicing Software Suites (Cura / PrusaSlicer Calibration Profilers)",
+      "Digital Calipers & Hardware Assembly Tools"
+    ],
+    highlights: [
+      "🖨️ Adilitix Robotics brings up to 3 industrial 3D printers directly on campus",
+      "📐 Code-based parametric 3D modeling via OpenSCAD & Tinkercad visual design",
+      "⚙️ Slicer calibration math: layer heights, wall infills, nozzle temps & speeds",
+      "🔧 Hands-on printer maintenance, bed levelling, nozzle unlogging & hardware tuning",
+      "📜 Corporate MSME Verified Certificate (Aadil S P, Founder & CEO)"
+    ],
+    modules: [
+      {
+        moduleNumber: 1,
+        title: "Day 1: 3D Modeling Foundations (Tinkercad to Parametric OpenSCAD)",
+        duration: "Day 1 (Full Practical Session)",
+        topics: [
+          "Introduction to additive design thinking and rapid visual prototyping",
+          "Rapid prototype creation using Tinkercad modeling engines",
+          "Transitioning to advanced code-based parametric script modeling via OpenSCAD",
+          "Programming dimensionally perfect industrial shapes and mechanical tolerances"
+        ],
+        project: "Lab 1: Parametric Script Modeling & Precision Enclosure Design"
+      },
+      {
+        moduleNumber: 2,
+        title: "Day 2: Advanced Additive Techniques & Slicer Mechanics",
+        duration: "Day 2 (Full Practical Session)",
+        topics: [
+          "Deep dive into modern slicing engineering configurations",
+          "Optimizing layer heights, structural wall infills, nozzle temperatures, and retractions",
+          "Support structure generation, print speed math, and warping prevention",
+          "G-code analysis, line width calculations, and material selection (PLA vs PETG vs ABS)"
+        ],
+        project: "Lab 2: Custom G-Code Generation & Multi-Printer Production Setup"
+      },
+      {
+        moduleNumber: 3,
+        title: "Day 3: Mechanical Printer Troubleshooting & Tech Entrepreneurship",
+        duration: "Day 3 (Full Practical Session)",
+        topics: [
+          "Essential mechanical printer troubleshooting, bed leveling & hotend maintenance",
+          "Nozzle unclogging, extruder calibration, and stepper motor tuning",
+          "Prototyping to product monetization and commercial hardware entrepreneurship",
+          "Milestone physical print showcase & 🐕 Unitree Go2 Pro Quadruped Robot live demo"
+        ],
+        project: "Capstone: Physical 3D Part Production Showcase & Printer Calibration Masterclass"
+      }
+    ]
+  },
+
+  {
+    id: "prog-autonomous-robotics-esp32",
+    title: "Autonomous Mobile Robotics & Microcontrollers with ESP32",
+    code: "ADIL-ROB-101",
+    department: "Robotics, ECE, EEE & Mechatronics",
+    category: "Robotics",
+    duration: "3-Day Intensive Bootcamp",
+    level: "All Engineering Streams",
+    targetBatch: "1st to 4th Year B.Tech / Polytechnic",
+    pricePerStudent: "₹600 per student (₹200/day)",
+    baselineBatch: "60 Registered Students (Negotiable for High Volume)",
+    desc: "Comprehensive engineering program focused on building sensor-guided autonomous robots using ESP32, motor drivers, ultrasonic ranging, IR arrays, and differential drive kinematics.",
+    imageIcon: "🤖",
+    prerequisites: "Basic programming logic",
+    featuredTrack: "🐕 Unitree Go2 Pro Experience Track: Includes a complimentary live showcase of the Unitree Go2 Pro Quadruped Robot.",
+    hardwareKit: [
+      "ESP32 Dev Board with Dual Core Microprocessor",
+      "L298N / TB6612 Dual Motor Driver Circuit",
+      "Ultrasonic Ranging Sensors & Line-Tracker IR Array",
+      "High-Torque Gear Motors & Robotic Chassis Kit",
+      "Rechargeable High-Current Li-Ion Battery Pack"
+    ],
+    highlights: [
+      "🤖 Build & keep an autonomous mobile robot per student team",
+      "⚡ Differential drive kinematic motion math & obstacle avoidance state machines",
+      "🌐 Wi-Fi SoftAP joystick teleoperation over web browser",
+      "🐕 Unitree Go2 Pro Quadruped Robot live field demonstration",
+      "📜 Corporate MSME Verified Certificate (Aadil S P, Founder & CEO)"
+    ],
+    modules: [
+      {
+        moduleNumber: 1,
+        title: "Day 1: Microcontroller Architecture & Motor Control",
+        duration: "Day 1 (Full Practical Session)",
+        topics: [
+          "ESP32 pinouts, GPIO control, and hardware PWM motor speed calibration",
+          "H-Bridge motor driver operation and directional logic",
+          "Circuit wiring, sensor power management, and safety protocols"
+        ],
+        project: "Lab 1: Dual Motor Speed & Directional Control Calibration"
+      },
+      {
+        moduleNumber: 2,
+        title: "Day 2: Sensor Arrays & Kinematic Motion Logic",
+        duration: "Day 2 (Full Practical Session)",
+        topics: [
+          "Ultrasonic distance measurement and analog IR array processing",
+          "Obstacle avoidance state machine algorithms",
+          "Wall-following and precision line-tracking kinematics"
+        ],
+        project: "Lab 2: Autonomous Obstacle-Navigating & Line-Following Robot"
+      },
+      {
+        moduleNumber: 3,
+        title: "Day 3: Wi-Fi Teleoperation & Bot Competition",
+        duration: "Day 3 (Full Practical Session)",
+        topics: [
+          "Building an ESP32 web server and virtual joystick control interface",
+          "Real-time WebSocket telemetry and low-latency motor commands",
+          "Final inter-departmental bot arena competition & Unitree Go2 Pro demo"
+        ],
+        project: "Capstone: Wi-Fi Tele-Operated Autonomous Rover Competition"
       }
     ]
   }
