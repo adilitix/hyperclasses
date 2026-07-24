@@ -13,7 +13,7 @@ export const INITIAL_PROGRAMS = [
     desc: "A targeted, skill-packed 3-day Internet of Things (IoT) workshop establishing core competencies in wireless embedded architecture, ESP32 Wi-Fi stacks, sensor-to-cloud data loops, open-source dashboards, and Adilitix Robotics' proprietary free IoT platform.",
     imageIcon: "⚡",
     prerequisites: "Basic programming logic and electronic circuit fundamentals",
-    featuredTrack: "🐕 Unitree Go2 Pro Experience Track: Includes a complimentary interactive showcase & live field demo of our industrial quadruped robot, breaking down its wireless telemetry and real-time remote communication loops.",
+    featuredTrack: "🐕 Unitree Go2 Pro Experience Track: Includes a complimentary interactive showcase & live field demo of our industrial quadruped robot, the Unitree Go2 Pro.",
     hardwareKit: [
       "ESP32 Dual-Core Dev Board with Wi-Fi & Bluetooth",
       "Multi-Sensor Suite (Temperature, Humidity, Ultrasonic, Light & Relay Outputs)",
@@ -82,7 +82,7 @@ export const INITIAL_PROGRAMS = [
     desc: "Intensive 3-day hands-on bootcamp on Python automation, OpenCV spatial processing, and Google MediaPipe tracking pipelines. Establishes core competencies in vision-guided automation, edge-compute neural landmark extraction, and direct cross-platform control loops.",
     imageIcon: "🧠",
     prerequisites: "Basic Python programming syntax",
-    featuredTrack: "🐕 Unitree Go2 Pro Experience Track: Includes an exclusive technical breakdown of how edge-intelligence models, spatial tracking cameras, and hardware control frameworks interact dynamically to achieve real-time autonomous navigation, followed by a live field interaction session.",
+    featuredTrack: "🐕 Unitree Go2 Pro Experience Track: Includes an exclusive technical breakdown of how edge-intelligence models, spatial tracking cameras, and hardware control frameworks interact dynamically to achieve real-time autonomous navigation.",
     hardwareKit: [
       "High-Frame-Rate USB Vision Sensors / Webcams",
       "Python OpenCV & Google MediaPipe Edge Intelligence Stack",
@@ -151,7 +151,7 @@ export const INITIAL_PROGRAMS = [
     desc: "Intensive 3-day bootcamp shifting students from passive consumers to hardware creators by breaking down 3D visual design frameworks, parametric OpenSCAD script modeling, slicer calibration math, mechanical printer troubleshooting, and tech entrepreneurship.",
     imageIcon: "🖨️",
     prerequisites: "No prior 3D printing experience required",
-    featuredTrack: "🖨️ On-Site Production Infrastructure: Adilitix Robotics brings up to three (3) industrial-grade 3D printers directly to the host campus! Includes complimentary Unitree Go2 Pro Quadruped Robot showcase.",
+    featuredTrack: "🖨️ On-Site Production Infrastructure: Adilitix Robotics brings up to three (3) industrial-grade 3D printers directly to the host campus! Includes 1-hour lecture on Tech Entrepreneurship & Unitree Go2 Pro showcase.",
     hardwareKit: [
       "3x Industrial-Grade FDM 3D Printers brought on-site by Adilitix Robotics",
       "PLA/PETG High-Precision Filament Spools & Nozzle Toolkits",
@@ -163,7 +163,7 @@ export const INITIAL_PROGRAMS = [
       "🖨️ Adilitix Robotics brings up to 3 industrial 3D printers directly on campus",
       "📐 Code-based parametric 3D modeling via OpenSCAD & Tinkercad visual design",
       "⚙️ Slicer calibration math: layer heights, wall infills, nozzle temps & speeds",
-      "🔧 Hands-on printer maintenance, bed levelling, nozzle unlogging & hardware tuning",
+      "💡 Specialized 1-hour lecture on Tech Entrepreneurship Opportunities & custom fabrication startups",
       "📜 Corporate MSME Verified Certificate (Aadil S P, Founder & CEO)"
     ],
     modules: [
@@ -193,81 +193,153 @@ export const INITIAL_PROGRAMS = [
       },
       {
         moduleNumber: 3,
-        title: "Day 3: Mechanical Printer Troubleshooting & Tech Entrepreneurship",
+        title: "Day 3: Printer Maintenance, Troubleshooting & Tech Entrepreneurship",
         duration: "Day 3 (Full Practical Session)",
         topics: [
-          "Essential mechanical printer troubleshooting, bed leveling & hotend maintenance",
-          "Nozzle unclogging, extruder calibration, and stepper motor tuning",
-          "Prototyping to product monetization and commercial hardware entrepreneurship",
+          "Hands-on operational printer maintenance procedures (nozzle clog resolutions, bed leveling diagnostics, extruder drive tuning)",
+          "Specialized 1-hour lecture on Tech Entrepreneurship Opportunities",
+          "Custom fabrication startup frameworks and direct hardware marketing paradigms",
           "Milestone physical print showcase & 🐕 Unitree Go2 Pro Quadruped Robot live demo"
         ],
-        project: "Capstone: Physical 3D Part Production Showcase & Printer Calibration Masterclass"
+        project: "Capstone: Physical 3D Part Production Showcase & Tech Startup Lecture"
       }
     ]
   },
 
   {
-    id: "prog-autonomous-robotics-esp32",
-    title: "Autonomous Mobile Robotics & Microcontrollers with ESP32",
-    code: "ADIL-ROB-101",
-    department: "Robotics, ECE, EEE & Mechatronics",
-    category: "Robotics",
+    id: "prog-fixed-robotics-arm",
+    title: "Fixed Robotics & Mechatronics",
+    code: "ADIL-ARM-304",
+    department: "Mechatronics, ECE, EEE & Mechanical",
+    category: "Robotics & Mechatronics",
     duration: "3-Day Intensive Bootcamp",
     level: "All Engineering Streams",
-    targetBatch: "1st to 4th Year B.Tech / Polytechnic",
+    targetBatch: "1st to 4th Year B.Tech / Diploma",
     pricePerStudent: "₹600 per student (₹200/day)",
     baselineBatch: "60 Registered Students (Negotiable for High Volume)",
-    desc: "Comprehensive engineering program focused on building sensor-guided autonomous robots using ESP32, motor drivers, ultrasonic ranging, IR arrays, and differential drive kinematics.",
-    imageIcon: "🤖",
-    prerequisites: "Basic programming logic",
-    featuredTrack: "🐕 Unitree Go2 Pro Experience Track: Includes a complimentary live showcase of the Unitree Go2 Pro Quadruped Robot.",
+    desc: "Generalized 3-day hardware-centric mechatronics bootcamp focusing entirely on the mechanics, kinematics, and electronic control interfaces of fixed automation, centering around the complete mechanical assembly and coordinate layout of a multi-axis desktop Robotic Gripper Arm.",
+    imageIcon: "🦾",
+    prerequisites: "Basic interest in mechanics & electronics",
+    featuredTrack: "🐕 Unitree Go2 Pro Experience Track: Includes a comprehensive layout analysis of multi-sensor arrays, real-time spatial kinematics, and dynamic balance configurations of the Unitree Go2 Pro Quadruped Robot.",
     hardwareKit: [
-      "ESP32 Dev Board with Dual Core Microprocessor",
-      "L298N / TB6612 Dual Motor Driver Circuit",
-      "Ultrasonic Ranging Sensors & Line-Tracker IR Array",
-      "High-Torque Gear Motors & Robotic Chassis Kit",
-      "Rechargeable High-Current Li-Ion Battery Pack"
+      "Multi-Axis Desktop Robotic Gripper Arm Mechanical Kits",
+      "High-Torque Servo Actuators with Metal Gears",
+      "Dual-Axis Analog Joystick Module Controllers",
+      "PWM Frequency Drivers & Microcontroller Shields",
+      "Object Target Pick & Sort Hardware Stations"
     ],
     highlights: [
-      "🤖 Build & keep an autonomous mobile robot per student team",
-      "⚡ Differential drive kinematic motion math & obstacle avoidance state machines",
-      "🌐 Wi-Fi SoftAP joystick teleoperation over web browser",
-      "🐕 Unitree Go2 Pro Quadruped Robot live field demonstration",
+      "🦾 Structural assembly & kinematics of multi-axis desktop Robotic Gripper Arms",
+      "🕹️ Mapping dual-axis Joystick Controls to mechatronic joint movements",
+      "🎯 Automated pick-and-place sorting routines & mechanical boundary limits",
+      "🐕 Unitree Go2 Pro Quadruped Robot spatial kinematics & balance demonstration",
       "📜 Corporate MSME Verified Certificate (Aadil S P, Founder & CEO)"
     ],
     modules: [
       {
         moduleNumber: 1,
-        title: "Day 1: Microcontroller Architecture & Motor Control",
+        title: "Day 1: Actuation Fundamentals & Structural Assembly",
         duration: "Day 1 (Full Practical Session)",
         topics: [
-          "ESP32 pinouts, GPIO control, and hardware PWM motor speed calibration",
-          "H-Bridge motor driver operation and directional logic",
-          "Circuit wiring, sensor power management, and safety protocols"
+          "Introduction to fixed multi-axis hardware mechanics and servo degrees of rotation",
+          "Understanding Pulse Width Modulation (PWM) frequency tuning and servo signal timing",
+          "Physical structural assembly of multi-axis robotic arm components and mechanical links",
+          "Power distribution, current limits, and servo drive calibration"
         ],
-        project: "Lab 1: Dual Motor Speed & Directional Control Calibration"
+        project: "Lab 1: Servo Actuator Calibration & Multi-Axis Arm Mechanical Assembly"
       },
       {
         moduleNumber: 2,
-        title: "Day 2: Sensor Arrays & Kinematic Motion Logic",
+        title: "Day 2: Interface Mapping & Joystick Configurations",
         duration: "Day 2 (Full Practical Session)",
         topics: [
-          "Ultrasonic distance measurement and analog IR array processing",
-          "Obstacle avoidance state machine algorithms",
-          "Wall-following and precision line-tracking kinematics"
+          "Integrating analog input controls (dual-axis joysticks, potentiometers)",
+          "Writing configuration code to map dual-axis Joystick Controls directly to mechatronic joint movements",
+          "Establishing mechanical physical boundary limits and soft-stop safety bounds",
+          "Gripper actuation, clamping force calibration, and coordinate positioning"
         ],
-        project: "Lab 2: Autonomous Obstacle-Navigating & Line-Following Robot"
+        project: "Lab 2: Dual-Axis Joystick Manual Joint Manipulation & Gripper Control"
       },
       {
         moduleNumber: 3,
-        title: "Day 3: Wi-Fi Teleoperation & Bot Competition",
+        title: "Day 3: Kinematic Sequences & Sorting Automation Challenges",
         duration: "Day 3 (Full Practical Session)",
         topics: [
-          "Building an ESP32 web server and virtual joystick control interface",
-          "Real-time WebSocket telemetry and low-latency motor commands",
-          "Final inter-departmental bot arena competition & Unitree Go2 Pro demo"
+          "Developing manual fluid manipulation routines and coordinate sequence recording",
+          "Programming automation loops for localized target picking and precise object placement",
+          "Final group milestone performance showcase handling speed, precision alignment, and automated sorting",
+          "🐕 Unitree Go2 Pro Quadruped Robot live testing session & balance showcase"
         ],
-        project: "Capstone: Wi-Fi Tele-Operated Autonomous Rover Competition"
+        project: "Capstone: Automated Pick-and-Place Sorting Challenge + Go2 Pro Live Session"
+      }
+    ]
+  },
+
+  {
+    id: "prog-foundational-autonomous-robotics",
+    title: "Foundational Autonomous Robotics (Wheeled Rovers)",
+    code: "ADIL-ROB-305",
+    department: "Robotics, CSE, ECE, EEE & Mechanical",
+    category: "Mobile Robotics",
+    duration: "3-Day Intensive Bootcamp",
+    level: "Beginner to Intermediate",
+    targetBatch: "1st to 4th Year B.Tech / Diploma",
+    pricePerStudent: "₹600 per student (₹200/day)",
+    baselineBatch: "60 Registered Students (Negotiable for High Volume)",
+    desc: "Generalized 3-day hardware-centric workshop developed specifically to introduce embedded systems and automated navigation to beginners. Focuses on the practical assembly, electronics, and logical programming of a 2-wheeled smart mobile rover platform transitioning to fully autonomous maze escape routines.",
+    imageIcon: "🤖",
+    prerequisites: "No prior robotics experience required",
+    featuredTrack: "🐕 Unitree Go2 Pro Experience Track: Includes a complete technical breakdown of its multi-sensor arrays, kinematics, and dynamic balance configurations.",
+    hardwareKit: [
+      "2-Wheeled Smart Mobile Rover Chassis Kit & Motors",
+      "ESP32 / Arduino Embedded Controller Boards",
+      "Ultrasonic Radar Sensor Arrays & Mount Assemblies",
+      "Dual H-Bridge Motor Driver Modules",
+      "Rechargeable Li-Ion Battery Packs & Power Converters"
+    ],
+    highlights: [
+      "🤖 Build, program & test a 2-wheeled smart mobile rover platform",
+      "📡 Ultrasonic radar sensor arrays & real-time data logging diagnostics",
+      "🧩 Closed-loop path orientation engineering & logical decision trees",
+      "🏆 Final milestone live challenge: Autonomous Maze Escape Competition",
+      "📜 Corporate MSME Verified Certificate (Aadil S P, Founder & CEO)"
+    ],
+    modules: [
+      {
+        moduleNumber: 1,
+        title: "Day 1: Microcontrollers & Core Locomotion",
+        duration: "Day 1 (Full Practical Session)",
+        topics: [
+          "Introduction to embedded platforms (ESP32/Arduino tools) and circuit prototyping basics",
+          "Structural rover chassis assembly and wheel gear alignment",
+          "Motor driver calibration firmware routines and PWM differential drive locomotion",
+          "Electrical power distribution and battery voltage regulation"
+        ],
+        project: "Lab 1: Smart Rover Chassis Assembly & Differential Drive Locomotion"
+      },
+      {
+        moduleNumber: 2,
+        title: "Day 2: Sensor Architecture & Autonomous Obstacle Avoidance",
+        duration: "Day 2 (Full Practical Session)",
+        topics: [
+          "Integrating ultrasonic 'radar' sensor arrays for distance measurement",
+          "Real-time data logging diagnostics and sensor filtering",
+          "Designing smart multi-conditional logic loops for autonomous boundary tracking",
+          "Barrier avoidance algorithms and real-time obstacle avoidance state machines"
+        ],
+        project: "Lab 2: Ultrasonic Radar Sensor Integration & Boundary Obstacle Avoidance"
+      },
+      {
+        moduleNumber: 3,
+        title: "Day 3: Intelligent Path Navigation & The Maze Escape Challenge",
+        duration: "Day 3 (Full Practical Session)",
+        topics: [
+          "Closed-loop path orientation engineering and heading stabilization",
+          "Logical decision trees and obstacle navigation performance optimization",
+          "Final milestone live challenge where student rovers navigate a complex maze track autonomously",
+          "🐕 Unitree Go2 Pro Quadruped Robot live field interaction session"
+        ],
+        project: "Capstone: Autonomous Maze Escape Challenge + Go2 Pro Live Demo"
       }
     ]
   }
