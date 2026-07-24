@@ -281,7 +281,7 @@ const AdminDashboard = () => {
 
     const HYPERCLASS_URL = window.location.hostname === 'localhost'
         ? 'http://localhost:3000'
-        : 'https://hyperclass.vercel.app';
+        : 'https://hyperclass.adilitix.com';
 
     useEffect(() => {
         console.log('AdminDashboard: Initializing...');

@@ -143,13 +143,13 @@ const LandingPage = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4, duration: 0.8 }}
-                    style={{ display: 'flex', gap: '20px' }}
+                    style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}
                 >
-                    <button className="v2-submit" style={{ padding: '15px 40px', fontSize: '1rem' }} onClick={() => document.getElementById('features').scrollIntoView()}>
-                        EXPLORE PLATFORM
+                    <button className="v2-submit" style={{ padding: '15px 32px', fontSize: '1rem', background: 'linear-gradient(135deg, #f59e0b, #d97706)' }} onClick={() => navigate('/brochure')}>
+                        🎓 COLLEGE BROCHURE & SYLLABI
                     </button>
-                    <button className="admin-login-btn" style={{ padding: '15px 40px', fontSize: '1rem', background: 'transparent' }} onClick={() => navigate('/workshops')}>
-                        VIEW CATALOG
+                    <button className="admin-login-btn" style={{ padding: '15px 32px', fontSize: '1rem', background: 'transparent', borderColor: '#38bdf8', color: '#38bdf8' }} onClick={() => navigate('/brochure')}>
+                        VIEW PROGRAMS & HOD CATALOG
                     </button>
                 </motion.div>
 

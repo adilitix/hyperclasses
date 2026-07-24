@@ -1,158 +1,314 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Cpu, Layers, Sparkles, CheckCircle2, ArrowRight, BookOpen, Clock, Users, ShieldCheck, Zap, Briefcase, Award, Star } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Cpu, Layers, Sparkles, CheckCircle2, ArrowRight, BookOpen, Clock, Users, ShieldCheck, Zap, Briefcase, Award, Plus, FileText, Search, Printer, Share2 } from 'lucide-react';
 import Logo from '../components/Logo';
+import SyllabusModal from '../components/SyllabusModal';
+import ProposalModal from '../components/ProposalModal';
+import SyllabusEditorModal from '../components/SyllabusEditorModal';
+import { INITIAL_PROGRAMS } from '../data/programsData';
+import '../styles/brochure.css';
 
 const Programs = () => {
+    const navigate = useNavigate();
+
+    // Load saved programs or use initial dataset
+    const [programs, setPrograms] = useState(() => {
+        try {
+            const saved = localStorage.getItem('adilitix_brochure_programs');
+            return saved ? JSON.parse(saved) : INITIAL_PROGRAMS;
+        } catch {
+            return INITIAL_PROGRAMS;
+        }
+    });
+
+    const [selectedDept, setSelectedDept] = useState('All');
+    const [durationFilter, setDurationFilter] = useState('All');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [presentationMode, setPresentationMode] = useState(false);
+
+    // Proposal Basket
+    const [selectedPrograms, setSelectedPrograms] = useState(() => {
+        try {
+            const saved = localStorage.getItem('adilitix_proposal_basket');
+            return saved ? JSON.parse(saved) : [];
+        } catch {
+            return [];
+        }
+    });
+
+    // Modals
+    const [activeSyllabusProgram, setActiveSyllabusProgram] = useState(null);
+    const [showProposalModal, setShowProposalModal] = useState(false);
+    const [showAddEditorModal, setShowAddEditorModal] = useState(false);
+
+    useEffect(() => {
+        localStorage.setItem('adilitix_brochure_programs', JSON.stringify(programs));
+    }, [programs]);
+
+    useEffect(() => {
+        localStorage.setItem('adilitix_proposal_basket', JSON.stringify(selectedPrograms));
+    }, [selectedPrograms]);
+
+    const departments = [
+        'All',
+        'Robotics & Mechatronics',
+        'Computer Science & IT',
+        'Electronics & Electrical',
+        'Artificial Intelligence & Data Science',
+        'Cyber Security & Cloud'
+    ];
+
+    const filteredPrograms = programs.filter(p => {
+        const matchDept = selectedDept === 'All' || p.department === selectedDept;
+        const matchDuration = durationFilter === 'All' || p.duration.toLowerCase().includes(durationFilter.toLowerCase());
+        const matchSearch = !searchQuery.trim() ||
+            p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.code.toLowerCase().includes(searchQuery.toLowerCase());
+
+        return matchDept && matchDuration && matchSearch;
+    });
+
+    const toggleSelectProgram = (program) => {
+        const exists = selectedPrograms.some(p => p.id === program.id);
+        if (exists) {
+            setSelectedPrograms(selectedPrograms.filter(p => p.id !== program.id));
+        } else {
+            setSelectedPrograms([...selectedPrograms, program]);
+        }
+    };
+
+    const handleSaveNewProgram = (newProg) => {
+        setPrograms([newProg, ...programs]);
+    };
+
     return (
-        <div className="shop-page">
-            <nav className="navbar">
+        <div className={`brochure-container ${presentationMode ? 'presentation-mode' : ''}`} style={{ background: '#05070a' }}>
+            <div className="brochure-bg-glow" />
+
+            {/* Navigation Bar */}
+            <nav className="navbar" style={{ background: 'rgba(5, 7, 10, 0.9)', borderColor: 'var(--ad-border-navy)' }}>
                 <Link to="/" className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <ArrowLeft size={20} color="var(--ad-orange)" /> Home
+                    <ArrowLeft size={18} color="var(--ad-orange)" /> Home
                 </Link>
-                <Logo size="small" showText={true} textSub="TRAINING & INTERNSHIPS" />
-                <Link to="/inquiry" className="nav-btn-subtle" style={{ color: 'var(--ad-orange)' }}>
-                    Book for Institution →
-                </Link>
+                <Logo size="small" showText={true} textSub="COLLEGE BROCHURE" />
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <button
+                        className="brochure-btn-secondary"
+                        onClick={() => setPresentationMode(!presentationMode)}
+                        style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                    >
+                        {presentationMode ? '📺 Exit Presenter Mode' : '📺 HOD Presenter Mode'}
+                    </button>
+                    <button
+                        className="brochure-btn-secondary"
+                        onClick={() => setShowAddEditorModal(true)}
+                        style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                    >
+                        <Plus size={14} /> Add Syllabus
+                    </button>
+                    <Link to="/inquiry" className="nav-btn-subtle" style={{ color: 'var(--ad-orange)', fontSize: '0.85rem', padding: '6px 14px' }}>
+                        Book Workshop →
+                    </Link>
+                </div>
             </nav>
 
-            <div style={{ padding: '40px 8% 80px', maxWidth: '1300px', margin: '0 auto' }}>
-                <header style={{ marginBottom: '60px', textAlign: 'center' }}>
-                    <div className="udyam-badge" style={{ margin: '0 auto 16px' }}>
-                        <Award size={16} /> INDUSTRY-GRADE ROBOTICS TRAINING & INTERNSHIPS
-                    </div>
-                    <h1 style={{ fontSize: '2.8rem', color: '#fff', fontWeight: '900', marginBottom: '16px' }}>
-                        Best Robotics Training & <span className="highlight">Internships in Kerala</span>
-                    </h1>
-                    <p style={{ color: 'var(--ad-text-dim)', fontSize: '1.15rem', maxWidth: '800px', margin: '0 auto', lineHeight: '1.7' }}>
-                        Led by trainers with <b>7+ years of industry experience</b>, <b>200+ workshops successfully conducted</b>, and <b>200+ students trained</b> across engineering colleges and technical institutes in Kollam & Kerala.
-                    </p>
-                </header>
+            {/* Hero Header */}
+            <section className="brochure-hero" style={{ paddingTop: '40px' }}>
+                <div className="brochure-badge" style={{ background: 'rgba(249, 115, 22, 0.1)', borderColor: 'rgba(249, 115, 22, 0.3)', color: 'var(--ad-orange)' }}>
+                    🎓 ADILITIX ROBOTICS ACADEMIC CATALOG 2026
+                </div>
+                <h1 style={{ fontSize: '2.8rem', fontWeight: 900 }}>
+                    Institutional Programs & <br />
+                    <span className="gradient-text" style={{ background: 'linear-gradient(135deg, #f97316 0%, #38bdf8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                        Syllabi Catalog for Colleges
+                    </span>
+                </h1>
+                <p style={{ color: 'var(--ad-text-dim)', fontSize: '1.1rem', maxWidth: '780px', margin: '0 auto 28px' }}>
+                    Led by trainers with <b>7+ years of experience</b> and <b>200+ successful workshops</b> in Kollam & Kerala. Browse module breakdowns, hardware kit specs, and build official college proposals.
+                </p>
 
-                {/* Proof Stats */}
-                <div style={{ background: 'rgba(14, 26, 52, 0.7)', border: '1px solid var(--ad-border-navy)', borderRadius: '20px', padding: '24px', marginBottom: '60px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', textAlign: 'center' }}>
-                        <div>
-                            <span style={{ color: 'var(--ad-orange)', fontSize: '2.2rem', fontWeight: '900' }}>7+ Years</span>
-                            <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.85rem' }}>Trainer Expertise</p>
-                        </div>
-                        <div>
-                            <span style={{ color: '#60a5fa', fontSize: '2.2rem', fontWeight: '900' }}>200+</span>
-                            <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.85rem' }}>Workshops Conducted</p>
-                        </div>
-                        <div>
-                            <span style={{ color: '#10b981', fontSize: '2.2rem', fontWeight: '900' }}>200+</span>
-                            <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.85rem' }}>Students Trained</p>
-                        </div>
-                        <div>
-                            <span style={{ color: '#f59e0b', fontSize: '2.2rem', fontWeight: '900' }}>MSME</span>
-                            <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.85rem' }}>Government Recognized</p>
-                        </div>
-                    </div>
+                {/* Search Bar */}
+                <div style={{ maxWidth: '580px', margin: '0 auto 20px', position: 'relative' }}>
+                    <input
+                        type="text"
+                        placeholder="🔍 Search by topic (e.g. ESP32, Robotics, Generative AI, MERN, Python)..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '12px 20px',
+                            borderRadius: '30px',
+                            background: 'rgba(11, 17, 32, 0.9)',
+                            border: '1px solid rgba(249, 115, 22, 0.3)',
+                            color: '#fff',
+                            fontSize: '0.92rem',
+                            outline: 'none',
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
+                        }}
+                    />
+                </div>
+            </section>
+
+            {/* Department Filter Tabs */}
+            <section className="brochure-controls">
+                <div className="brochure-dept-tabs">
+                    {departments.map((dept) => (
+                        <button
+                            key={dept}
+                            className={`dept-tab-btn ${selectedDept === dept ? 'active' : ''}`}
+                            onClick={() => setSelectedDept(dept)}
+                            style={selectedDept === dept ? { borderColor: 'var(--ad-orange)', color: 'var(--ad-orange)', background: 'rgba(249, 115, 22, 0.15)' } : {}}
+                        >
+                            {dept === 'All' ? '🌐 All Departments' : dept}
+                        </button>
+                    ))}
                 </div>
 
-                {/* Core Domains Overview Grid */}
-                <div style={{ marginBottom: '70px' }}>
-                    <h2 style={{ color: '#fff', fontSize: '1.8rem', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Zap color="var(--ad-orange)" size={24} /> Industry-Grade Technical Core Domains
-                    </h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-                        <div className="service-card">
-                            <Cpu size={28} color="var(--ad-orange)" />
-                            <h3 style={{ fontSize: '1.15rem', color: '#fff', margin: '12px 0 8px' }}>Embedded Systems & Microcontrollers</h3>
-                            <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.9rem' }}>
-                                Bare-metal C/C++ programming, ISR interrupts, ESP32 multi-core architecture, and FreeRTOS task scheduling.
-                            </p>
-                        </div>
-                        <div className="service-card">
-                            <Layers size={28} color="#60a5fa" />
-                            <h3 style={{ fontSize: '1.15rem', color: '#fff', margin: '12px 0 8px' }}>Robotics Mechanics & Actuation</h3>
-                            <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.9rem' }}>
-                                2WD/4WD autonomous rovers, motor drivers, high-density foam chassis fabrication, and 3D printing prototyping in Kollam.
-                            </p>
-                        </div>
-                        <div className="service-card">
-                            <Sparkles size={28} color="#10b981" />
-                            <h3 style={{ fontSize: '1.15rem', color: '#fff', margin: '12px 0 8px' }}>Edge AI & Computer Vision</h3>
-                            <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.9rem' }}>
-                                Python OpenCV & MediaPipe vision pipelines (object tracking, ArUco navigation, gesture control, facial detection).
-                            </p>
-                        </div>
-                        <div className="service-card">
-                            <ShieldCheck size={28} color="#f59e0b" />
-                            <h3 style={{ fontSize: '1.15rem', color: '#fff', margin: '12px 0 8px' }}>Hardware-Software PySerial Integration</h3>
-                            <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.9rem' }}>
-                                High-speed PySerial communications connecting computer vision software with real-time hardware microcontrollers.
-                            </p>
-                        </div>
+                <div className="duration-level-filters">
+                    <div style={{ fontSize: '0.85rem', color: 'var(--ad-text-dim)', fontWeight: 600 }}>
+                        Showing {filteredPrograms.length} Academic Programs
+                    </div>
+
+                    <div className="filter-pill-group">
+                        <span style={{ fontSize: '0.8rem', color: '#64748b', alignSelf: 'center' }}>Filter Duration:</span>
+                        {['All', '1-Day', '3-Day', '5-Day'].map((dur) => (
+                            <button
+                                key={dur}
+                                className={`filter-pill ${durationFilter === dur ? 'active' : ''}`}
+                                onClick={() => setDurationFilter(dur)}
+                                style={durationFilter === dur ? { borderColor: 'var(--ad-orange)', color: 'var(--ad-orange)', background: 'rgba(249, 115, 22, 0.15)' } : {}}
+                            >
+                                {dur}
+                            </button>
+                        ))}
                     </div>
                 </div>
+            </section>
 
-                {/* Signature Programs Breakdown */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
-                    {/* Program 1: Robotics Internships & Project Development */}
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="product-card">
-                        <div className="product-info" style={{ width: '100%' }}>
-                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '12px' }}>
-                                <span style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10b981', padding: '4px 14px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: '800' }}>INDUSTRY INTERNSHIP</span>
-                                <span style={{ color: 'var(--ad-text-dim)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}><Briefcase size={14} /> Kollam & Kerala</span>
+            {/* Programs Grid */}
+            <section className="brochure-grid">
+                {filteredPrograms.map((prog, idx) => {
+                    const isSelected = selectedPrograms.some(p => p.id === prog.id);
+                    return (
+                        <motion.div
+                            key={prog.id}
+                            className="program-card"
+                            style={{ background: 'rgba(11, 17, 32, 0.8)', borderColor: 'var(--ad-border-navy)' }}
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                        >
+                            <div className="program-card-header">
+                                <div className="program-card-badge-row">
+                                    <span className="program-category-badge" style={{ background: 'rgba(249, 115, 22, 0.15)', color: 'var(--ad-orange)', borderColor: 'rgba(249, 115, 22, 0.3)' }}>
+                                        {prog.department}
+                                    </span>
+                                    <span className="program-duration-badge" style={{ color: '#f59e0b' }}>
+                                        <Clock size={13} /> {prog.duration}
+                                    </span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <span style={{ fontSize: '2rem' }}>{prog.imageIcon || '🤖'}</span>
+                                    <div>
+                                        <span className="program-code">{prog.code}</span>
+                                        <h3 className="program-title" style={{ fontSize: '1.2rem', color: '#fff' }}>{prog.title}</h3>
+                                    </div>
+                                </div>
                             </div>
-                            <h2 style={{ fontSize: '2.2rem', color: '#fff', marginBottom: '12px' }}>Robotics & Edge AI Internships</h2>
-                            <p style={{ color: 'var(--ad-text-dim)', fontSize: '1.05rem', lineHeight: '1.6', marginBottom: '20px' }}>
-                                Hands-on internship program for <b>B.Tech, Polytechnic, CS, ECE, MCA, and Robotics students</b> in Kerala. Work directly under trainers with 7+ years of experience on real hardware & product development projects.
-                            </p>
-                            <ul className="feature-list" style={{ gridTemplateColumns: '1fr 1fr', display: 'grid', gap: '10px 20px', marginBottom: '24px' }}>
-                                <li>Real Industrial Project Development</li>
-                                <li>Bare-Metal C/C++ & ESP32 Prototyping</li>
-                                <li>Edge AI & OpenCV Vision Algorithms</li>
-                                <li>3D Chassis Fabrication & Mechanical Assembly</li>
-                                <li>Official MSME Government Internship Certificate</li>
-                                <li>Digital Credential Verification on adilitix.com</li>
-                            </ul>
-                            <Link to="/inquiry" className="cta-primary">
-                                Apply for Robotics Internship <ArrowRight size={18} />
-                            </Link>
-                        </div>
-                    </motion.div>
 
-                    {/* Program 2: RoboMaker Summer Camp */}
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="product-card">
-                        <div className="product-info" style={{ width: '100%' }}>
-                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '12px' }}>
-                                <span style={{ background: 'rgba(249, 115, 22, 0.2)', color: 'var(--ad-orange)', padding: '4px 14px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: '800' }}>SIGNATURE BOOTCAMP</span>
-                                <span style={{ color: 'var(--ad-text-dim)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={14} /> 50 Hours Intensive</span>
-                            </div>
-                            <h2 style={{ fontSize: '2.2rem', color: '#fff', marginBottom: '12px' }}>RoboMaker Summer Camp</h2>
-                            <p style={{ color: 'var(--ad-text-dim)', fontSize: '1.05rem', lineHeight: '1.6', marginBottom: '20px' }}>
-                                Designed for <b>School & Early-College Students</b>. A 50-hour hands-on bootcamp covering foundational electronics, digital prototyping, foam chassis fabrication, and OpenCV Edge AI tracking.
-                            </p>
-                            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                                <Link to="/inquiry" className="cta-primary">
-                                    Book RoboMaker Camp <ArrowRight size={18} />
-                                </Link>
-                            </div>
-                        </div>
-                    </motion.div>
+                            <div className="program-card-body">
+                                <p className="program-desc" style={{ color: 'var(--ad-text-dim)', fontSize: '0.88rem' }}>{prog.desc}</p>
 
-                    {/* Program 3: The Robotics Blueprint */}
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="product-card">
-                        <div className="product-info" style={{ width: '100%' }}>
-                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '12px' }}>
-                                <span style={{ background: 'rgba(29, 59, 151, 0.3)', color: '#60a5fa', padding: '4px 14px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: '800' }}>COLLEGE WORKSHOP</span>
-                                <span style={{ color: 'var(--ad-text-dim)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}><Users size={14} /> Engineering Depts</span>
+                                <div className="program-tags-row">
+                                    <span className="tag-item">🎯 {prog.targetBatch}</span>
+                                    <span className="tag-item">⚡ {prog.level}</span>
+                                </div>
+
+                                <ul className="program-highlights-list">
+                                    {prog.highlights && prog.highlights.slice(0, 3).map((h, hidx) => (
+                                        <li key={hidx} style={{ fontSize: '0.82rem' }}>{h}</li>
+                                    ))}
+                                </ul>
                             </div>
-                            <h2 style={{ fontSize: '2.2rem', color: '#fff', marginBottom: '12px' }}>The Robotics Blueprint</h2>
-                            <p style={{ color: 'var(--ad-text-dim)', fontSize: '1.05rem', lineHeight: '1.6', marginBottom: '20px' }}>
-                                Tailored for <b>Engineering Colleges & Polytechnic Departments</b>. Deep-dive autonomous robotics, sensor telemetry, bare-metal ESP32 programming, and computer vision integration.
-                            </p>
-                            <Link to="/inquiry" className="cta-primary">
-                                Book Blueprint for College <ArrowRight size={18} />
-                            </Link>
+
+                            <div className="program-card-footer" style={{ background: 'rgba(5, 7, 10, 0.6)' }}>
+                                <button
+                                    className="btn-view-syllabus"
+                                    onClick={() => setActiveSyllabusProgram(prog)}
+                                    style={{ borderColor: 'rgba(249, 115, 22, 0.3)', color: 'var(--ad-orange)', background: 'rgba(249, 115, 22, 0.1)' }}
+                                >
+                                    <BookOpen size={14} /> View Syllabus
+                                </button>
+
+                                <button
+                                    className={`btn-select-proposal ${isSelected ? 'selected' : ''}`}
+                                    onClick={() => toggleSelectProgram(prog)}
+                                >
+                                    {isSelected ? '✓ Selected' : '+ Pick'}
+                                </button>
+                            </div>
+                        </motion.div>
+                    );
+                })}
+            </section>
+
+            {/* Floating HOD Proposal Basket Bar */}
+            {selectedPrograms.length > 0 && (
+                <motion.div
+                    className="hod-proposal-bar"
+                    style={{ background: 'rgba(11, 17, 32, 0.95)', borderColor: 'var(--ad-orange)' }}
+                    initial={{ y: 80, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 80, opacity: 0 }}
+                >
+                    <div className="proposal-bar-info">
+                        <div className="proposal-badge-count" style={{ background: 'var(--ad-orange)' }}>
+                            {selectedPrograms.length}
                         </div>
-                    </motion.div>
-                </div>
-            </div>
+                        <div className="proposal-bar-text">
+                            <h4>HOD Proposal Basket</h4>
+                            <p>{selectedPrograms.map(p => p.code).join(', ')}</p>
+                        </div>
+                    </div>
+
+                    <div className="proposal-bar-actions">
+                        <button className="brochure-btn-secondary" onClick={() => setSelectedPrograms([])}>
+                            Clear
+                        </button>
+                        <button className="brochure-btn-primary" style={{ background: 'linear-gradient(135deg, #f97316, #dd6b20)' }} onClick={() => setShowProposalModal(true)}>
+                            📋 Generate Official College Proposal
+                        </button>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Modals */}
+            {activeSyllabusProgram && (
+                <SyllabusModal
+                    program={activeSyllabusProgram}
+                    onClose={() => setActiveSyllabusProgram(null)}
+                    onSelectProposal={toggleSelectProgram}
+                    isSelected={selectedPrograms.some(p => p.id === activeSyllabusProgram.id)}
+                />
+            )}
+
+            {showProposalModal && (
+                <ProposalModal
+                    selectedPrograms={selectedPrograms}
+                    onRemoveProgram={(id) => setSelectedPrograms(selectedPrograms.filter(p => p.id !== id))}
+                    onClose={() => setShowProposalModal(false)}
+                    onClearAll={() => setSelectedPrograms([])}
+                />
+            )}
+
+            {showAddEditorModal && (
+                <SyllabusEditorModal
+                    onSaveProgram={handleSaveNewProgram}
+                    onClose={() => setShowAddEditorModal(false)}
+                />
+            )}
         </div>
     );
 };

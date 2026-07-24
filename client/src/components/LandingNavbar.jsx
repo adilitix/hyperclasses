@@ -23,6 +23,7 @@ const LandingNavbar = () => {
 
                 {/* Desktop Links */}
                 <div className="nav-links desktop-only">
+                    <a onClick={() => navigate('/brochure')} style={{ cursor: 'pointer', fontWeight: 800, color: '#38bdf8' }}>🎓 College Brochure</a>
                     <a onClick={() => navigate('/features')} style={{ cursor: 'pointer', fontWeight: 600 }}>Features</a>
                     <a onClick={() => navigate('/login')} style={{ cursor: 'pointer', fontWeight: 700, color: '#0ea5e9' }}>Flow (Live)</a>
                     <a onClick={() => navigate('/workshops')} style={{ cursor: 'pointer', fontWeight: 700, color: '#f59e0b' }}>Go (Workshops)</a>
@@ -32,7 +33,7 @@ const LandingNavbar = () => {
                 {/* Desktop Actions */}
                 <div className="nav-actions desktop-only" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                     <LandingThemeToggle />
-                    <button className="btn-primary" onClick={() => navigate('/login')} style={{ borderRadius: '30px' }}>Join Session</button>
+                    <button className="btn-primary" onClick={() => navigate('/brochure')} style={{ borderRadius: '30px', background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>View Syllabi</button>
                     <button className="btn-secondary" onClick={() => navigate('/go/login')} style={{ borderRadius: '30px', border: '1px solid #ff7b00', color: '#ff7b00' }}>Student Go</button>
                 </div>
 
@@ -48,6 +49,7 @@ const LandingNavbar = () => {
 
             {/* Mobile Menu Overlay */}
             <div className={`mobile-menu ${isMenuOpen ? 'open' : ''}`}>
+                <a onClick={() => handleNav('/brochure')} style={{ color: '#38bdf8', fontWeight: 800 }}>🎓 Academic Brochure</a>
                 <a onClick={() => handleNav('/features')}>Features</a>
                 <a onClick={() => handleNav('/workshops')}>Workshops</a>
                 <a onClick={() => handleNav('/contact')}>Contact Us</a>

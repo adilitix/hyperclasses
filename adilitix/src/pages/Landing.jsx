@@ -9,7 +9,7 @@ const Landing = () => {
 
     const HYPERCLASS_URL = window.location.hostname === 'localhost'
         ? 'http://localhost:3000'
-        : 'https://hyperclass.vercel.app';
+        : 'https://hyperclass.adilitix.com';
 
     useEffect(() => {
         setIsVisible(true);
@@ -23,6 +23,9 @@ const Landing = () => {
                     <Logo size="medium" showText={true} textSub="ROBOTICS" />
                 </Link>
                 <div className="nav-links">
+                    <Link to="/programs" style={{ color: '#38bdf8', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <BookOpen size={16} /> 🎓 College Brochure
+                    </Link>
                     <Link to="/programs">Training & Internships</Link>
                     <Link to="/about">About Us</Link>
                     <Link to="/shop">Hardware Store</Link>
@@ -53,12 +56,12 @@ const Landing = () => {
                     >
                         Adilitix Robotics is Kerala's premier robotics training center, project development company, and hardware prototyping hub in Kollam. Led by industry trainers with 7+ years of hands-on expertise.
                     </motion.p>
-                    <div className="cta-group">
-                        <Link to="/inquiry" className="cta-primary">
-                            Book a Workshop for Your College / School <ArrowRight size={18} />
+                    <div className="cta-group" style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+                        <Link to="/programs" className="cta-primary" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', border: 'none' }}>
+                            🎓 COLLEGE BROCHURE & SYLLABI <ArrowRight size={18} />
                         </Link>
-                        <Link to="/programs" className="cta-secondary">
-                            Explore Training & Internships
+                        <Link to="/inquiry" className="cta-secondary">
+                            Book a Workshop
                         </Link>
                     </div>
                 </div>

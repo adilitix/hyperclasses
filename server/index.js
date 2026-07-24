@@ -545,6 +545,40 @@ app.delete('/api/workshops/:id', (req, res) => {
 });
 
 
+// --- ADILITIX NOTIFICATION HELPER ---
+async function sendAdilitixAlert(messageText) {
+    const PHONE = process.env.ADILITIX_ALERT_PHONE || '918075355024';
+    const CALLMEBOT_KEY = process.env.CALLMEBOT_API_KEY;
+    const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+    const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+    console.log(`\n📢 [ADILITIX ALERT]:\n${messageText}\n`);
+
+    // 1. CallMeBot WhatsApp Notification
+    if (CALLMEBOT_KEY) {
+        try {
+            const url = `https://api.callmebot.com/whatsapp.php?phone=${PHONE}&text=${encodeURIComponent(messageText)}&apikey=${CALLMEBOT_KEY}`;
+            fetch(url).catch(err => console.error('CallMeBot Error:', err.message));
+        } catch (e) {
+            console.error('CallMeBot send error:', e);
+        }
+    }
+
+    // 2. Telegram Bot Instant Alert (Free 1-second push notification)
+    if (TELEGRAM_TOKEN && TELEGRAM_CHAT_ID) {
+        try {
+            const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+            fetch(telegramUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: messageText })
+            }).catch(err => console.error('Telegram Bot Error:', err.message));
+        } catch (e) {
+            console.error('Telegram send error:', e);
+        }
+    }
+}
+
 // --- ADILITIX PORTAL ROUTES ---
 
 // Return service account email for sheet sharing
@@ -977,6 +1011,9 @@ app.post('/api/adilitix/register', (req, res) => {
     // Sync to Google Sheets
     googleSheets.appendRegistration(registration).catch(console.error);
 
+    // Send Instant Automated Alert
+    sendAdilitixAlert(`🎓 NEW WORKSHOP REGISTRATION!\nName: ${registration.name}\nEmail: ${registration.email}\nPhone: ${registration.phone}\nCourse/Branch: ${registration.course}\nEvent: ${eventName}`);
+
     res.json({ success: true, registration });
 });
 
@@ -1075,6 +1112,9 @@ app.post('/api/adilitix/orders', (req, res) => {
     };
     GLOBAL_STATE.adilitix_orders.push(order);
     db.saveAdilitixOrders(GLOBAL_STATE.adilitix_orders);
+
+    // Send Instant Automated Alert
+    sendAdilitixAlert(`🚀 NEW ADILITIX INQUIRY / ORDER!\nName: ${order.name || 'Anonymous'}\nPhone: ${order.phone || 'N/A'}\nDetails: ${order.requirements || 'N/A'}`);
 
     io.emit('adilitix_update');
     res.json({ success: true, order });

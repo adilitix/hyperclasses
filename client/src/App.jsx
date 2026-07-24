@@ -16,6 +16,8 @@ import GoPortal from './pages/GoPortal';
 import GoStudentWorkshop from './pages/GoStudentWorkshop';
 import AdminLogin from './pages/AdminLogin';
 
+import BrochurePage from './pages/BrochurePage';
+
 // A unified login wrapper for the landing page header button
 const AdminLoginRedirect = () => {
     const { user } = useAuth();
@@ -61,6 +63,8 @@ function App() {
                         <TorchlightOverlay />
                         <Routes>
                             <Route path="/" element={<LandingPage />} />
+                            <Route path="/brochure" element={<BrochurePage />} />
+                            <Route path="/programs" element={<BrochurePage />} />
                             <Route path="/pricing" element={<PricingPage />} />
                             <Route path="/features" element={<FeaturesPage />} />
                             <Route path="/workshops" element={<WorkshopsPage />} />

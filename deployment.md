@@ -34,6 +34,7 @@ Since your app uses **WebSockets** (for real-time chat and updates), we need to 
         *   Key: `VITE_SERVER_URL`
         *   Value: *Your Render URL from Part 1* (e.g., `https://hyperclass-server.onrender.com`)
 4.  Click **Deploy**.
+5.  **Custom Domain**: Add `hyperclass.adilitix.com` under Project Settings > Domains in Vercel.
 
 ---
 
