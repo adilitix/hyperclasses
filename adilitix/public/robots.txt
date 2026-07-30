@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://adilitix.com/sitemap.xml
+Sitemap: https://adilitix.vercel.app/sitemap.xml
