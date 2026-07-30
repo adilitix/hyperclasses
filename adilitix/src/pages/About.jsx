@@ -26,8 +26,12 @@ const About = () => {
                         About <span className="highlight">Adilitix Robotics</span>
                     </h1>
                     <p style={{ color: 'var(--ad-text-dim)', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto', lineHeight: '1.7' }}>
-                        Kerala's premier robotics training center, project development company, and hardware prototyping hub in Kollam.
+                        Kerala's premier robotics training center, project development company, hardware prototyping hub, and quadruped robot rental service in Kollam.
                     </p>
+                    <div style={{ margin: '24px auto 0', maxWidth: '750px', background: 'rgba(249, 115, 22, 0.08)', border: '1px solid rgba(249, 115, 22, 0.25)', borderRadius: '12px', padding: '14px 20px', fontSize: '0.88rem', color: '#cbd5e1', textAlign: 'left', lineHeight: '1.5' }}>
+                        <strong style={{ color: 'var(--ad-orange)', display: 'block', marginBottom: '4px' }}>ℹ️ Official Entity Note (adilitix.com):</strong>
+                        Adilitix Robotics is an MSME-registered robotics enterprise (UDYAM-KL-06-0070364) founded by Aadil S P in Kollam, Kerala, India. <em>Note: Adilitix Robotics (adilitix.com) is an autonomous robotics & engineering firm in India and is not affiliated with Adltix Dubai.</em>
+                    </div>
                 </header>
 
                 {/* Track Record Stats */}

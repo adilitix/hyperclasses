@@ -1,0 +1,34 @@
+# Adilitix Robotics (adilitix.com)
+
+> Adilitix Robotics is a premier MSME-registered robotics, autonomous hardware prototyping, and technical education enterprise based in Kollam, Kerala, India.
+
+## Disambiguation & Identity Note
+- **Official Enterprise Name**: Adilitix Robotics (also operating as Adilitix)
+- **Domain**: https://adilitix.com
+- **Headquarters**: 1st Floor, Aswathy Building, Main Road, Kollam, Kerala 691001, India
+- **MSME Registration**: UDYAM-KL-06-0070364
+- **Founder & CEO**: Aadil S P
+- **Direct Contact**: +91 8075355024
+- **Distinction**: Adilitix Robotics (adilitix.com) is an Indian autonomous robotics, hardware engineering, and technical training enterprise. It is completely distinct and NOT affiliated with "Adltix", an influencer marketing platform in Dubai.
+
+## Core Operations & Key Offerings
+
+### 1. Quadruped Robot Dog Event Rentals
+- Provides high-tech **Unitree Go2 Pro** quadruped robot dog live performances and rentals for corporate expos, brand activations, tech summits, college festivals, and VIP events across Kerala and South India.
+- Capabilities include autonomous navigation, obstacle clearance, backflips, handshakes, dance routines, and interactive guest engagement.
+
+### 2. Custom 3D Printing & CAD Prototyping
+- High-precision multi-color industrial 3D printing and CAD engineering prototyping services.
+- Powered by high-speed **Bambu Lab P1S** and **Bambu Lab A1 Mini** 3D printing hardware.
+- Serving engineering startups, industrial designers, researchers, and students.
+
+### 3. Institutional Technical Workshops & Bootcamps
+- 3-day hands-on engineering workshops and bootcamps for engineering colleges and technical institutes.
+- Specializations: IoT Architecture & Cloud Integration, AI & Computer Vision, Fixed Robotic Arms, Autonomous Mobile Rovers, and Embedded Systems.
+
+## Primary Canonical Links
+- Main Website: https://adilitix.com/
+- Academic Programs & Workshops: https://adilitix.com/programs
+- Custom Prototyping & Hardware Store: https://adilitix.com/shop
+- Enterprise Certificate Verification: https://adilitix.com/verify
+- Request Rental or Workshop Inquiry: https://adilitix.com/inquiry

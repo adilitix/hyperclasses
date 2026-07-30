@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rounded Dark Premium Background for high contrast in Google Search and browser tabs -->
+  <rect width="512" height="512" rx="100" fill="#0b0f17"/>
+  <rect x="8" y="8" width="496" height="496" rx="92" stroke="url(#borderGrad)" stroke-width="4" opacity="0.6"/>
+
+  <defs>
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff6b00"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+
+    <linearGradient id="adOrangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff6b00"/>
+      <stop offset="50%" stop-color="#f95700"/>
+      <stop offset="100%" stop-color="#d94800"/>
+    </linearGradient>
+
+    <linearGradient id="adNavyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="40%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <g transform="translate(48, 116) scale(1.04)">
+    <!-- Circuit Nodes & Traces extending left from 'A' -->
+    <g stroke="url(#adOrangeGrad)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 70 85 L 140 85"/>
+      <circle cx="65" cy="85" r="14" fill="#0b0f17" stroke="url(#adOrangeGrad)" stroke-width="12"/>
+
+      <path d="M 40 130 L 105 130 L 145 95 L 160 95"/>
+      <circle cx="35" cy="130" r="14" fill="#0b0f17" stroke="url(#adOrangeGrad)" stroke-width="12"/>
+
+      <path d="M 45 175 L 115 175 L 130 150 L 150 150"/>
+      <circle cx="40" cy="175" r="14" fill="#0b0f17" stroke="url(#adOrangeGrad)" stroke-width="12"/>
+
+      <circle cx="150" cy="115" r="9" fill="url(#adOrangeGrad)" stroke="none"/>
+    </g>
+
+    <!-- Main Slanted 'A' shape -->
+    <path d="M 195 25 L 155 210 L 70 228 L 170 25 Z" fill="url(#adOrangeGrad)"/>
+    <path d="M 190 25 L 285 228 L 230 228 L 150 165 L 215 165 Z" fill="url(#adOrangeGrad)"/>
+    <path d="M 175 60 L 215 140 L 165 140 Z" fill="url(#adOrangeGrad)"/>
+
+    <!-- Bold curved Navy Blue 'D' shape -->
+    <path d="M 205 25 C 320 25, 360 80, 360 130 C 360 185, 315 228, 235 228 L 290 190 C 320 180, 325 150, 325 130 C 325 100, 290 65, 230 65 Z" fill="url(#adNavyGrad)"/>
+  </g>
+</svg>

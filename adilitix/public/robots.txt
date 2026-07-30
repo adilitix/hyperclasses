@@ -1,5 +1,29 @@
 User-agent: *
 Allow: /
 
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
 Sitemap: https://adilitix.com/sitemap.xml
 Sitemap: https://adilitix.vercel.app/sitemap.xml
+
+# AI LLM Knowledge Specification
+# https://adilitix.com/llms.txt
