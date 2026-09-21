@@ -9,6 +9,7 @@ import Shop from './pages/Shop';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import VerifyCertificate from './pages/VerifyCertificate';
+import OfficeStatus from './pages/OfficeStatus';
 import './App.css';
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/verify" element={<VerifyCertificate />} />
+        <Route path="/office" element={<OfficeStatus />} />
       </Routes>
     </Router>
   );
