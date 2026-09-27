@@ -100,7 +100,7 @@ const Inquiry = () => {
                     </div>
 
                     <form onSubmit={handleSubmit} className="reg-form" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div className="responsive-form-grid">
                             <div className="form-group" style={{ margin: 0 }}>
                                 <label style={{ fontSize: '0.78rem', marginBottom: '4px' }}>Full Name & Role</label>
                                 <input
@@ -125,7 +125,7 @@ const Inquiry = () => {
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div className="responsive-form-grid">
                             <div className="form-group" style={{ margin: 0 }}>
                                 <label style={{ fontSize: '0.78rem', marginBottom: '4px' }}>Department / Stream</label>
                                 <input
@@ -150,7 +150,7 @@ const Inquiry = () => {
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div className="responsive-form-grid">
                             <div className="form-group" style={{ margin: 0 }}>
                                 <label style={{ fontSize: '0.78rem', marginBottom: '4px' }}>Email Address</label>
                                 <input

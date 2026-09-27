@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Award, MapPin, Phone, UserCheck, BookOpen, Cpu, Layers, Sparkles, ShieldCheck, Zap, Box, Printer, CheckCircle2, Calendar, PartyPopper } from 'lucide-react';
+import { ArrowRight, Award, MapPin, Phone, UserCheck, BookOpen, Cpu, Layers, Sparkles, ShieldCheck, Zap, Box, Printer, CheckCircle2, Calendar, PartyPopper, Menu, X } from 'lucide-react';
 import Logo from '../components/Logo';
 
 const Landing = () => {
     const [isVisible, setIsVisible] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
 
     useEffect(() => {
         setIsVisible(true);
@@ -14,18 +15,29 @@ const Landing = () => {
     return (
         <div className="adilitix-container" style={{ background: '#05070a' }}>
             {/* Corporate Navigation Header */}
-            <nav className="navbar" style={{ background: 'rgba(5, 7, 10, 0.95)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                <Link to="/">
+            <nav className="navbar" style={{ background: 'rgba(5, 7, 10, 0.95)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', position: 'sticky', top: 0, zIndex: 1000 }}>
+                <Link to="/" onClick={() => setMobileOpen(false)}>
                     <Logo size="medium" showText={true} textSub="ROBOTICS" />
                 </Link>
-                <div className="nav-links">
-                    <Link to="/programs" style={{ color: '#38bdf8', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+
+                {/* Mobile Menu Toggle Button */}
+                <button
+                    className="mobile-menu-btn"
+                    onClick={() => setMobileOpen(!mobileOpen)}
+                    aria-label="Toggle Navigation Menu"
+                >
+                    {mobileOpen ? <X size={26} color="#f97316" /> : <Menu size={26} color="#fff" />}
+                </button>
+
+                {/* Navigation Links */}
+                <div className={`nav-links ${mobileOpen ? 'mobile-open' : ''}`}>
+                    <Link to="/programs" onClick={() => setMobileOpen(false)} style={{ color: '#38bdf8', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <BookOpen size={16} /> Academic Brochure
                     </Link>
-                    <Link to="/shop">Hardware Store</Link>
-                    <Link to="/about">About Enterprise</Link>
-                    <Link to="/verify">Verify Certificate</Link>
-                    <Link to="/inquiry" className="nav-btn-subtle" style={{ color: 'var(--ad-orange)', border: '1px solid var(--ad-orange)' }}>
+                    <Link to="/shop" onClick={() => setMobileOpen(false)}>Hardware Store</Link>
+                    <Link to="/about" onClick={() => setMobileOpen(false)}>About Enterprise</Link>
+                    <Link to="/verify" onClick={() => setMobileOpen(false)}>Verify Certificate</Link>
+                    <Link to="/inquiry" onClick={() => setMobileOpen(false)} className="nav-btn-subtle" style={{ color: 'var(--ad-orange)', border: '1px solid var(--ad-orange)' }}>
                         Request Inquiry
                     </Link>
                 </div>
@@ -42,9 +54,9 @@ const Landing = () => {
                         initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
-                        style={{ fontSize: '2.8rem', fontWeight: 900, lineHeight: 1.18, color: '#ffffff', margin: '20px 0 16px', letterSpacing: '-0.5px' }}
+                        style={{ fontWeight: 900, lineHeight: 1.18, color: '#ffffff', margin: '20px 0 16px', letterSpacing: '-0.5px' }}
                     >
-                        Autonomous Systems, Event Rentals & <br />
+                        Autonomous Systems, Event Rentals & <br className="desktop-only-br" />
                         <span style={{ color: 'var(--ad-orange)' }}>Custom Hardware Prototyping</span>
                     </motion.h1>
 
@@ -57,7 +69,7 @@ const Landing = () => {
                         Adilitix Robotics is a premier technology enterprise specializing in high-tech quadruped robot rentals for corporate events & exhibitions, precision 3D printing & CAD prototyping, and institutional technical education.
                     </motion.p>
 
-                    <div className="cta-group" style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+                    <div className="cta-group">
                         <a href="#event-rentals" className="cta-primary" style={{ background: 'linear-gradient(135deg, #f97316, #dd6b20)', border: 'none', padding: '12px 24px', fontSize: '0.92rem', fontWeight: 700, borderRadius: '8px' }}>
                             🐕 ROBOT DOG EVENT RENTALS <ArrowRight size={17} />
                         </a>
@@ -72,7 +84,7 @@ const Landing = () => {
 
                 {/* Corporate Enterprise Details Card */}
                 <div className="hero-image">
-                    <div className="company-card-hero" style={{ background: 'rgba(11, 17, 32, 0.85)', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '16px', padding: '24px' }}>
+                    <div className="company-card-hero">
                         <Logo size="small" showText={true} textSub="ROBOTICS" />
                         <div style={{ margin: '14px 0', height: '1px', background: 'rgba(255, 255, 255, 0.08)' }} />
                         <p style={{ color: 'var(--ad-orange)', fontWeight: '700', fontSize: '0.88rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -108,7 +120,7 @@ const Landing = () => {
 
             {/* SHOWCASE 1: Unitree Go2 Pro Quadruped Robot - Event Rentals & Exhibitions */}
             <section id="event-rentals" style={{ padding: '80px 8%', maxWidth: '1250px', margin: '0 auto' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'center' }}>
+                <div className="responsive-grid-2col">
                     <div>
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(249, 115, 22, 0.1)', border: '1px solid rgba(249, 115, 22, 0.25)', color: 'var(--ad-orange)', padding: '5px 14px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '16px' }}>
                             🐕 ROBOTIC DOG EVENT RENTALS & EXHIBITIONS
@@ -161,7 +173,7 @@ const Landing = () => {
                         </p>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '28px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
                         {/* Bambu Lab P1S Combo */}
                         <div style={{ background: 'rgba(11, 17, 32, 0.85)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '16px', overflow: 'hidden', padding: '24px', display: 'flex', flexDirection: 'column' }}>
                             <img src="/bambulab_p1s.png" alt="Bambu Lab P1S Combo 3D Printer" style={{ width: '100%', height: '220px', objectFit: 'contain', marginBottom: '16px', borderRadius: '14px' }} />
@@ -212,7 +224,7 @@ const Landing = () => {
 
             {/* SHOWCASE 3: Institutional Workshops & Academic Brochure Callout */}
             <section style={{ padding: '80px 8%', maxWidth: '1250px', margin: '0 auto' }}>
-                <div style={{ background: 'rgba(11, 17, 32, 0.85)', border: '1px solid rgba(249, 115, 22, 0.3)', borderRadius: '20px', padding: '40px', display: 'grid', gridTemplateColumns: '1fr auto', gap: '32px', alignItems: 'center' }}>
+                <div style={{ background: 'rgba(11, 17, 32, 0.85)', border: '1px solid rgba(249, 115, 22, 0.3)', borderRadius: '20px', padding: '40px' }} className="responsive-callout-banner">
                     <div>
                         <span style={{ color: 'var(--ad-orange)', fontWeight: 800, fontSize: '0.8rem', letterSpacing: '1px', textTransform: 'uppercase' }}>
                             🎓 FOR COLLEGES & EDUCATIONAL INSTITUTIONS

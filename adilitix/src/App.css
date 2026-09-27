@@ -631,21 +631,146 @@ a {
   color: var(--ad-orange);
 }
 
-/* --- Responsive Adjustments --- */
+/* --- Responsive Layout & Mobile Utility System --- */
+
+.desktop-only-br {
+  display: inline;
+}
+
+.responsive-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.responsive-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.responsive-callout-banner {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 32px;
+  align-items: center;
+}
+
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 6px;
+  z-index: 1001;
+}
+
 @media (max-width: 900px) {
   .hero {
     flex-direction: column;
-    padding-top: 100px;
+    padding: 100px 5% 50px !important;
     text-align: center;
+    gap: 36px;
   }
+  
+  .hero-content {
+    max-width: 100% !important;
+  }
+  
+  .hero-content h1 {
+    font-size: clamp(1.9rem, 7vw, 2.8rem) !important;
+    line-height: 1.2 !important;
+  }
+
+  .desktop-only-br {
+    display: none !important;
+  }
+
   .cta-group {
-    justify-content: center;
+    justify-content: center !important;
   }
+
+  .responsive-grid-2col {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+
+  .responsive-callout-banner {
+    grid-template-columns: 1fr !important;
+    text-align: center !important;
+    padding: 28px 20px !important;
+  }
+
+  .responsive-callout-banner button,
+  .responsive-callout-banner a {
+    width: 100% !important;
+    justify-content: center !alignment;
+  }
+
+  .company-card-hero {
+    width: 100% !important;
+    max-width: 360px !important;
+    margin: 0 auto;
+  }
+
   .product-card {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    padding: 24px !important;
   }
-  .robot-sphere {
-    width: 260px;
-    height: 260px;
+
+  .mobile-menu-btn {
+    display: block !important;
+  }
+
+  /* Mobile Navigation Drawer */
+  .nav-links {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 280px;
+    height: 100vh;
+    background: rgba(5, 7, 10, 0.98);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid var(--ad-border-navy);
+    flex-direction: column;
+    padding: 90px 24px 40px;
+    gap: 20px;
+    align-items: flex-start;
+    transition: right 0.35s ease-in-out;
+    box-shadow: -10px 0 40px rgba(0,0,0,0.8);
+    z-index: 999;
+  }
+
+  .nav-links.mobile-open {
+    right: 0 !important;
+  }
+
+  .nav-links a {
+    width: 100%;
+    padding: 10px 0;
+    font-size: 1rem !important;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+}
+
+@media (max-width: 600px) {
+  .responsive-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .registration-form-card {
+    padding: 20px 16px !important;
+    border-radius: 16px !important;
+  }
+
+  .navbar {
+    padding: 16px 4% !important;
+  }
+
+  section {
+    padding-left: 5% !important;
+    padding-right: 5% !important;
   }
 }
