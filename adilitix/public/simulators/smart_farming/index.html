@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgroSense Handheld Simulator - Smart Farming Assistance Device</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Inter:wght@400;600;700;800&display=swap');
+    
+    * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Realistic OLED screen styling */
+    .oled-screen {
+      background-color: #03060a;
+      box-shadow: inset 0 0 16px rgba(56, 189, 248, 0.15), 0 0 10px rgba(0, 0, 0, 0.9);
+      border: 3px solid #1e293b;
+      font-family: 'JetBrains Mono', monospace;
+      color: #38bdf8;
+      image-rendering: pixelated;
+    }
+
+    .btn-tactile {
+      transition: all 0.1s ease;
+      box-shadow: 0 4px 0 #0f172a, 0 8px 12px rgba(0, 0, 0, 0.5);
+    }
+    .btn-tactile:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #0f172a, 0 3px 6px rgba(0, 0, 0, 0.4);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8">
+
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-800 mb-8 gap-4">
+      <div>
+        <div class="inline-block px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-2">
+          APPLIED SMART FARMING &bull; ARDUINO NANO HARDWARE SIMULATOR
+        </div>
+        <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+          AgroSense Handheld Field Assistant
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">
+          0.96" SSD1306 OLED HUD, 3-Button Nav (D2 Left, D3 Right, D4 Select), Soil Moisture (A0), DHT11 (D5), & LDR (A1)
+        </p>
+      </div>
+
+      <!-- Quick Preset Buttons -->
+      <div class="flex flex-wrap gap-2">
+        <button onclick="setPreset('arid')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-500/20 text-red-300 border border-red-500/40 hover:bg-red-500/30">
+          🏜️ Arid / Drought Alert
+        </button>
+        <button onclick="setPreset('optimal')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30">
+          💧 Optimal Green Canopy
+        </button>
+        <button onclick="setPreset('waterlogged')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30">
+          🌊 Waterlogged Field
+        </button>
+        <button onclick="setPreset('scorching')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30">
+          ☀️ High Heat & Scorching Sun
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Simulator Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- COLUMN 1: Physical Handheld Device Apparatus (5 Cols) -->
+      <div class="lg:col-span-6 flex flex-col items-center">
+        
+        <!-- Handheld Device Enclosure -->
+        <div class="w-full max-w-md bg-gradient-to-b from-slate-900 to-slate-950 border-4 border-slate-800 rounded-[36px] p-6 shadow-2xl relative">
+          
+          <!-- Screws on Corners -->
+          <div class="absolute top-4 left-4 w-2.5 h-2.5 rounded-full bg-slate-700 border border-slate-600"></div>
+          <div class="absolute top-4 right-4 w-2.5 h-2.5 rounded-full bg-slate-700 border border-slate-600"></div>
+          <div class="absolute bottom-4 left-4 w-2.5 h-2.5 rounded-full bg-slate-700 border border-slate-600"></div>
+          <div class="absolute bottom-4 right-4 w-2.5 h-2.5 rounded-full bg-slate-700 border border-slate-600"></div>
+
+          <!-- Top Bezel & Branding -->
+          <div class="flex justify-between items-center mb-4 px-2">
+            <span class="text-[11px] mono font-extrabold tracking-widest text-emerald-400">AGROSENSE &bull; NANO</span>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="text-[10px] mono text-slate-400">5V POWER</span>
+            </div>
+          </div>
+
+          <!-- SSD1306 0.96" OLED Display Bezel (128x64 simulated) -->
+          <div class="bg-slate-950 p-2.5 rounded-2xl border-2 border-slate-800 shadow-inner mb-6">
+            <div id="oledScreen" class="oled-screen w-full h-56 rounded-xl p-3 flex flex-col justify-between overflow-hidden relative select-none">
+              <!-- Content rendered dynamically via JS -->
+            </div>
+          </div>
+
+          <!-- Physical 3-Button Navigation Bar -->
+          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
+            <div class="text-[10px] mono text-center text-slate-400 mb-3 tracking-wider uppercase font-bold">
+              Field Tactile Navigation
+            </div>
+            
+            <div class="grid grid-cols-3 gap-3">
+              <!-- Left Button (D2) -->
+              <button onclick="pressButton('left')" class="btn-tactile bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl py-3 flex flex-col items-center text-white active:bg-cyan-600">
+                <span class="text-lg">◀</span>
+                <span class="text-[10px] font-bold text-slate-300 mt-1">LEFT (D2)</span>
+                <span class="text-[8px] mono text-cyan-400">PREV PAGE</span>
+              </button>
+
+              <!-- Select / Back Button (D4) -->
+              <button onclick="pressButton('select')" class="btn-tactile bg-emerald-900/40 hover:bg-emerald-800/50 border border-emerald-500/50 rounded-xl py-3 flex flex-col items-center text-emerald-300 active:bg-emerald-600">
+                <span class="text-lg">🔘</span>
+                <span class="text-[10px] font-bold text-white mt-1">SELECT (D4)</span>
+                <span class="text-[8px] mono text-emerald-400">TOGGLE / HOME</span>
+              </button>
+
+              <!-- Right Button (D3) -->
+              <button onclick="pressButton('right')" class="btn-tactile bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl py-3 flex flex-col items-center text-white active:bg-cyan-600">
+                <span class="text-lg">▶</span>
+                <span class="text-[10px] font-bold text-slate-300 mt-1">RIGHT (D3)</span>
+                <span class="text-[8px] mono text-cyan-400">NEXT PAGE</span>
+              </button>
+            </div>
+
+            <div class="text-center text-[10px] text-slate-500 mt-3 mono">
+              Tip: Use Left/Right arrow keys & Spacebar on keyboard!
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- COLUMN 2: Sensor Stimulation Sliders & Pinout Reference (6 Cols) -->
+      <div class="lg:col-span-6 flex flex-col gap-6">
+        
+        <!-- Live Sensor Sliders -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
+          <h2 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+            Simulated Sensor Inputs
+          </h2>
+
+          <div class="flex flex-col gap-4">
+            <!-- Soil Moisture Slider (A0) -->
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">🌱 Soil Moisture (Analog Pin A0)</span>
+                <span class="mono font-bold text-emerald-400"><span id="ctrlSoilVal">60</span>% &bull; Raw: <span id="ctrlSoilRaw">450</span></span>
+              </div>
+              <input type="range" min="0" max="100" value="60" id="ctrlSoil" oninput="updateSimulator()" class="w-full accent-emerald-400">
+            </div>
+
+            <!-- Temperature Slider (DHT11 D5) -->
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">🌡️ Ambient Temperature (DHT11 Pin D5)</span>
+                <span class="mono font-bold text-amber-400"><span id="ctrlTempVal">27.5</span> °C</span>
+              </div>
+              <input type="range" min="10" max="45" step="0.5" value="27.5" id="ctrlTemp" oninput="updateSimulator()" class="w-full accent-amber-400">
+            </div>
+
+            <!-- Relative Humidity Slider (DHT11 D5) -->
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">💧 Relative Humidity (DHT11 Pin D5)</span>
+                <span class="mono font-bold text-sky-400"><span id="ctrlHumVal">65</span> %</span>
+              </div>
+              <input type="range" min="20" max="95" value="65" id="ctrlHum" oninput="updateSimulator()" class="w-full accent-sky-400">
+            </div>
+
+            <!-- LDR Light Sensor Slider (A1) -->
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">☀️ Sunlight Intensity (LDR Pin A1)</span>
+                <span class="mono font-bold text-yellow-400"><span id="ctrlLightVal">75</span>% &bull; ~<span id="ctrlLuxVal">26250</span> Lux</span>
+              </div>
+              <input type="range" min="0" max="100" value="75" id="ctrlLight" oninput="updateSimulator()" class="w-full accent-yellow-400">
+            </div>
+          </div>
+        </div>
+
+        <!-- Hardware Pinout Quick Table -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
+          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">
+            Hardware Pin Interconnections (Arduino Nano)
+          </h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="text-slate-400 border-b border-slate-800">
+                  <th class="pb-2">Function</th>
+                  <th class="pb-2">Nano Pin</th>
+                  <th class="pb-2">Wire</th>
+                  <th class="pb-2">Signal Specs</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/60 text-slate-300">
+                <tr>
+                  <td class="py-2 font-semibold">Left Button</td>
+                  <td><code class="text-cyan-400 font-bold bg-cyan-950/60 px-1.5 py-0.5 rounded">Pin D2</code></td>
+                  <td>Yellow</td>
+                  <td>Active LOW (INPUT_PULLUP)</td>
+                </tr>
+                <tr>
+                  <td class="py-2 font-semibold">Right Button</td>
+                  <td><code class="text-cyan-400 font-bold bg-cyan-950/60 px-1.5 py-0.5 rounded">Pin D3</code></td>
+                  <td>Green</td>
+                  <td>Active LOW (INPUT_PULLUP)</td>
+                </tr>
+                <tr>
+                  <td class="py-2 font-semibold">Select / Back</td>
+                  <td><code class="text-emerald-400 font-bold bg-emerald-950/60 px-1.5 py-0.5 rounded">Pin D4</code></td>
+                  <td>Blue</td>
+                  <td>Toggle Mode / Long-press Home</td>
+                </tr>
+                <tr>
+                  <td class="py-2 font-semibold">OLED I2C</td>
+                  <td><code class="text-cyan-400 font-bold bg-cyan-950/60 px-1.5 py-0.5 rounded">A4 / A5</code></td>
+                  <td>Yellow/Green</td>
+                  <td>SDA (A4) / SCL (A5) @ 0x3C</td>
+                </tr>
+                <tr>
+                  <td class="py-2 font-semibold">Soil Sensor</td>
+                  <td><code class="text-cyan-400 font-bold bg-cyan-950/60 px-1.5 py-0.5 rounded">Pin A0</code></td>
+                  <td>Yellow</td>
+                  <td>Analog ADC (0 - 1023)</td>
+                </tr>
+                <tr>
+                  <td class="py-2 font-semibold">DHT11 Temp/Hum</td>
+                  <td><code class="text-amber-400 font-bold bg-amber-950/60 px-1.5 py-0.5 rounded">Pin D5</code></td>
+                  <td>Orange</td>
+                  <td>One-Wire Digital Protocol</td>
+                </tr>
+                <tr>
+                  <td class="py-2 font-semibold">LDR Light Probe</td>
+                  <td><code class="text-yellow-400 font-bold bg-yellow-950/60 px-1.5 py-0.5 rounded">Pin A1</code></td>
+                  <td>White</td>
+                  <td>Analog Voltage Divider (10kΩ)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // System State
+    let currentPage = 0; // 0=Home, 1=Soil, 2=Climate, 3=Sunlight
+    let soilPercent = 60;
+    let tempC = 27.5;
+    let tempFahrenheit = false;
+    let humidity = 65;
+    let ldrPercent = 75;
+    let autoCycle = false;
+    let autoCycleInterval = null;
+
+    function updateSimulator() {
+      soilPercent = parseInt(document.getElementById('ctrlSoil').value);
+      tempC = parseFloat(document.getElementById('ctrlTemp').value);
+      humidity = parseInt(document.getElementById('ctrlHum').value);
+      ldrPercent = parseInt(document.getElementById('ctrlLight').value);
+
+      let soilRaw = Math.round(950 - (soilPercent / 100 * 650));
+      let estLux = ldrPercent * 350;
+
+      document.getElementById('ctrlSoilVal').innerText = soilPercent;
+      document.getElementById('ctrlSoilRaw').innerText = soilRaw;
+      document.getElementById('ctrlTempVal').innerText = tempC.toFixed(1);
+      document.getElementById('ctrlHumVal').innerText = humidity;
+      document.getElementById('ctrlLightVal').innerText = ldrPercent;
+      document.getElementById('ctrlLuxVal').innerText = estLux.toLocaleString();
+
+      renderOLED();
+    }
+
+    function pressButton(type) {
+      if (type === 'left') {
+        currentPage--;
+        if (currentPage < 0) currentPage = 3;
+      } else if (type === 'right') {
+        currentPage++;
+        if (currentPage > 3) currentPage = 0;
+      } else if (type === 'select') {
+        if (currentPage === 0) {
+          // Toggle Auto-Cycle
+          autoCycle = !autoCycle;
+          if (autoCycle) {
+            autoCycleInterval = setInterval(() => {
+              currentPage = (currentPage + 1) % 4;
+              renderOLED();
+            }, 3500);
+          } else {
+            clearInterval(autoCycleInterval);
+          }
+        } else if (currentPage === 2) {
+          tempFahrenheit = !tempFahrenheit;
+        } else {
+          currentPage = 0; // Return to Home
+        }
+      }
+      renderOLED();
+    }
+
+    function setPreset(type) {
+      if (type === 'arid') {
+        document.getElementById('ctrlSoil').value = 18;
+        document.getElementById('ctrlTemp').value = 36.5;
+        document.getElementById('ctrlHum').value = 32;
+        document.getElementById('ctrlLight').value = 92;
+      } else if (type === 'optimal') {
+        document.getElementById('ctrlSoil').value = 60;
+        document.getElementById('ctrlTemp').value = 26.0;
+        document.getElementById('ctrlHum').value = 68;
+        document.getElementById('ctrlLight').value = 75;
+      } else if (type === 'waterlogged') {
+        document.getElementById('ctrlSoil').value = 94;
+        document.getElementById('ctrlTemp').value = 22.0;
+        document.getElementById('ctrlHum').value = 88;
+        document.getElementById('ctrlLight').value = 35;
+      } else if (type === 'scorching') {
+        document.getElementById('ctrlSoil').value = 25;
+        document.getElementById('ctrlTemp').value = 41.0;
+        document.getElementById('ctrlHum').value = 40;
+        document.getElementById('ctrlLight').value = 98;
+      }
+      updateSimulator();
+    }
+
+    function renderOLED() {
+      const screen = document.getElementById('oledScreen');
+      let dots = ['○', '○', '○', '○'];
+      dots[currentPage] = '●';
+      let pagination = `<div class="text-[9px] border-t border-cyan-800/60 pt-1 flex justify-between items-center text-cyan-400">
+        <span>◀ D2</span>
+        <span class="tracking-widest">${dots.join(' ')}</span>
+        <span>D3 ▶</span>
+      </div>`;
+
+      let soilTag = soilPercent < 30 ? '[DRY]' : (soilPercent > 70 ? '[WET]' : '[OPT]');
+      let soilText = soilPercent < 30 ? 'DRY (IRRIGATE NOW)' : (soilPercent > 70 ? 'WATERLOGGED FIELD' : 'OPTIMAL (GOOD MOISTURE)');
+      let estLux = ldrPercent * 350;
+
+      let tempDisplay = tempFahrenheit ? `${((tempC * 9/5) + 32).toFixed(1)}°F` : `${tempC.toFixed(1)}°C`;
+
+      let html = '';
+
+      if (currentPage === 0) {
+        // Page 0: Home Dashboard
+        let healthScore = (soilPercent >= 40 && soilPercent <= 70 ? 40 : 20) +
+                          (tempC >= 20 && tempC <= 32 ? 35 : 15) +
+                          (ldrPercent >= 35 && ldrPercent <= 85 ? 25 : 10);
+
+        html = `
+          <div>
+            <div class="flex justify-between items-center text-[10px] font-bold border-b border-cyan-800 pb-1 mb-1">
+              <span>AGROSENSE FIELD HUD</span>
+              <span class="text-emerald-400 font-extrabold text-[9px]">${autoCycle ? '[AUTO]' : '● LIVE'}</span>
+            </div>
+            <div class="text-[11px] leading-tight space-y-1">
+              <div>SOIL: <b class="text-white">${soilPercent}%</b> ${soilTag}</div>
+              <div>TEMP: <b class="text-white">${tempDisplay}</b> | HUM: <b class="text-white">${humidity}%</b></div>
+              <div>LITE: <b class="text-white">${ldrPercent}%</b> (${ldrPercent < 35 ? 'SHADE' : (ldrPercent > 80 ? 'BRIGHT' : 'SUN')})</div>
+              <div class="text-emerald-300">FIELD HEALTH: <b class="text-white text-xs">${healthScore}%</b></div>
+            </div>
+          </div>
+          ${pagination}
+        `;
+      } else if (currentPage === 1) {
+        // Page 1: Soil Hydraulics
+        html = `
+          <div>
+            <div class="text-[10px] font-bold border-b border-cyan-800 pb-1 mb-1 flex justify-between">
+              <span>1. SOIL HYDRAULICS</span>
+              <span class="text-[9px]">A0 ADC</span>
+            </div>
+            <div class="flex items-baseline gap-2 mb-1">
+              <span class="text-2xl font-extrabold text-white">${soilPercent}%</span>
+              <span class="text-[10px] text-cyan-300">Raw: ${Math.round(950 - (soilPercent/100*650))}</span>
+            </div>
+            <div class="w-full bg-slate-900 border border-cyan-700 h-2 rounded mb-2">
+              <div class="bg-cyan-400 h-full rounded" style="width: ${soilPercent}%;"></div>
+            </div>
+            <div class="text-[10px] font-semibold text-emerald-300">STATUS: ${soilText}</div>
+          </div>
+          ${pagination}
+        `;
+      } else if (currentPage === 2) {
+        // Page 2: Micro-Climate
+        let climateAdvice = tempC > 34 ? 'HEAT STRESS!' : (tempC < 16 ? 'COLD STRESS!' : (humidity > 80 ? 'HIGH FUNGAL RISK' : 'IDEAL GROWTH'));
+        html = `
+          <div>
+            <div class="text-[10px] font-bold border-b border-cyan-800 pb-1 mb-1 flex justify-between">
+              <span>2. MICRO-CLIMATE</span>
+              <span class="text-[9px] text-amber-300">[D4: °C/°F]</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mb-1">
+              <div>
+                <span class="text-[9px] block text-cyan-400">TEMPERATURE</span>
+                <span class="text-xl font-extrabold text-white">${tempDisplay}</span>
+              </div>
+              <div>
+                <span class="text-[9px] block text-cyan-400">HUMIDITY</span>
+                <span class="text-xl font-extrabold text-white">${humidity}%</span>
+              </div>
+            </div>
+            <div class="text-[10px] text-slate-300">CROP ENV: <b class="text-amber-300">${climateAdvice}</b></div>
+          </div>
+          ${pagination}
+        `;
+      } else if (currentPage === 3) {
+        // Page 3: Solar Photometrics
+        let lightStatus = ldrPercent < 20 ? 'NIGHT / DARK' : (ldrPercent < 50 ? 'SHADED CANOPY' : (ldrPercent < 80 ? 'OPTIMAL SUN' : 'SCORCHING SUN'));
+        html = `
+          <div>
+            <div class="text-[10px] font-bold border-b border-cyan-800 pb-1 mb-1 flex justify-between">
+              <span>3. SOLAR PHOTOMETRICS</span>
+              <span class="text-[9px]">LDR A1</span>
+            </div>
+            <div class="flex items-baseline gap-2 mb-1">
+              <span class="text-2xl font-extrabold text-white">${ldrPercent}%</span>
+              <span class="text-[10px] text-cyan-300">~${estLux.toLocaleString()} Lux</span>
+            </div>
+            <div class="w-full bg-slate-900 border border-cyan-700 h-2 rounded mb-2">
+              <div class="bg-cyan-400 h-full rounded" style="width: ${ldrPercent}%;"></div>
+            </div>
+            <div class="text-[10px] text-yellow-300">PHOTOSYN: ${lightStatus}</div>
+          </div>
+          ${pagination}
+        `;
+      }
+
+      screen.innerHTML = html;
+    }
+
+    // Keyboard Shortcuts (Arrow Left, Arrow Right, Enter/Space)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') pressButton('left');
+      if (e.key === 'ArrowRight') pressButton('right');
+      if (e.key === ' ' || e.key === 'Enter') pressButton('select');
+    });
+
+    // Initial render
+    updateSimulator();
+  </script>
+</body>
+</html>
