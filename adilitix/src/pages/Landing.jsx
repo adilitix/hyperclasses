@@ -34,6 +34,9 @@ const Landing = () => {
                     <Link to="/programs" onClick={() => setMobileOpen(false)} style={{ color: '#38bdf8', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <BookOpen size={16} /> Academic Brochure
                     </Link>
+                    <Link to="/projects" onClick={() => setMobileOpen(false)} style={{ color: 'var(--ad-orange)', fontWeight: 700 }}>
+                        Projects
+                    </Link>
                     <Link to="/shop" onClick={() => setMobileOpen(false)}>Hardware Store</Link>
                     <Link to="/about" onClick={() => setMobileOpen(false)}>About Enterprise</Link>
                     <Link to="/verify" onClick={() => setMobileOpen(false)}>Verify Certificate</Link>
