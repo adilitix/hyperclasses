@@ -6,9 +6,10 @@ import Logo from '../components/Logo';
 import { projectsData } from '../data/projectsData';
 
 const ProjectDetail = () => {
-    const { id } = useParams();
+    const { id, folder } = useParams();
     const navigate = useNavigate();
-    const project = projectsData[id] || projectsData['iot'];
+    const resolvedId = (folder && id) ? (projectsData[`${folder}/${id}`] ? `${folder}/${id}` : `${folder}-${id}`) : id;
+    const project = projectsData[resolvedId] || projectsData[id] || projectsData['iot'];
 
     const [activeTab, setActiveTab] = useState('overview');
     const [copied, setCopied] = useState(false);
@@ -55,6 +56,17 @@ const ProjectDetail = () => {
                 </Link>
                 <Logo size="small" showText={true} textSub="BLUEPRINT" />
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {project.simulatorUrl && (
+                        <a
+                            href={project.simulatorUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="nav-btn-subtle"
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(249, 115, 22, 0.15)', border: '1px solid var(--ad-orange)', color: 'var(--ad-orange)', padding: '8px 14px', fontSize: '0.82rem', borderRadius: '8px', fontWeight: 700 }}
+                        >
+                            <Play size={14} /> Open Live Test Website
+                        </a>
+                    )}
                     {project.reportPdf && (
                         <a
                             href={project.reportPdf}

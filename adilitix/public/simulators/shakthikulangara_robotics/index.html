@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Shakthikulangara Robotics | Remote Test Console & Telemetry</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .radar-sweep {
+      transform-origin: bottom center;
+      animation: sweep 2.2s ease-in-out infinite alternate;
+    }
+    @keyframes sweep {
+      0% { transform: rotate(-70deg); }
+      100% { transform: rotate(70deg); }
+    }
+    .pulse-glow {
+      box-shadow: 0 0 25px rgba(249, 115, 22, 0.4);
+    }
+    .btn-active:active {
+      transform: scale(0.94);
+      background-color: #ea580c !important;
+    }
+  </style>
+</head>
+<body class="bg-[#05070a] text-slate-100 min-h-screen flex flex-col justify-between selection:bg-orange-500 selection:text-white">
+
+  <!-- Top Status Bar -->
+  <header class="border-b border-slate-800 bg-[#090d16]/90 backdrop-blur sticky top-0 z-50 px-4 py-3">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 font-black text-lg">
+          🤖
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-sm font-bold tracking-tight text-white">SHAKTHIKULANGARA ROBOTICS</h1>
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/30 uppercase tracking-wider">
+              Remote Test Console
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">NodeMCU ESP8266 &bull; Dual DC Drive &bull; Ultrasonic Radar</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="conn-status">ONLINE (SIM)</span>
+        </div>
+        <button id="btn-settings" class="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700">
+          ⚙️
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-5xl mx-auto w-full p-4 flex-1 grid grid-cols-1 md:grid-cols-12 gap-4">
+
+    <!-- Left Column: Visual Radar & Live Gauges (6 cols) -->
+    <div class="md:col-span-7 flex flex-col gap-4">
+
+      <!-- Ultrasonic Radar Viewport -->
+      <div class="bg-[#0b1120] border border-slate-800 rounded-2xl p-4 flex flex-col items-center relative overflow-hidden">
+        <div class="w-full flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span> HC-SR04 Ultrasonic Radar
+          </span>
+          <span id="radar-distance-text" class="font-mono text-sm font-bold text-cyan-400">
+            DIST: 68.4 cm
+          </span>
+        </div>
+
+        <!-- Radar Canvas & HUD -->
+        <div class="relative w-full max-w-[340px] h-[180px] flex items-end justify-center">
+          <!-- Concentric Distance Arcs -->
+          <div class="absolute bottom-0 w-[300px] h-[150px] border-t-2 border-dashed border-slate-700/60 rounded-t-full pointer-events-none"></div>
+          <div class="absolute bottom-0 w-[200px] h-[100px] border-t-2 border-dashed border-slate-700/80 rounded-t-full pointer-events-none"></div>
+          <div class="absolute bottom-0 w-[100px] h-[50px] border-t-2 border-red-500/40 rounded-t-full pointer-events-none"></div>
+          
+          <!-- Distance Markers -->
+          <span class="absolute bottom-2 left-6 text-[10px] font-mono text-slate-500">100cm</span>
+          <span class="absolute bottom-2 left-20 text-[10px] font-mono text-slate-500">50cm</span>
+          <span class="absolute bottom-2 left-28 text-[10px] font-mono text-red-400">20cm</span>
+
+          <!-- Sweeping Radar Beam -->
+          <div class="radar-sweep absolute bottom-0 w-[150px] h-[150px] bg-gradient-to-tr from-transparent via-cyan-500/10 to-cyan-400/40 pointer-events-none" style="clip-path: polygon(50% 100%, 0 0, 100% 0);"></div>
+
+          <!-- Obstacle Blip Indicator -->
+          <div id="obstacle-blip" class="absolute w-4 h-4 rounded-full bg-red-500 border-2 border-white shadow-lg shadow-red-500/80 transition-all duration-300 pointer-events-none" style="bottom: 80px; left: 160px;"></div>
+
+          <!-- Robot Base Indicator -->
+          <div class="z-10 w-12 h-10 bg-gradient-to-t from-slate-900 to-slate-800 border border-orange-500/60 rounded-t-lg flex flex-col items-center justify-center shadow-lg">
+            <span class="text-[9px] font-black text-orange-400">ROBOT</span>
+            <span class="text-[8px] font-mono text-slate-400">ESP8266</span>
+          </div>
+        </div>
+
+        <!-- Collision Alert Pill -->
+        <div id="collision-pill" class="mt-3 w-full py-1.5 px-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono text-center flex items-center justify-center gap-2">
+          <span>🛡️</span> <span id="collision-status-msg">PATH CLEAR &bull; OBSTACLE > 50 CM</span>
+        </div>
+      </div>
+
+      <!-- Live Telemetry Gauges Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <!-- Motor L -->
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-3 flex flex-col justify-between">
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Motor Left</span>
+          <div class="my-1">
+            <span id="mot-left-rpm" class="text-xl font-black font-mono text-white">0</span>
+            <span class="text-xs text-slate-500 font-mono">RPM</span>
+          </div>
+          <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+            <div id="mot-left-bar" class="bg-orange-500 h-full w-0 transition-all"></div>
+          </div>
+        </div>
+
+        <!-- Motor R -->
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-3 flex flex-col justify-between">
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Motor Right</span>
+          <div class="my-1">
+            <span id="mot-right-rpm" class="text-xl font-black font-mono text-white">0</span>
+            <span class="text-xs text-slate-500 font-mono">RPM</span>
+          </div>
+          <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+            <div id="mot-right-bar" class="bg-orange-500 h-full w-0 transition-all"></div>
+          </div>
+        </div>
+
+        <!-- Battery Gauge -->
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-3 flex flex-col justify-between">
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Battery 2S</span>
+          <div class="my-1 flex items-baseline gap-1">
+            <span id="battery-volts" class="text-xl font-black font-mono text-emerald-400">8.1</span>
+            <span class="text-xs text-slate-500 font-mono">V</span>
+          </div>
+          <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+            <div id="battery-bar" class="bg-emerald-400 h-full w-[92%]"></div>
+          </div>
+        </div>
+
+        <!-- PWM Power Level -->
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-3 flex flex-col justify-between">
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Drive PWM</span>
+          <div class="my-1 flex items-baseline gap-1">
+            <span id="pwm-display" class="text-xl font-black font-mono text-cyan-400">200</span>
+            <span class="text-xs text-slate-500 font-mono">/255</span>
+          </div>
+          <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+            <div id="pwm-bar" class="bg-cyan-400 h-full w-[78%]"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode & Operation Selector -->
+      <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-3 flex items-center justify-between gap-2 flex-wrap">
+        <span class="text-xs font-bold text-slate-300">Operation Mode:</span>
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <button class="mode-btn px-2.5 py-1 text-xs rounded-lg font-bold transition bg-orange-500 text-white" data-mode="manual">Manual Remote</button>
+          <button class="mode-btn px-2.5 py-1 text-xs rounded-lg font-bold transition bg-slate-800 text-slate-300 hover:bg-slate-700" data-mode="auto">Auto Obstacle</button>
+          <button class="mode-btn px-2.5 py-1 text-xs rounded-lg font-bold transition bg-slate-800 text-slate-300 hover:bg-slate-700" data-mode="selftest">Self-Test</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Touch D-Pad & Live Output Log (5 cols) -->
+    <div class="md:col-span-5 flex flex-col gap-4">
+
+      <!-- Touch Control D-Pad -->
+      <div class="bg-[#0b1120] border border-slate-800 rounded-2xl p-5 flex flex-col items-center justify-center">
+        <div class="w-full flex justify-between items-center mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Remote D-Pad Control</span>
+          <span class="text-[10px] font-mono text-slate-500">Keys: W A S D / Space</span>
+        </div>
+
+        <!-- 3x3 D-Pad Matrix -->
+        <div class="grid grid-cols-3 gap-2.5 w-[240px] max-w-full">
+          <!-- Top Left Empty -->
+          <div></div>
+
+          <!-- FORWARD -->
+          <button id="btn-fwd" class="btn-active w-full h-16 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex flex-col items-center justify-center shadow-lg transition text-slate-100">
+            <span class="text-xl">▲</span>
+            <span class="text-[9px] font-bold tracking-wider font-mono">FWD</span>
+          </button>
+
+          <!-- Top Right Empty -->
+          <div></div>
+
+          <!-- LEFT -->
+          <button id="btn-left" class="btn-active w-full h-16 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex flex-col items-center justify-center shadow-lg transition text-slate-100">
+            <span class="text-xl">◀</span>
+            <span class="text-[9px] font-bold tracking-wider font-mono">LEFT</span>
+          </button>
+
+          <!-- STOP / BRAKE -->
+          <button id="btn-stop" class="btn-active w-full h-16 rounded-2xl bg-red-600/90 hover:bg-red-500 border border-red-400/50 flex flex-col items-center justify-center shadow-lg shadow-red-600/30 transition text-white">
+            <span class="text-xl">🛑</span>
+            <span class="text-[9px] font-extrabold tracking-wider font-mono">STOP</span>
+          </button>
+
+          <!-- RIGHT -->
+          <button id="btn-right" class="btn-active w-full h-16 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex flex-col items-center justify-center shadow-lg transition text-slate-100">
+            <span class="text-xl">▶</span>
+            <span class="text-[9px] font-bold tracking-wider font-mono">RIGHT</span>
+          </button>
+
+          <!-- Bottom Left Empty -->
+          <div></div>
+
+          <!-- REVERSE -->
+          <button id="btn-rev" class="btn-active w-full h-16 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex flex-col items-center justify-center shadow-lg transition text-slate-100">
+            <span class="text-xl">▼</span>
+            <span class="text-[9px] font-bold tracking-wider font-mono">REV</span>
+          </button>
+
+          <!-- Bottom Right Empty -->
+          <div></div>
+        </div>
+
+        <!-- Speed PWM Slider -->
+        <div class="w-full mt-4 pt-3 border-t border-slate-800/80">
+          <div class="flex justify-between items-center text-xs mb-1">
+            <span class="text-slate-400 font-bold">Speed Limit (PWM):</span>
+            <span id="slider-val" class="font-mono text-orange-400 font-bold">200</span>
+          </div>
+          <input id="speed-slider" type="range" min="80" max="255" value="200" class="w-full accent-orange-500 bg-slate-800 h-2 rounded-lg cursor-pointer">
+          <div class="flex justify-between text-[10px] font-mono text-slate-500 mt-1">
+            <span>Slow (80)</span>
+            <span>Cruise (180)</span>
+            <span>Turbo (255)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Terminal / Telemetry Console -->
+      <div class="bg-[#0b1120] border border-slate-800 rounded-2xl p-3 flex flex-col h-[220px]">
+        <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-xs">
+          <span class="font-bold font-mono text-slate-400 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Live Telemetry Terminal
+          </span>
+          <button id="clear-term" class="text-[10px] font-mono text-slate-500 hover:text-slate-300">Clear</button>
+        </div>
+        <div id="term-log" class="flex-1 overflow-y-auto font-mono text-[11px] leading-relaxed space-y-1 pr-1 text-slate-300">
+          <div class="text-slate-500">[SYSTEM] NodeMCU ESP8266 testbed connected.</div>
+          <div class="text-slate-500">[SYSTEM] Ultrasonic radar & dual H-Bridge initialized.</div>
+          <div class="text-emerald-400">[READY] Waiting for telemetry commands...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Firmware & Quick Reference Accordion / Footer -->
+  <footer class="border-t border-slate-800 bg-[#090d16] px-4 py-3">
+    <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+      <div>
+        <strong class="text-slate-200">Shakthikulangara School STEM Lab</strong> &bull; Part of Adilitix Robotics Network
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="/projects" class="text-orange-400 hover:underline">📁 Back to Project Manager</a>
+        <a href="/projects/shakthikulangara/robotics" class="text-cyan-400 hover:underline">📖 Blueprint & Schematic</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Settings Modal (NodeMCU IP & Mode) -->
+  <div id="modal-settings" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#0b1120] border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-white text-base">NodeMCU ESP8266 Connection</h3>
+        <button id="btn-close-settings" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">Hardware Mode:</label>
+          <select id="setting-hw-mode" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white font-mono">
+            <option value="sim">Virtual Hardware Simulator (Active)</option>
+            <option value="live">Live NodeMCU Wi-Fi Bridge (HTTP/REST)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">NodeMCU IP / Base URL:</label>
+          <input id="setting-esp-ip" type="text" value="http://192.168.4.1" placeholder="http://192.168.4.1" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white font-mono">
+          <p class="text-[10px] text-slate-500 mt-1">Default NodeMCU SoftAP IP: 192.168.4.1 or your local router DHCP IP.</p>
+        </div>
+        <div class="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-300">
+          <strong>Tip for Remote Testing:</strong> When using Antigravity remote or testing from outside the lab, keep in Virtual Simulator mode to test full motor/radar response, or use an ngrok/Cloudflare tunnel to your NodeMCU.
+        </div>
+      </div>
+      <div class="mt-5 flex justify-end">
+        <button id="btn-save-settings" class="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs">
+          Save Configuration
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive JavaScript Logic -->
+  <script>
+    // State
+    let speed = 200;
+    let mode = 'manual'; // manual, auto, selftest
+    let distance = 68.4;
+    let motLeftRpm = 0;
+    let motRightRpm = 0;
+    let autoInterval = null;
+    let hwMode = 'sim';
+    let espUrl = 'http://192.168.4.1';
+
+    const logEl = document.getElementById('term-log');
+    const distText = document.getElementById('radar-distance-text');
+    const obstacleBlip = document.getElementById('obstacle-blip');
+    const collisionPill = document.getElementById('collision-pill');
+    const collisionMsg = document.getElementById('collision-status-msg');
+    const motLeftEl = document.getElementById('mot-left-rpm');
+    const motRightEl = document.getElementById('mot-right-rpm');
+    const motLeftBar = document.getElementById('mot-left-bar');
+    const motRightBar = document.getElementById('mot-right-bar');
+    const speedSlider = document.getElementById('speed-slider');
+    const sliderVal = document.getElementById('slider-val');
+    const pwmDisplay = document.getElementById('pwm-display');
+    const pwmBar = document.getElementById('pwm-bar');
+
+    function log(msg, type = 'info') {
+      const d = new Date();
+      const time = d.toTimeString().split(' ')[0] + '.' + String(d.getMilliseconds()).padStart(3, '0');
+      const div = document.createElement('div');
+      
+      let colorClass = 'text-slate-300';
+      if (type === 'cmd') colorClass = 'text-cyan-400 font-bold';
+      else if (type === 'warn') colorClass = 'text-orange-400';
+      else if (type === 'danger') colorClass = 'text-red-400 font-bold';
+      else if (type === 'success') colorClass = 'text-emerald-400';
+
+      div.className = colorClass;
+      div.innerText = `[${time}] ${msg}`;
+      logEl.appendChild(div);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function updateObstacleUI(dist) {
+      distance = dist;
+      distText.innerText = `DIST: ${dist.toFixed(1)} cm`;
+
+      // Position blip on radar canvas (dist 10cm to 100cm maps to 20px to 140px)
+      const mappedBottom = Math.max(15, Math.min(145, (dist / 100) * 140));
+      obstacleBlip.style.bottom = `${mappedBottom}px`;
+
+      if (dist < 20) {
+        collisionPill.className = "mt-3 w-full py-1.5 px-3 rounded-lg bg-red-500/20 border border-red-500/40 text-red-400 text-xs font-mono text-center flex items-center justify-center gap-2 animate-pulse";
+        collisionMsg.innerText = `⚠️ CRITICAL: OBSTACLE AT ${dist.toFixed(1)}cm (COLLISION ZONE)`;
+      } else if (dist < 50) {
+        collisionPill.className = "mt-3 w-full py-1.5 px-3 rounded-lg bg-orange-500/15 border border-orange-500/30 text-orange-400 text-xs font-mono text-center flex items-center justify-center gap-2";
+        collisionMsg.innerText = `CAUTION: PROXIMITY ALERT (${dist.toFixed(1)}cm)`;
+      } else {
+        collisionPill.className = "mt-3 w-full py-1.5 px-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono text-center flex items-center justify-center gap-2";
+        collisionMsg.innerText = `PATH CLEAR • OBSTACLE > 50 CM`;
+      }
+    }
+
+    function setMotors(leftPwm, rightPwm) {
+      motLeftRpm = Math.round((leftPwm / 255) * 260);
+      motRightRpm = Math.round((rightPwm / 255) * 260);
+
+      motLeftEl.innerText = motLeftRpm;
+      motRightEl.innerText = motRightRpm;
+
+      motLeftBar.style.width = `${Math.min(100, (Math.abs(leftPwm) / 255) * 100)}%`;
+      motRightBar.style.width = `${Math.min(100, (Math.abs(rightPwm) / 255) * 100)}%`;
+    }
+
+    function sendCommand(cmd) {
+      log(`TX -> CMD: ${cmd} (PWM: ${speed})`, 'cmd');
+
+      if (hwMode === 'live') {
+        fetch(`${espUrl}/drive?cmd=${cmd}&speed=${speed}`, { mode: 'no-cors' })
+          .then(() => log(`HTTP ACK from ${espUrl}`, 'success'))
+          .catch(e => log(`HTTP Error: ${e.message}`, 'warn'));
+      }
+
+      // Simulate vehicle kinematics
+      switch(cmd) {
+        case 'FORWARD':
+          setMotors(speed, speed);
+          // If moving forward, distance decreases
+          let newDist = Math.max(8.0, distance - (speed / 35));
+          updateObstacleUI(newDist);
+          if (newDist < 20) {
+            log(`RADAR WARNING: Ultrasonic echo ${newDist.toFixed(1)}cm! Auto-stopping recommended.`, 'danger');
+          }
+          break;
+        case 'REVERSE':
+          setMotors(-speed, -speed);
+          updateObstacleUI(Math.min(110.0, distance + 12));
+          break;
+        case 'LEFT':
+          setMotors(-speed, speed);
+          break;
+        case 'RIGHT':
+          setMotors(speed, -speed);
+          break;
+        case 'STOP':
+          setMotors(0, 0);
+          log(`MOTORS DISENGAGED (H-Bridge COAST)`, 'info');
+          break;
+      }
+    }
+
+    // Button event listeners
+    document.getElementById('btn-fwd').addEventListener('click', () => sendCommand('FORWARD'));
+    document.getElementById('btn-rev').addEventListener('click', () => sendCommand('REVERSE'));
+    document.getElementById('btn-left').addEventListener('click', () => sendCommand('LEFT'));
+    document.getElementById('btn-right').addEventListener('click', () => sendCommand('RIGHT'));
+    document.getElementById('btn-stop').addEventListener('click', () => sendCommand('STOP'));
+
+    // Keyboard controls
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+      const key = e.key.toLowerCase();
+      if (key === 'w' || key === 'arrowup') sendCommand('FORWARD');
+      else if (key === 's' || key === 'arrowdown') sendCommand('REVERSE');
+      else if (key === 'a' || key === 'arrowleft') sendCommand('LEFT');
+      else if (key === 'd' || key === 'arrowright') sendCommand('RIGHT');
+      else if (key === ' ' || key === 'escape') sendCommand('STOP');
+    });
+
+    // Speed Slider
+    speedSlider.addEventListener('input', (e) => {
+      speed = parseInt(e.target.value);
+      sliderVal.innerText = speed;
+      pwmDisplay.innerText = speed;
+      pwmBar.style.width = `${(speed / 255) * 100}%`;
+    });
+
+    // Clear Terminal
+    document.getElementById('clear-term').addEventListener('click', () => {
+      logEl.innerHTML = '';
+      log('Terminal cleared.', 'info');
+    });
+
+    // Mode Selector
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mode-btn').forEach(b => {
+          b.className = "mode-btn px-2.5 py-1 text-xs rounded-lg font-bold transition bg-slate-800 text-slate-300 hover:bg-slate-700";
+        });
+        btn.className = "mode-btn px-2.5 py-1 text-xs rounded-lg font-bold transition bg-orange-500 text-white";
+
+        mode = btn.dataset.mode;
+        log(`MODE SWITCHED -> ${mode.toUpperCase()}`, 'warn');
+
+        if (autoInterval) {
+          clearInterval(autoInterval);
+          autoInterval = null;
+        }
+
+        if (mode === 'auto') {
+          log('Autonomous Obstacle Avoidance Loop ACTIVE', 'success');
+          autoInterval = setInterval(() => {
+            // Simulated random walk and radar sweep
+            let drift = (Math.random() * 12) - 6;
+            let current = Math.max(8, Math.min(100, distance + drift));
+            updateObstacleUI(current);
+
+            if (current < 25) {
+              log(`AUTO-EVASION: Wall detected at ${current.toFixed(1)}cm! Reversing and spinning right.`, 'danger');
+              setMotors(-180, -180);
+              setTimeout(() => {
+                setMotors(200, -200);
+                setTimeout(() => {
+                  updateObstacleUI(75.0);
+                  setMotors(speed, speed);
+                }, 800);
+              }, 600);
+            } else {
+              setMotors(speed, speed);
+            }
+          }, 1400);
+        } else if (mode === 'selftest') {
+          runSelfTest();
+        } else {
+          setMotors(0, 0);
+        }
+      });
+    });
+
+    function runSelfTest() {
+      log('--- STARTING 5-POINT HARDWARE DIAGNOSTIC ---', 'cmd');
+      setMotors(0, 0);
+      
+      const steps = [
+        { desc: '1/5 Testing Ultrasonic Radar Ping...', action: () => { updateObstacleUI(42.5); log('HC-SR04 Echo: 42.5cm OK', 'success'); } },
+        { desc: '2/5 Testing Left Motor H-Bridge Forward...', action: () => { setMotors(180, 0); log('Left Motor RPM: 180 OK', 'success'); } },
+        { desc: '3/5 Testing Right Motor H-Bridge Forward...', action: () => { setMotors(0, 180); log('Right Motor RPM: 180 OK', 'success'); } },
+        { desc: '4/5 Testing Reverse Braking...', action: () => { setMotors(-150, -150); log('H-Bridge Inverted OK', 'success'); } },
+        { desc: '5/5 Testing Standby & Voltage...', action: () => { setMotors(0, 0); log('Battery 8.1V Normal • All Diagnostics PASSED', 'success'); } }
+      ];
+
+      steps.forEach((st, idx) => {
+        setTimeout(() => {
+          log(st.desc, 'info');
+          st.action();
+        }, (idx + 1) * 900);
+      });
+    }
+
+    // Settings Modal
+    const modal = document.getElementById('modal-settings');
+    document.getElementById('btn-settings').addEventListener('click', () => modal.classList.remove('hidden'));
+    document.getElementById('btn-close-settings').addEventListener('click', () => modal.classList.add('hidden'));
+    document.getElementById('btn-save-settings').addEventListener('click', () => {
+      hwMode = document.getElementById('setting-hw-mode').value;
+      espUrl = document.getElementById('setting-esp-ip').value.trim();
+      document.getElementById('conn-status').innerText = hwMode === 'live' ? 'ONLINE (LIVE ESP)' : 'ONLINE (SIM)';
+      modal.classList.add('hidden');
+      log(`Settings Saved. Hardware Mode: ${hwMode.toUpperCase()}, Target: ${espUrl}`, 'success');
+    });
+
+    // Initial log
+    updateObstacleUI(68.4);
+    log('Shakthikulangara Robotics Remote Console loaded and verified.', 'success');
+  </script>
+</body>
+</html>

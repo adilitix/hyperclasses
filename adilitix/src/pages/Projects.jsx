@@ -1,15 +1,55 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Award, Cpu, ShieldCheck, CheckCircle2, Download, Play, Search, Layers, Zap, BookOpen } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { 
+    ArrowLeft, ArrowRight, Award, Cpu, ShieldCheck, CheckCircle2, 
+    Download, Play, Search, Layers, Zap, BookOpen, Folder, FolderOpen, 
+    ChevronRight, ArrowUp, ExternalLink, Grid, List, Sparkles, Terminal 
+} from 'lucide-react';
 import Logo from '../components/Logo';
-import { projectsData } from '../data/projectsData';
+import { projectsData, projectsHierarchy } from '../data/projectsData';
 
 const Projects = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
+
+    // Folder navigation state synced with URL query (?folder=...)
+    const initialFolder = searchParams.get('folder') || '';
+    const [currentPath, setCurrentPath] = useState(initialFolder);
+    const [viewMode, setViewMode] = useState('folder'); // 'folder' | 'grid'
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
 
-    const projectsList = Object.values(projectsData);
+    useEffect(() => {
+        const folderParam = searchParams.get('folder');
+        if (folderParam !== null && folderParam !== currentPath) {
+            setCurrentPath(folderParam);
+        }
+    }, [searchParams]);
+
+    const navigateToFolder = (path) => {
+        setCurrentPath(path);
+        if (path) {
+            setSearchParams({ folder: path });
+        } else {
+            setSearchParams({});
+        }
+    };
+
+    const navigateUp = () => {
+        if (!currentPath) return;
+        const parts = currentPath.split('/').filter(Boolean);
+        parts.pop();
+        navigateToFolder(parts.join('/'));
+    };
+
+    // Breadcrumb segments
+    const pathParts = currentPath ? currentPath.split('/').filter(Boolean) : [];
+
+    const projectsList = Object.values(projectsData).filter((p, idx, arr) => 
+        // De-duplicate any aliases sharing same id
+        arr.findIndex(item => item.id === p.id) === idx
+    );
 
     const categories = ['All', 'IoT & Climate Tech', 'Robotics & Autonomous AI', 'Applied Bio-Electronics & Wearables', 'Assistive Healthcare Tech', 'Robotics & Industrial Automation'];
 
@@ -30,7 +70,7 @@ const Projects = () => {
                     <ArrowLeft size={18} color="var(--ad-orange)" /> Home
                 </Link>
                 <Logo size="small" showText={true} textSub="PROJECTS" />
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                     <Link to="/programs" className="nav-links" style={{ display: 'none', mdDisplay: 'block' }}>
                         Programs
                     </Link>
@@ -41,242 +81,834 @@ const Projects = () => {
             </nav>
 
             {/* Hero Header */}
-            <header style={{ padding: '60px 8% 40px', maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
-                <div className="udyam-badge" style={{ margin: '0 auto 16px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                    <Award size={15} /> APPLIED ENGINEERING & SASTHROLSAVAM PORTFOLIO
+            <header style={{ padding: '48px 8% 28px', maxWidth: '1240px', margin: '0 auto', textAlign: 'center' }}>
+                <div className="udyam-badge" style={{ margin: '0 auto 14px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                    <Award size={15} /> APPLIED ENGINEERING & STEM PROJECTS REPOSITORY
                 </div>
-                <h1 style={{ fontSize: '2.8rem', color: '#fff', fontWeight: '900', marginBottom: '16px', letterSpacing: '-0.5px' }}>
-                    Applied Robotics, <span style={{ color: 'var(--ad-orange)' }}>IoT & AI Projects</span>
+                <h1 style={{ fontSize: '2.6rem', color: '#fff', fontWeight: '900', marginBottom: '12px', letterSpacing: '-0.5px' }}>
+                    Engineering Projects <span style={{ color: 'var(--ad-orange)' }}>& Live Testbeds</span>
                 </h1>
-                <p style={{ color: 'var(--ad-text-dim)', fontSize: '1.15rem', maxWidth: '780px', margin: '0 auto', lineHeight: '1.6' }}>
-                    Complete project engineering suite with ready-to-flash microcontroller firmware, verified circuit pinout tables, mathematical formulations, live simulators, and exhibition viva defense cards.
+                <p style={{ color: 'var(--ad-text-dim)', fontSize: '1.05rem', maxWidth: '780px', margin: '0 auto', lineHeight: '1.6' }}>
+                    Hierarchical project file manager featuring live interactive test websites, verified circuit pinouts, ready-to-flash microcontroller firmware, and mathematical models.
                 </p>
 
-                {/* Filter and Search Bar */}
-                <div style={{ margin: '36px auto 0', maxWidth: '800px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* Explorer Toolbar: Breadcrumbs, Search & View Switcher */}
+                <div style={{
+                    margin: '32px auto 0',
+                    maxWidth: '1000px',
+                    background: 'rgba(14, 26, 52, 0.7)',
+                    border: '1px solid var(--ad-border-navy)',
+                    borderRadius: '18px',
+                    padding: '16px 20px',
+                    backdropFilter: 'blur(12px)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '14px'
+                }}>
+                    {/* Top Row: Path Breadcrumbs and View Toggle */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                        
+                        {/* Interactive Breadcrumb Bar */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', fontSize: '0.9rem', fontFamily: "'JetBrains Mono', monospace" }}>
+                            {pathParts.length > 0 && (
+                                <button
+                                    onClick={navigateUp}
+                                    title="Up one folder"
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        padding: '5px 10px',
+                                        background: 'rgba(255, 255, 255, 0.06)',
+                                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                                        borderRadius: '8px',
+                                        color: 'var(--ad-orange)',
+                                        fontSize: '0.8rem',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <ArrowUp size={13} /> Up
+                                </button>
+                            )}
+
+                            <button
+                                onClick={() => navigateToFolder('')}
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '5px 10px',
+                                    background: currentPath === '' ? 'rgba(249, 115, 22, 0.2)' : 'transparent',
+                                    border: currentPath === '' ? '1px solid var(--ad-orange)' : '1px solid transparent',
+                                    borderRadius: '8px',
+                                    color: currentPath === '' ? 'var(--ad-orange)' : '#94a3b8',
+                                    fontWeight: 700,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <Folder size={15} /> projects
+                            </button>
+
+                            {pathParts.map((part, index) => {
+                                const subPath = pathParts.slice(0, index + 1).join('/');
+                                const isLast = index === pathParts.length - 1;
+                                return (
+                                    <React.Fragment key={subPath}>
+                                        <ChevronRight size={14} color="#64748b" />
+                                        <button
+                                            onClick={() => navigateToFolder(subPath)}
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                padding: '5px 10px',
+                                                background: isLast ? 'rgba(249, 115, 22, 0.2)' : 'transparent',
+                                                border: isLast ? '1px solid var(--ad-orange)' : '1px solid transparent',
+                                                borderRadius: '8px',
+                                                color: isLast ? '#fff' : '#94a3b8',
+                                                fontWeight: isLast ? 800 : 600,
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            {isLast ? <FolderOpen size={15} color="var(--ad-orange)" /> : <Folder size={15} />}
+                                            {part}
+                                        </button>
+                                    </React.Fragment>
+                                );
+                            })}
+                        </div>
+
+                        {/* View Switcher: Folder Manager vs All Grid */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(5, 7, 10, 0.6)', padding: '4px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                            <button
+                                onClick={() => setViewMode('folder')}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '6px 12px',
+                                    borderRadius: '8px',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    background: viewMode === 'folder' ? 'var(--ad-orange)' : 'transparent',
+                                    color: viewMode === 'folder' ? '#fff' : 'var(--ad-text-dim)',
+                                    border: 'none',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                <Folder size={14} /> Folder View
+                            </button>
+                            <button
+                                onClick={() => setViewMode('grid')}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '6px 12px',
+                                    borderRadius: '8px',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    background: viewMode === 'grid' ? 'var(--ad-orange)' : 'transparent',
+                                    color: viewMode === 'grid' ? '#fff' : 'var(--ad-text-dim)',
+                                    border: 'none',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                <Grid size={14} /> All Projects Grid
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Bottom Row: Search Box */}
                     <div style={{ position: 'relative' }}>
-                        <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--ad-text-dim)' }} />
+                        <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--ad-text-dim)' }} />
                         <input
                             type="text"
-                            placeholder="Search by project name, sensor, or domain..."
+                            placeholder="Filter files, folders, hardware boards, or test sensors..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             style={{
                                 width: '100%',
-                                padding: '14px 16px 14px 44px',
-                                background: 'rgba(14, 26, 52, 0.6)',
-                                border: '1px solid var(--ad-border-navy)',
-                                borderRadius: '14px',
+                                padding: '12px 14px 12px 40px',
+                                background: 'rgba(5, 7, 10, 0.6)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                borderRadius: '12px',
                                 color: '#fff',
-                                fontSize: '0.95rem',
+                                fontSize: '0.9rem',
                                 outline: 'none'
                             }}
                         />
                     </div>
-
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                        {categories.map(cat => (
-                            <button
-                                key={cat}
-                                onClick={() => setSelectedCategory(cat)}
-                                style={{
-                                    padding: '8px 16px',
-                                    borderRadius: '20px',
-                                    fontSize: '0.82rem',
-                                    fontWeight: 700,
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                    border: selectedCategory === cat ? '1px solid var(--ad-orange)' : '1px solid rgba(255, 255, 255, 0.1)',
-                                    background: selectedCategory === cat ? 'rgba(249, 115, 22, 0.15)' : 'rgba(255, 255, 255, 0.04)',
-                                    color: selectedCategory === cat ? 'var(--ad-orange)' : 'var(--ad-text-dim)'
-                                }}
-                            >
-                                {cat}
-                            </button>
-                        ))}
-                    </div>
                 </div>
             </header>
 
-            {/* Projects Grid */}
+            {/* Main Content Area */}
             <main style={{ padding: '0 8% 80px', maxWidth: '1240px', margin: '0 auto' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '28px' }}>
-                    {filteredProjects.map((project, idx) => (
+                <AnimatePresence mode="wait">
+                    {viewMode === 'folder' ? (
                         <motion.div
-                            key={project.id}
-                            initial={{ opacity: 0, y: 20 }}
+                            key={`folder-${currentPath}`}
+                            initial={{ opacity: 0, y: 15 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.4, delay: idx * 0.1 }}
-                            style={{
-                                background: 'rgba(14, 26, 52, 0.7)',
-                                border: '1px solid var(--ad-border-navy)',
-                                borderRadius: '24px',
-                                padding: '28px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'space-between',
-                                transition: 'all 0.3s ease',
-                                backdropFilter: 'blur(12px)',
-                                position: 'relative',
-                                overflow: 'hidden'
-                            }}
-                            whileHover={{ y: -6, borderColor: 'var(--ad-orange)' }}
+                            exit={{ opacity: 0, y: -15 }}
+                            transition={{ duration: 0.3 }}
                         >
-                            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: project.accentColor || 'var(--ad-orange)' }} />
+                            {/* --- 1. ROOT DIRECTORY VIEW --- */}
+                            {currentPath === '' && (
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                                        <h2 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <FolderOpen size={20} color="var(--ad-orange)" /> Root Folders ({projectsHierarchy.root.folders.length})
+                                        </h2>
+                                        <span style={{ fontSize: '0.82rem', color: 'var(--ad-text-dim)' }}>Click a folder to browse contents</span>
+                                    </div>
 
-                            <div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-                                    <span style={{ fontSize: '2rem' }}>{project.icon}</span>
-                                    <span style={{
-                                        fontSize: '0.72rem',
-                                        fontWeight: 800,
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.6px',
-                                        padding: '4px 12px',
-                                        borderRadius: '999px',
-                                        background: `${project.badgeColor}20`,
-                                        color: project.badgeColor,
-                                        border: `1px solid ${project.badgeColor}40`
-                                    }}>
-                                        {project.badge}
-                                    </span>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '24px' }}>
+                                        {projectsHierarchy.root.folders.map(folder => (
+                                            <motion.div
+                                                key={folder.id}
+                                                whileHover={{ y: -5, borderColor: folder.badgeColor }}
+                                                onClick={() => navigateToFolder(folder.id)}
+                                                style={{
+                                                    background: 'rgba(14, 26, 52, 0.75)',
+                                                    border: '1px solid var(--ad-border-navy)',
+                                                    borderRadius: '20px',
+                                                    padding: '24px',
+                                                    cursor: 'pointer',
+                                                    backdropFilter: 'blur(10px)',
+                                                    transition: 'all 0.25s ease',
+                                                    position: 'relative',
+                                                    overflow: 'hidden'
+                                                }}
+                                            >
+                                                <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: folder.badgeColor }} />
+                                                
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                        <span style={{ fontSize: '2.4rem' }}>{folder.icon}</span>
+                                                        <div>
+                                                            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.82rem', color: 'var(--ad-orange)', fontWeight: 700 }}>
+                                                                📁 {folder.name}/
+                                                            </div>
+                                                            <h3 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 800, margin: '2px 0 0' }}>
+                                                                {folder.title}
+                                                            </h3>
+                                                        </div>
+                                                    </div>
+                                                    <span style={{
+                                                        fontSize: '0.72rem',
+                                                        fontWeight: 800,
+                                                        padding: '4px 10px',
+                                                        borderRadius: '999px',
+                                                        background: `${folder.badgeColor}20`,
+                                                        color: folder.badgeColor,
+                                                        border: `1px solid ${folder.badgeColor}40`
+                                                    }}>
+                                                        {folder.badge}
+                                                    </span>
+                                                </div>
+
+                                                <p style={{ fontSize: '0.88rem', color: 'var(--ad-text-dim)', lineHeight: '1.6', marginBottom: '20px' }}>
+                                                    {folder.subtitle}
+                                                </p>
+
+                                                <div style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    paddingTop: '16px',
+                                                    borderTop: '1px solid rgba(255, 255, 255, 0.08)'
+                                                }}>
+                                                    <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontFamily: "'JetBrains Mono', monospace" }}>
+                                                        {folder.itemCount} project items inside
+                                                    </span>
+                                                    <span style={{
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '6px',
+                                                        fontSize: '0.85rem',
+                                                        color: 'var(--ad-orange)',
+                                                        fontWeight: 700
+                                                    }}>
+                                                        Explore Folder <ArrowRight size={14} />
+                                                    </span>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </div>
                                 </div>
+                            )}
 
-                                <h2 style={{ fontSize: '1.35rem', color: '#fff', fontWeight: 800, lineHeight: '1.3', marginBottom: '8px' }}>
-                                    {project.title}
-                                </h2>
-                                <p style={{ fontSize: '0.88rem', color: 'var(--ad-text-dim)', lineHeight: '1.6', marginBottom: '20px' }}>
-                                    {project.tagline}
-                                </p>
-
-                                {/* Key Metrics Strip */}
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '20px', padding: '12px', background: 'rgba(5, 7, 10, 0.5)', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                                    {project.metrics.slice(0, 2).map((m, i) => (
-                                        <div key={i}>
-                                            <span style={{ fontSize: '0.72rem', color: 'var(--ad-text-dim)', display: 'block' }}>{m.label}</span>
-                                            <span style={{ fontSize: '1rem', fontWeight: 800, color: '#fff' }}>{m.val}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '16px' }}>
-                                <Link
-                                    to={`/projects/${project.id}`}
-                                    style={{
+                            {/* --- 2. SHAKTHIKULANGARA SCHOOL FOLDER VIEW --- */}
+                            {currentPath === 'shakthikulangara' && (
+                                <div>
+                                    <div style={{
+                                        background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(56, 189, 248, 0.1) 100%)',
+                                        border: '1px solid rgba(249, 115, 22, 0.3)',
+                                        borderRadius: '20px',
+                                        padding: '24px 28px',
+                                        marginBottom: '28px',
                                         display: 'flex',
+                                        justifyContent: 'space-between',
                                         alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px',
-                                        width: '100%',
-                                        padding: '12px',
-                                        borderRadius: '12px',
-                                        background: 'linear-gradient(135deg, #0284c7, #38bdf8)',
-                                        color: '#fff',
-                                        fontWeight: 700,
-                                        fontSize: '0.92rem',
-                                        boxShadow: '0 4px 14px rgba(56, 189, 248, 0.25)'
-                                    }}
-                                >
-                                    <span>Inspect Blueprint & Code</span>
-                                    <ArrowRight size={16} />
-                                </Link>
+                                        flexWrap: 'wrap',
+                                        gap: '16px'
+                                    }}>
+                                        <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                                                <span style={{ fontSize: '1.6rem' }}>🏫</span>
+                                                <h2 style={{ fontSize: '1.4rem', color: '#fff', fontWeight: 900 }}>
+                                                    Shakthikulangara School STEM Lab
+                                                </h2>
+                                                <span style={{ fontSize: '0.75rem', fontWeight: 800, padding: '3px 10px', borderRadius: '999px', background: '#38bdf820', color: '#38bdf8', border: '1px solid #38bdf840' }}>
+                                                    Active Lab
+                                                </span>
+                                            </div>
+                                            <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.9rem', maxWidth: '640px' }}>
+                                                Official projects developed for Shakthikulangara school students. Includes the autonomous robotics rover with live remote test console, and the NodeMCU dual-display IoT telemetry station.
+                                            </p>
+                                        </div>
 
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    {project.simulatorUrl && (
                                         <a
-                                            href={project.simulatorUrl}
+                                            href="/simulators/shakthikulangara_robotics/index.html"
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             style={{
-                                                flex: 1,
                                                 display: 'flex',
                                                 alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: '6px',
-                                                padding: '10px',
-                                                borderRadius: '10px',
-                                                background: 'rgba(255, 255, 255, 0.05)',
-                                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                                color: '#38bdf8',
-                                                fontSize: '0.82rem',
-                                                fontWeight: 600
+                                                gap: '8px',
+                                                padding: '10px 20px',
+                                                borderRadius: '12px',
+                                                background: 'var(--ad-orange)',
+                                                color: '#fff',
+                                                fontWeight: 800,
+                                                fontSize: '0.88rem',
+                                                textDecoration: 'none',
+                                                boxShadow: '0 4px 18px rgba(249, 115, 22, 0.4)'
                                             }}
                                         >
-                                            <Play size={14} /> Live Simulator
+                                            <Play size={16} /> Launch Robotics Test Website
                                         </a>
-                                    )}
+                                    </div>
 
-                                    {project.reportPdf && (
-                                        <a
-                                            href={project.reportPdf}
-                                            download
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '24px' }}>
+                                        {/* Shakthikulangara Robotics Subfolder */}
+                                        <motion.div
+                                            whileHover={{ y: -5, borderColor: '#f97316' }}
                                             style={{
-                                                flex: 1,
+                                                background: 'rgba(14, 26, 52, 0.8)',
+                                                border: '1px solid rgba(249, 115, 22, 0.4)',
+                                                borderRadius: '20px',
+                                                padding: '24px',
                                                 display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: '6px',
-                                                padding: '10px',
-                                                borderRadius: '10px',
-                                                background: 'rgba(255, 255, 255, 0.05)',
-                                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                                color: 'var(--ad-orange)',
-                                                fontSize: '0.82rem',
-                                                fontWeight: 600
+                                                flexDirection: 'column',
+                                                justifyContent: 'space-between',
+                                                position: 'relative'
                                             }}
                                         >
-                                            <Download size={14} /> PDF Report
-                                        </a>
-                                    )}
+                                            <div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+                                                    <span style={{ fontSize: '2.2rem' }}>🤖</span>
+                                                    <span style={{
+                                                        fontSize: '0.72rem',
+                                                        fontWeight: 800,
+                                                        padding: '4px 10px',
+                                                        borderRadius: '999px',
+                                                        background: 'rgba(249, 115, 22, 0.2)',
+                                                        color: '#f97316',
+                                                        border: '1px solid rgba(249, 115, 22, 0.4)'
+                                                    }}>
+                                                        Live Test Website Available
+                                                    </span>
+                                                </div>
+
+                                                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.8rem', color: '#f97316', fontWeight: 700 }}>
+                                                    📁 shakthikulangara/robotics/
+                                                </div>
+                                                <h3 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 800, margin: '6px 0 10px' }}>
+                                                    Robotics: Autonomous Rover & Test Console
+                                                </h3>
+                                                <p style={{ fontSize: '0.88rem', color: 'var(--ad-text-dim)', lineHeight: '1.6', marginBottom: '20px' }}>
+                                                    Dual H-Bridge motor driven rover with 180° ultrasonic radar and live interactive remote testing website over NodeMCU Wi-Fi.
+                                                </p>
+                                            </div>
+
+                                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                                <a
+                                                    href="/simulators/shakthikulangara_robotics/index.html"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    style={{
+                                                        flex: 1,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        gap: '6px',
+                                                        padding: '10px 14px',
+                                                        borderRadius: '10px',
+                                                        background: 'var(--ad-orange)',
+                                                        color: '#fff',
+                                                        fontWeight: 800,
+                                                        fontSize: '0.82rem',
+                                                        textDecoration: 'none'
+                                                    }}
+                                                >
+                                                    <Play size={14} /> Open Test Website
+                                                </a>
+
+                                                <Link
+                                                    to="/projects/shakthikulangara-robotics"
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        gap: '6px',
+                                                        padding: '10px 14px',
+                                                        borderRadius: '10px',
+                                                        background: 'rgba(255, 255, 255, 0.08)',
+                                                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                                                        color: '#fff',
+                                                        fontWeight: 700,
+                                                        fontSize: '0.82rem',
+                                                        textDecoration: 'none'
+                                                    }}
+                                                >
+                                                    <BookOpen size={14} /> Blueprint & Code
+                                                </Link>
+                                            </div>
+                                        </motion.div>
+
+                                        {/* Shakthikulangara IoT Subfolder */}
+                                        <motion.div
+                                            whileHover={{ y: -5, borderColor: '#38bdf8' }}
+                                            style={{
+                                                background: 'rgba(14, 26, 52, 0.8)',
+                                                border: '1px solid rgba(56, 189, 248, 0.3)',
+                                                borderRadius: '20px',
+                                                padding: '24px',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                justifyContent: 'space-between'
+                                            }}
+                                        >
+                                            <div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+                                                    <span style={{ fontSize: '2.2rem' }}>🌐</span>
+                                                    <span style={{
+                                                        fontSize: '0.72rem',
+                                                        fontWeight: 800,
+                                                        padding: '4px 10px',
+                                                        borderRadius: '999px',
+                                                        background: 'rgba(56, 189, 248, 0.2)',
+                                                        color: '#38bdf8',
+                                                        border: '1px solid rgba(56, 189, 248, 0.4)'
+                                                    }}>
+                                                        Hardware Verified
+                                                    </span>
+                                                </div>
+
+                                                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.8rem', color: '#38bdf8', fontWeight: 700 }}>
+                                                    📁 shakthikulangara/iot/
+                                                </div>
+                                                <h3 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 800, margin: '6px 0 10px' }}>
+                                                    IoT: NodeMCU Dual Display Telemetry Node
+                                                </h3>
+                                                <p style={{ fontSize: '0.88rem', color: 'var(--ad-text-dim)', lineHeight: '1.6', marginBottom: '20px' }}>
+                                                    Synchronized 0.96" I2C OLED (SSD1306) HUD and TM1637 4-digit 7-segment display with 200ms pulse sync.
+                                                </p>
+                                            </div>
+
+                                            <Link
+                                                to="/projects/shakthikulangara-iot"
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '6px',
+                                                    padding: '10px 14px',
+                                                    borderRadius: '10px',
+                                                    background: 'rgba(56, 189, 248, 0.15)',
+                                                    border: '1px solid rgba(56, 189, 248, 0.3)',
+                                                    color: '#38bdf8',
+                                                    fontWeight: 700,
+                                                    fontSize: '0.82rem',
+                                                    textDecoration: 'none'
+                                                }}
+                                            >
+                                                <BookOpen size={14} /> View Wiring & Flashed Code
+                                            </Link>
+                                        </motion.div>
+
+                                        {/* Shakthikulangara Electronics Subfolder */}
+                                        <motion.div
+                                            whileHover={{ y: -5, borderColor: '#a855f7' }}
+                                            style={{
+                                                background: 'rgba(14, 26, 52, 0.8)',
+                                                border: '1px solid rgba(168, 85, 247, 0.3)',
+                                                borderRadius: '20px',
+                                                padding: '24px',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                justifyContent: 'space-between'
+                                            }}
+                                        >
+                                            <div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+                                                    <span style={{ fontSize: '2.2rem' }}>⚡</span>
+                                                    <span style={{
+                                                        fontSize: '0.72rem',
+                                                        fontWeight: 800,
+                                                        padding: '4px 10px',
+                                                        borderRadius: '999px',
+                                                        background: 'rgba(168, 85, 247, 0.2)',
+                                                        color: '#c084fc',
+                                                        border: '1px solid rgba(168, 85, 247, 0.4)'
+                                                    }}>
+                                                        Curriculum Ready
+                                                    </span>
+                                                </div>
+
+                                                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.8rem', color: '#c084fc', fontWeight: 700 }}>
+                                                    📁 shakthikulangara/electronics/
+                                                </div>
+                                                <h3 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 800, margin: '6px 0 10px' }}>
+                                                    Electronics: Sensor Prototyping & Power Lab
+                                                </h3>
+                                                <p style={{ fontSize: '0.88rem', color: 'var(--ad-text-dim)', lineHeight: '1.6', marginBottom: '20px' }}>
+                                                    Core electronic components, voltage regulators, relay drivers, and discrete analog-to-digital sensor signal conditioning.
+                                                </p>
+                                            </div>
+
+                                            <Link
+                                                to="/projects/electronics"
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '6px',
+                                                    padding: '10px 14px',
+                                                    borderRadius: '10px',
+                                                    background: 'rgba(168, 85, 247, 0.15)',
+                                                    border: '1px solid rgba(168, 85, 247, 0.3)',
+                                                    color: '#c084fc',
+                                                    fontWeight: 700,
+                                                    fontSize: '0.82rem',
+                                                    textDecoration: 'none'
+                                                }}
+                                            >
+                                                <BookOpen size={14} /> View Electronics Blueprint
+                                            </Link>
+                                        </motion.div>
+                                    </div>
                                 </div>
+                            )}
+
+                            {/* --- 3. SHAKTHIKULANGARA ROBOTICS DEDICATED SUBFOLDER --- */}
+                            {(currentPath === 'shakthikulangara/robotics' || currentPath === 'robotics') && (
+                                <div>
+                                    <div style={{
+                                        background: 'rgba(14, 26, 52, 0.9)',
+                                        border: '1px solid var(--ad-orange)',
+                                        borderRadius: '24px',
+                                        padding: '32px',
+                                        marginBottom: '28px'
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
+                                            <div>
+                                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', borderRadius: '999px', background: 'rgba(249, 115, 22, 0.15)', border: '1px solid var(--ad-orange)', color: 'var(--ad-orange)', fontSize: '0.78rem', fontWeight: 800, marginBottom: '12px' }}>
+                                                    <Sparkles size={14} /> LIVE TEST WEBSITE & REMOTE TELEMETRY
+                                                </div>
+                                                <h2 style={{ fontSize: '1.8rem', color: '#fff', fontWeight: 900 }}>
+                                                    Shakthikulangara Robotics Remote Testbed
+                                                </h2>
+                                                <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.95rem', maxWidth: '700px', marginTop: '6px', lineHeight: '1.6' }}>
+                                                    Full-featured live test website designed for Antigravity remote testing and smartphone teleoperation. Test DC motors, ultrasonic radar distance arcs, emergency brakes, and live telemetry.
+                                                </p>
+                                            </div>
+
+                                            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                                <a
+                                                    href="/simulators/shakthikulangara_robotics/index.html"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '8px',
+                                                        padding: '12px 24px',
+                                                        borderRadius: '12px',
+                                                        background: 'var(--ad-orange)',
+                                                        color: '#fff',
+                                                        fontWeight: 800,
+                                                        fontSize: '0.95rem',
+                                                        textDecoration: 'none',
+                                                        boxShadow: '0 6px 20px rgba(249, 115, 22, 0.4)'
+                                                    }}
+                                                >
+                                                    <Play size={16} /> Open Test Website in Fullscreen
+                                                </a>
+                                                <Link
+                                                    to="/projects/shakthikulangara-robotics"
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '8px',
+                                                        padding: '12px 20px',
+                                                        borderRadius: '12px',
+                                                        background: 'rgba(255, 255, 255, 0.08)',
+                                                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                                                        color: '#fff',
+                                                        fontWeight: 700,
+                                                        fontSize: '0.9rem',
+                                                        textDecoration: 'none'
+                                                    }}
+                                                >
+                                                    <BookOpen size={16} /> Full Circuit & Code
+                                                </Link>
+                                            </div>
+                                        </div>
+
+                                        {/* Embedded Testbed iFrame for Instant On-Page Testing */}
+                                        <div style={{ width: '100%', height: '640px', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+                                            <iframe
+                                                src="/simulators/shakthikulangara_robotics/index.html"
+                                                title="Shakthikulangara Robotics Remote Testbed"
+                                                style={{ width: '100%', height: '100%', border: 'none' }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* --- 4. STATE SASTHROLSAVAM FOLDER VIEW --- */}
+                            {currentPath === 'state-sasthrolsavam' && (
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                                        <h2 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <FolderOpen size={20} color="var(--ad-orange)" /> State Sasthrolsavam Entries ({projectsHierarchy.root.folders[1].subfolders.length})
+                                        </h2>
+                                        <span style={{ fontSize: '0.82rem', color: 'var(--ad-text-dim)' }}>Select any project to view complete blueprint</span>
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '24px' }}>
+                                        {projectsHierarchy.root.folders[1].subfolders.map(item => {
+                                            const proj = projectsData[item.projectId];
+                                            if (!proj) return null;
+                                            return (
+                                                <motion.div
+                                                    key={item.id}
+                                                    whileHover={{ y: -5, borderColor: item.badgeColor }}
+                                                    style={{
+                                                        background: 'rgba(14, 26, 52, 0.75)',
+                                                        border: '1px solid var(--ad-border-navy)',
+                                                        borderRadius: '20px',
+                                                        padding: '24px',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        justifyContent: 'space-between',
+                                                        position: 'relative',
+                                                        overflow: 'hidden'
+                                                    }}
+                                                >
+                                                    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: item.badgeColor }} />
+
+                                                    <div>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+                                                            <span style={{ fontSize: '2.2rem' }}>{item.icon}</span>
+                                                            <span style={{
+                                                                fontSize: '0.72rem',
+                                                                fontWeight: 800,
+                                                                padding: '4px 10px',
+                                                                borderRadius: '999px',
+                                                                background: `${item.badgeColor}20`,
+                                                                color: item.badgeColor,
+                                                                border: `1px solid ${item.badgeColor}40`
+                                                            }}>
+                                                                {item.badge}
+                                                            </span>
+                                                        </div>
+
+                                                        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.8rem', color: item.badgeColor, fontWeight: 700 }}>
+                                                            📄 {item.id}
+                                                        </div>
+                                                        <h3 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 800, margin: '6px 0 10px' }}>
+                                                            {proj.title}
+                                                        </h3>
+                                                        <p style={{ fontSize: '0.88rem', color: 'var(--ad-text-dim)', lineHeight: '1.6', marginBottom: '20px' }}>
+                                                            {proj.tagline}
+                                                        </p>
+                                                    </div>
+
+                                                    <Link
+                                                        to={`/projects/${item.projectId}`}
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            gap: '6px',
+                                                            padding: '10px 16px',
+                                                            borderRadius: '10px',
+                                                            background: 'rgba(255, 255, 255, 0.08)',
+                                                            border: '1px solid rgba(255, 255, 255, 0.15)',
+                                                            color: '#fff',
+                                                            fontWeight: 700,
+                                                            fontSize: '0.85rem',
+                                                            textDecoration: 'none'
+                                                        }}
+                                                    >
+                                                        Open Project Blueprint <ArrowRight size={14} />
+                                                    </Link>
+                                                </motion.div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </motion.div>
+                    ) : (
+                        /* --- 5. CLASSIC ALL PROJECTS GRID VIEW --- */
+                        <motion.div
+                            key="all-grid"
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -15 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            {/* Category Filter Pills */}
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '32px' }}>
+                                {categories.map(cat => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => setSelectedCategory(cat)}
+                                        style={{
+                                            padding: '8px 16px',
+                                            borderRadius: '20px',
+                                            fontSize: '0.82rem',
+                                            fontWeight: 700,
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease',
+                                            border: selectedCategory === cat ? '1px solid var(--ad-orange)' : '1px solid rgba(255, 255, 255, 0.1)',
+                                            background: selectedCategory === cat ? 'rgba(249, 115, 22, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                                            color: selectedCategory === cat ? 'var(--ad-orange)' : 'var(--ad-text-dim)'
+                                        }}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '28px' }}>
+                                {filteredProjects.map((project, idx) => (
+                                    <motion.div
+                                        key={project.id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.4, delay: idx * 0.05 }}
+                                        style={{
+                                            background: 'rgba(14, 26, 52, 0.7)',
+                                            border: '1px solid var(--ad-border-navy)',
+                                            borderRadius: '24px',
+                                            padding: '28px',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            justifyContent: 'space-between',
+                                            transition: 'all 0.3s ease',
+                                            backdropFilter: 'blur(12px)',
+                                            position: 'relative',
+                                            overflow: 'hidden'
+                                        }}
+                                        whileHover={{ y: -6, borderColor: 'var(--ad-orange)' }}
+                                    >
+                                        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: project.accentColor || 'var(--ad-orange)' }} />
+
+                                        <div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+                                                <span style={{ fontSize: '2rem' }}>{project.icon}</span>
+                                                <span style={{
+                                                    fontSize: '0.72rem',
+                                                    fontWeight: 800,
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.6px',
+                                                    padding: '4px 12px',
+                                                    borderRadius: '999px',
+                                                    background: `${project.badgeColor}20`,
+                                                    color: project.badgeColor,
+                                                    border: `1px solid ${project.badgeColor}40`
+                                                }}>
+                                                    {project.badge}
+                                                </span>
+                                            </div>
+
+                                            <h2 style={{ fontSize: '1.35rem', color: '#fff', fontWeight: 800, lineHeight: '1.3', marginBottom: '8px' }}>
+                                                {project.title}
+                                            </h2>
+                                            <p style={{ fontSize: '0.88rem', color: 'var(--ad-text-dim)', lineHeight: '1.6', marginBottom: '20px' }}>
+                                                {project.tagline}
+                                            </p>
+
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '24px' }}>
+                                                {project.metrics.slice(0, 4).map((m, mIdx) => (
+                                                    <div key={mIdx} style={{ background: 'rgba(5, 7, 10, 0.5)', padding: '10px 12px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                                                        <div style={{ fontSize: '0.72rem', color: 'var(--ad-text-dim)', textTransform: 'uppercase', fontWeight: 700 }}>{m.label}</div>
+                                                        <div style={{ fontSize: '1.05rem', color: '#fff', fontWeight: 800, marginTop: '2px' }}>{m.val}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div style={{ display: 'flex', gap: '10px' }}>
+                                            {project.simulatorUrl && (
+                                                <a
+                                                    href={project.simulatorUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    style={{
+                                                        padding: '10px 14px',
+                                                        borderRadius: '12px',
+                                                        background: 'rgba(249, 115, 22, 0.15)',
+                                                        border: '1px solid var(--ad-orange)',
+                                                        color: 'var(--ad-orange)',
+                                                        fontWeight: 700,
+                                                        fontSize: '0.85rem',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '6px',
+                                                        textDecoration: 'none'
+                                                    }}
+                                                >
+                                                    <Play size={14} /> Test
+                                                </a>
+                                            )}
+                                            <Link
+                                                to={`/projects/${project.id}`}
+                                                style={{
+                                                    flex: 1,
+                                                    padding: '12px 18px',
+                                                    borderRadius: '12px',
+                                                    background: 'var(--ad-orange)',
+                                                    color: '#fff',
+                                                    fontWeight: 800,
+                                                    fontSize: '0.88rem',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '8px',
+                                                    textDecoration: 'none',
+                                                    boxShadow: '0 4px 14px rgba(249, 115, 22, 0.3)'
+                                                }}
+                                            >
+                                                Blueprint & Guide <ArrowRight size={16} />
+                                            </Link>
+                                        </div>
+                                    </motion.div>
+                                ))}
                             </div>
                         </motion.div>
-                    ))}
-                </div>
-
-                {filteredProjects.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--ad-text-dim)' }}>
-                        <p style={{ fontSize: '1.1rem' }}>No projects found matching "{searchQuery}". Try selecting another category.</p>
-                    </div>
-                )}
+                    )}
+                </AnimatePresence>
             </main>
-
-            {/* Pre-Flight Checklist */}
-            <section style={{ padding: '0 8% 80px', maxWidth: '1240px', margin: '0 auto' }}>
-                <div style={{ background: 'rgba(14, 26, 52, 0.85)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '24px', padding: '36px' }}>
-                    <div style={{ marginBottom: '24px' }}>
-                        <span style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', color: '#10b981', background: 'rgba(16, 185, 129, 0.15)', padding: '4px 10px', borderRadius: '6px' }}>
-                            EXHIBITION PRE-FLIGHT CHECKLIST
-                        </span>
-                        <h2 style={{ fontSize: '1.6rem', color: '#fff', fontWeight: 800, marginTop: '10px' }}>
-                            Stall 5-Minute Safety & Verification Checklist
-                        </h2>
-                        <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.9rem' }}>
-                            Before evaluators and visitors inspect your prototype, verify these critical points:
-                        </p>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-                        {[
-                            { title: 'Common Ground (GND) Bonded', text: 'Ensure the microcontroller GND, battery GND, and motor/relay power rail GND are all connected together.' },
-                            { title: 'Serial Baud Synchronized', text: 'Arduino Serial Monitor must be configured to exactly 115200 baud in the IDE bottom-right corner.' },
-                            { title: 'Isolated Motor Power Rail', text: 'Never drive high-current DC motors or 12V pumps directly from microcontroller 5V or 3.3V logic pins.' },
-                            { title: 'Offline Hotspot Verified', text: 'Check that the ESP32 Wi-Fi SoftAP "ESP32-Smart-Monitor" (192.168.4.1) is accessible from your smartphone.' },
-                            { title: 'Spare Batteries Charged', text: 'Keep a spare power bank or charged 3S LiPo battery at your stall to prevent shutdown during viva evaluation.' },
-                            { title: '60-Second Pitch Prepared', text: 'Every team member should know the problem, mathematical model, and unique advantage of the prototype.' }
-                        ].map((chk, i) => (
-                            <div key={i} style={{ background: 'rgba(5, 7, 10, 0.6)', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: '12px', padding: '16px', display: 'flex', gap: '12px' }}>
-                                <CheckCircle2 size={20} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />
-                                <div>
-                                    <strong style={{ color: '#fff', fontSize: '0.92rem', display: 'block', marginBottom: '4px' }}>{chk.title}</strong>
-                                    <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.82rem', lineHeight: '1.5' }}>{chk.text}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
         </div>
     );
 };

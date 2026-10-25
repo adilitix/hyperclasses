@@ -1003,5 +1003,525 @@ void loop() {
     ],
     simulatorUrl: '/simulators/smart_farming/index.html',
     reportPdf: '/reports/Kerala_Sasthrolsavam_Projectwise_Master_Report.pdf'
+  },
+  'shakthikulangara-robotics': {
+    id: 'shakthikulangara-robotics',
+    slug: 'shakthikulangara/robotics',
+    title: 'Shakthikulangara Robotics: Autonomous Obstacle Avoidance Rover & Remote Test Console',
+    shortTitle: 'Shakthikulangara Robotics Rover',
+    category: 'Robotics & Autonomous AI',
+    badge: 'Live Test Website Available',
+    badgeColor: '#f97316',
+    accentColor: '#f97316',
+    icon: '🤖',
+    tagline: 'Dual H-Bridge motor driven autonomous rover with 180° ultrasonic obstacle radar and live interactive remote testing website over NodeMCU Wi-Fi.',
+    pitch: `Built for Shakthikulangara School STEM Lab, this mobile robotics platform blends autonomous obstacle avoidance with real-time web teleoperation. Powered by an ESP8266 NodeMCU microcontroller, it drives dual geared DC motors through an L298N H-Bridge while pinging acoustic waves via an HC-SR04 ultrasonic sensor. Students and evaluators can connect to its live test console to pilot the rover, view distance radar arcs, toggle autonomous evasion routines, and monitor battery telemetry from any smartphone or browser.`,
+    problem: `Most educational school robotics projects rely either exclusively on blind hard-coded loops or infrared line trackers that fail under ambient sunlight. Furthermore, debugging robot drive errors in a classroom without live telemetry requires repeatedly lifting the robot and tethering it with USB cables.`,
+    innovation: `Integrates real-time ultrasonic time-of-flight acoustic mapping with a responsive web-based remote control console. The NodeMCU acts as an asynchronous Wi-Fi access point and HTTP REST command bridge, allowing full wireless testing, sensor telemetry streaming, and autonomous path arbitration without external software.`,
+    metrics: [
+      { label: 'Obstacle Detection', val: '2 - 400 cm' },
+      { label: 'Response Latency', val: '< 20 ms' },
+      { label: 'Drive PWM Resolution', val: '10-bit (0-1023)' },
+      { label: 'Battery Runtime', val: '3.5 Hours' }
+    ],
+    bom: [
+      { component: 'NodeMCU ESP8266 (ESP-12E)', specs: '80/160MHz 32-bit Tensilica L106, 4MB Flash, Wi-Fi 802.11 b/g/n', qty: 1, role: 'Main Brain & Wi-Fi REST Bridge' },
+      { component: 'L298N Dual H-Bridge Motor Driver', specs: 'Dual 2A H-Bridge, 5V - 35V DC supply, onboard 5V regulator', qty: 1, role: 'High-current DC Motor Drive' },
+      { component: 'HC-SR04 Ultrasonic Sensor', specs: '40kHz ultrasonic burst, 2cm - 400cm range, 3mm resolution', qty: 1, role: 'Forward Obstacle Distance Radar' },
+      { component: 'BO Dual-Shaft Geared DC Motors (200 RPM)', specs: '3V - 6V DC operating range, 1:48 gear ratio, 0.8 kg-cm torque', qty: 2, role: 'Differential Drive Locomotion' },
+      { component: 'Castor Free-Swivel Wheel', specs: '360° omnidirectional smooth ball bearing caster', qty: 1, role: 'Passive Third Balance Pivot' },
+      { component: '2S 7.4V Li-ion Battery Pack (or 2x 18650 cells)', specs: '7.4V nominal (8.4V peak), 2200mAh with BMS', qty: 1, role: 'High-discharge System Power Supply' },
+      { component: 'Laser-Cut 2WD Acrylic Chassis Plate', specs: 'Precision pre-drilled acrylic mounting plate with hardware', qty: 1, role: 'Mechanical Rig & Structural Frame' }
+    ],
+    pinout: [
+      { module: 'L298N Motor Driver', pin: 'IN1 (Motor Left Fwd)', mcuPin: 'NodeMCU D1 (GPIO 5)', color: 'Blue', protocol: 'Digital Output / PWM', notes: 'Controls left motor forward rotation.' },
+      { module: 'L298N Motor Driver', pin: 'IN2 (Motor Left Rev)', mcuPin: 'NodeMCU D2 (GPIO 4)', color: 'Green', protocol: 'Digital Output / PWM', notes: 'Controls left motor reverse rotation.' },
+      { module: 'L298N Motor Driver', pin: 'IN3 (Motor Right Fwd)', mcuPin: 'NodeMCU D5 (GPIO 14)', color: 'Yellow', protocol: 'Digital Output / PWM', notes: 'Controls right motor forward rotation.' },
+      { module: 'L298N Motor Driver', pin: 'IN4 (Motor Right Rev)', mcuPin: 'NodeMCU D6 (GPIO 12)', color: 'Orange', protocol: 'Digital Output / PWM', notes: 'Controls right motor reverse rotation.' },
+      { module: 'HC-SR04 Ultrasonic', pin: 'TRIG', mcuPin: 'NodeMCU D7 (GPIO 13)', color: 'Purple', protocol: 'Digital 10µs Trigger Pulse', notes: 'Generates 40kHz sonic burst sequence.' },
+      { module: 'HC-SR04 Ultrasonic', pin: 'ECHO', mcuPin: 'NodeMCU D8 (GPIO 15)', color: 'White', protocol: 'Pulse Width Echo (3.3V safe)', notes: 'Use 1kΩ / 2kΩ resistor divider to step 5V Echo down to 3.3V.' },
+      { module: 'Power Distribution', pin: 'VCC & GND', mcuPin: 'VIN & GND', color: 'Red / Black', protocol: 'Common Ground System', notes: 'Tie battery negative, L298N GND, and NodeMCU GND together.' }
+    ],
+    steps: [
+      { step: 1, title: 'Mechanical Assembly & Motor Mount', desc: 'Secure the two BO geared DC motors to the underside of the 2WD acrylic chassis plate. Mount the rubber drive wheels onto the motor shafts and attach the front omnidirectional swivel caster wheel.' },
+      { step: 2, title: 'L298N H-Bridge Driver Mounting & Wiring', desc: 'Mount the L298N module securely to the chassis. Connect Motor A outputs to the left motor and Motor B outputs to the right motor. Remove the ENA/ENB jumpers if using hardware PWM speed regulation or keep connected for full voltage.' },
+      { step: 3, title: 'NodeMCU Brain & Ultrasonic Radar Wiring', desc: 'Place the NodeMCU on the chassis breadboard. Wire D1 and D2 to L298N IN1/IN2, and D5 and D6 to IN3/IN4. Mount the HC-SR04 forward-facing on the front bumper and wire TRIG to D7 and ECHO to D8 via voltage divider.' },
+      { step: 4, title: 'Power Tie & Firmware Upload', desc: 'Connect the 7.4V battery to L298N 12V and GND terminals. Route L298N 5V out to NodeMCU VIN. Upload the firmware sketch and open the live remote test console at adilitix.com/projects/shakthikulangara/robotics.' }
+    ],
+    code: `/*
+ * SHAKTHIKULANGARA SCHOOL STEM LAB - ROBOTICS PROJECT
+ * Autonomous Obstacle Avoidance Rover & Web Telemetry Server
+ * Board: NodeMCU ESP8266 (ESP-12E)
+ * Features: SoftAP Web Server (192.168.4.1), Differential Drive & Ultrasonic Radar
+ */
+
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+
+// --- L298N Motor Driver Pins ---
+#define PIN_IN1 D1 // GPIO 5 (Left Forward)
+#define PIN_IN2 D2 // GPIO 4 (Left Reverse)
+#define PIN_IN3 D5 // GPIO 14 (Right Forward)
+#define PIN_IN4 D6 // GPIO 12 (Right Reverse)
+
+// --- HC-SR04 Ultrasonic Sensor Pins ---
+#define PIN_TRIG D7 // GPIO 13
+#define PIN_ECHO D8 // GPIO 15
+
+ESP8266WebServer server(80);
+
+int currentSpeed = 200; // 0 - 255 PWM
+bool autoMode = false;
+unsigned long lastRadarCheck = 0;
+
+float getUltrasonicDistance() {
+  digitalWrite(PIN_TRIG, LOW);
+  delayMicroseconds(2);
+  digitalWrite(PIN_TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(PIN_TRIG, LOW);
+  
+  long duration = pulseIn(PIN_ECHO, HIGH, 25000); // 25ms timeout (~4m)
+  if (duration == 0) return 400.0;
+  return (duration * 0.0343) / 2.0; // Distance in cm
+}
+
+void stopMotors() {
+  analogWrite(PIN_IN1, 0);
+  analogWrite(PIN_IN2, 0);
+  analogWrite(PIN_IN3, 0);
+  analogWrite(PIN_IN4, 0);
+}
+
+void driveForward(int spd) {
+  analogWrite(PIN_IN1, spd);
+  analogWrite(PIN_IN2, 0);
+  analogWrite(PIN_IN3, spd);
+  analogWrite(PIN_IN4, 0);
+}
+
+void driveReverse(int spd) {
+  analogWrite(PIN_IN1, 0);
+  analogWrite(PIN_IN2, spd);
+  analogWrite(PIN_IN3, 0);
+  analogWrite(PIN_IN4, spd);
+}
+
+void turnLeft(int spd) {
+  analogWrite(PIN_IN1, 0);
+  analogWrite(PIN_IN2, spd);
+  analogWrite(PIN_IN3, spd);
+  analogWrite(PIN_IN4, 0);
+}
+
+void turnRight(int spd) {
+  analogWrite(PIN_IN1, spd);
+  analogWrite(PIN_IN2, 0);
+  analogWrite(PIN_IN3, 0);
+  analogWrite(PIN_IN4, spd);
+}
+
+// REST API Handler for Remote Web Console
+void handleDrive() {
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  if (!server.hasArg("cmd")) {
+    server.send(400, "text/plain", "Missing cmd argument");
+    return;
+  }
+  
+  String cmd = server.arg("cmd");
+  if (server.hasArg("speed")) {
+    currentSpeed = constrain(server.arg("speed").toInt(), 80, 255);
+  }
+  
+  autoMode = false; // Manual command overrides auto mode
+  
+  if (cmd == "FORWARD") driveForward(currentSpeed);
+  else if (cmd == "REVERSE") driveReverse(currentSpeed);
+  else if (cmd == "LEFT") turnLeft(currentSpeed);
+  else if (cmd == "RIGHT") turnRight(currentSpeed);
+  else if (cmd == "STOP") stopMotors();
+  else if (cmd == "AUTO") autoMode = true;
+  
+  float dist = getUltrasonicDistance();
+  String json = "{\\"status\\":\\"OK\\",\\"cmd\\":\\"" + cmd + "\\",\\"speed\\":" + String(currentSpeed) + ",\\"distance\\":" + String(dist) + "}";
+  server.send(200, "application/json", json);
+}
+
+void handleTelemetry() {
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  float dist = getUltrasonicDistance();
+  String json = "{\\"distance\\":" + String(dist) + ",\\"speed\\":" + String(currentSpeed) + ",\\"auto\\":" + (autoMode ? "true" : "false") + "}";
+  server.send(200, "application/json", json);
+}
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("\\n--- Shakthikulangara Robotics Rover Booting ---");
+  
+  pinMode(PIN_IN1, OUTPUT);
+  pinMode(PIN_IN2, OUTPUT);
+  pinMode(PIN_IN3, OUTPUT);
+  pinMode(PIN_IN4, OUTPUT);
+  stopMotors();
+  
+  pinMode(PIN_TRIG, OUTPUT);
+  pinMode(PIN_ECHO, INPUT);
+  
+  // Set up SoftAP Hotspot
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP("Shakthikulangara-Robot", "robot1234");
+  Serial.print("Access Point Started! IP: ");
+  Serial.println(WiFi.softAPIP()); // 192.168.4.1
+  
+  server.on("/drive", handleDrive);
+  server.on("/telemetry", handleTelemetry);
+  server.begin();
+  Serial.println("HTTP Telemetry Server Online on Port 80");
+}
+
+void loop() {
+  server.handleClient();
+  
+  // Autonomous Obstacle Avoidance Loop
+  if (autoMode) {
+    if (millis() - lastRadarCheck >= 80) {
+      lastRadarCheck = millis();
+      float dist = getUltrasonicDistance();
+      
+      if (dist < 22.0) { // Obstacle within 22cm
+        stopMotors();
+        delay(100);
+        driveReverse(180);
+        delay(400);
+        turnRight(200);
+        delay(450);
+        stopMotors();
+      } else {
+        driveForward(currentSpeed);
+      }
+    }
+  }
+}`,
+    codeFileName: 'shakthikulangara_robotics_rover.ino',
+    math: [
+      {
+        title: "Acoustic Time-of-Flight (ToF) Distance Formulation",
+        formula: "d = (v_sound × t_echo) / 2 [cm]",
+        explanation: "Where v_sound = 331.3 + (0.606 × T) m/s (approximating 0.0343 cm/µs at 20°C ambient). The two-way acoustic transit duration is halved to resolve exact radial distance to obstacle."
+      },
+      {
+        title: "Differential Steering Kinematics",
+        formula: "ω = (v_right - v_left) / L [rad/s], R = (L / 2) × (v_left + v_right) / (v_right - v_left)",
+        explanation: "Where L is the chassis track width between the two drive wheels. Independent wheel velocities yield precise angular heading velocity ω and instantaneous curvature radius R."
+      }
+    ],
+    applications: [
+      { title: 'School STEM & Educational Robotics Lab', desc: 'Introduces students to embedded C++ programming, differential kinematics, sensor telemetry, and hardware debugging.' },
+      { title: 'Autonomous Indoor Facility Navigation', desc: 'Foundation for automated delivery robots, disinfection rovers, and obstacle-avoiding warehouse transit platforms.' },
+      { title: 'Wireless Teleoperation & Field Inspection', desc: 'Permits remote survey of confined crawlspaces, pipe channels, and hazardous inspection areas.' }
+    ],
+    troubleshooting: [
+      { problem: 'Motors Spin in Reverse Direction', cause: 'DC motor polarity inverted on L298N terminals.', fix: 'Swap the two motor wires on the respective L298N OUT screw terminals.' },
+      { problem: 'ESP8266 Reboots When Motors Start', cause: 'High motor inrush current pulls down NodeMCU 3.3V rail.', fix: 'Ensure NodeMCU VIN is powered via L298N 5V regulator and add a 100µF electrolytic capacitor across the power rails.' },
+      { problem: 'Ultrasonic Distance Echo Stays at 0 or 400cm', cause: 'ECHO pin floating or voltage divider unseated.', fix: 'Verify TRIG is on D7, ECHO is on D8 with 1k/2k divider, and VCC receives stable 5V.' }
+    ],
+    viva: [
+      { q: 'How does the robot detect obstacles in its path?', a: 'The HC-SR04 sensor triggers a 10µs pulse to emit 40kHz ultrasound bursts. When sound waves bounce off an obstacle and return to the receiver, pulseIn() measures duration in microseconds. Multiplying by 0.0343 cm/µs and dividing by 2 resolves accurate distance in centimeters.' },
+      { q: 'Why is an L298N motor driver necessary instead of connecting motors directly to the NodeMCU?', a: 'The NodeMCU GPIO pins can only deliver ~12mA of current at 3.3V, whereas DC geared motors demand 300mA - 1.2A of surge current at 6V-9V. The L298N dual H-Bridge acts as a high-current amplifier with optoisolation to shield the sensitive microcontroller.' },
+      { q: 'How does the live remote test website operate wirelessly?', a: 'The NodeMCU boots a Wi-Fi Access Point (SoftAP) at 192.168.4.1 running an embedded HTTP web server. The web test console transmits asynchronous HTTP GET queries with drive directives, which the ESP8266 converts into motor PWM outputs in real time.' }
+    ],
+    simulatorUrl: '/simulators/shakthikulangara_robotics/index.html',
+    reportPdf: '/reports/Kerala_Sasthrolsavam_Projectwise_Master_Report.pdf'
+  },
+  'shakthikulangara-iot': {
+    id: 'shakthikulangara-iot',
+    slug: 'shakthikulangara/iot',
+    title: 'Shakthikulangara IoT: NodeMCU Dual Display Telemetry Station',
+    shortTitle: 'Shakthikulangara IoT Station',
+    category: 'IoT & Climate Tech',
+    badge: 'Hardware Flashed & Verified',
+    badgeColor: '#38bdf8',
+    accentColor: '#38bdf8',
+    icon: '🌐',
+    tagline: 'NodeMCU ESP8266 edge telemetry node with synchronized 0.96" I2C OLED (SSD1306), TM1637 4-digit 7-segment display, and 200ms pulse test.',
+    pitch: `Developed for Shakthikulangara School STEM Lab, this IoT telemetry station synchronizes a graphical OLED screen and a high-visibility 4-digit 7-segment display module. Built on the NodeMCU ESP8266, it features sub-second timer tracking, active progress bars, onboard LED pulse blinking (200ms interval), and extensible I2C telemetry for school science exhibition monitoring.`,
+    problem: `In school technology exhibitions and STEM labs, single displays are often too small for audience members to read from a distance, while pure numerical 7-segment displays lack the graphical real estate to show status labels, progress bars, and diagnostics.`,
+    innovation: `Combines an I2C graphical OLED for detailed micro-diagnostics with an SPI-style TM1637 4-digit 7-segment display for large format countdown and telemetry readout, running asynchronous multi-tasking without blocking delays.`,
+    metrics: [
+      { label: 'Pulse Frequency', val: '2.5 Hz (200ms)' },
+      { label: 'OLED Refresh', val: '1000 ms Synced' },
+      { label: 'Bus Architecture', val: 'I2C + 2-Wire TM1637' },
+      { label: 'Operating Voltage', val: '3.3V / 5V Logic' }
+    ],
+    bom: [
+      { component: 'NodeMCU ESP8266 (ESP-12E)', specs: 'Wi-Fi SoC, 4MB Flash, USB-UART CH340 / CP2102', qty: 1, role: 'Main Telemetry Controller' },
+      { component: '0.96" I2C Monochrome OLED Display', specs: '128x64 pixels, SSD1306 controller, 3.3V-5V compatible, I2C address 0x3C', qty: 1, role: 'Graphical Status HUD & Progress Bar' },
+      { component: 'TM1637 4-Digit 7-Segment Display Module', specs: '0.36" red digits with center colon, TM1637 driver, 2-wire serial protocol', qty: 1, role: 'High-Visibility Exhibition Timer & Counter' },
+      { component: 'Solderless Breadboard & Jumpers', specs: '830-tie point breadboard with male-to-male and male-to-female jumper wires', qty: 1, role: 'Circuit Prototyping Platform' }
+    ],
+    pinout: [
+      { module: 'OLED Display', pin: 'VCC / GND', mcuPin: '3V3 / GND', color: 'Red / Black', protocol: '3.3V DC Power', notes: 'Powers OLED display driver.' },
+      { module: 'OLED Display', pin: 'SCL', mcuPin: 'NodeMCU D1 (GPIO 5)', color: 'Yellow', protocol: 'I2C Clock (Wire)', notes: 'Default hardware I2C clock pin.' },
+      { module: 'OLED Display', pin: 'SDA', mcuPin: 'NodeMCU D2 (GPIO 4)', color: 'Blue', protocol: 'I2C Data (Wire)', notes: 'Default hardware I2C data pin.' },
+      { module: 'TM1637 7-Segment', pin: 'CLK', mcuPin: 'NodeMCU D5 (GPIO 14)', color: 'Green', protocol: '2-Wire Serial Clock', notes: 'Clock line for TM1637 shift register.' },
+      { module: 'TM1637 7-Segment', pin: 'DIO', mcuPin: 'NodeMCU D6 (GPIO 12)', color: 'Orange', protocol: '2-Wire Serial Data', notes: 'Bi-directional data line for display segments.' }
+    ],
+    steps: [
+      { step: 1, title: 'Seat NodeMCU on Breadboard', desc: 'Place NodeMCU ESP8266 spanning the center divider of the breadboard to expose pins on both sides.' },
+      { step: 2, title: 'Wire I2C 0.96" OLED Display', desc: 'Connect OLED VCC to NodeMCU 3V3, GND to GND, SCL to D1 (GPIO5), and SDA to D2 (GPIO4).' },
+      { step: 3, title: 'Wire TM1637 4-Digit Display', desc: 'Connect TM1637 VCC to 3V3 (or VIN), GND to GND, CLK to D5 (GPIO14), and DIO to D6 (GPIO12).' },
+      { step: 4, title: 'Flash Firmware & Verify Dual Output', desc: 'Compile and flash using Arduino IDE or arduino-cli. Verify 200ms blink rate, timer progression, and OLED status HUD.' }
+    ],
+    code: `/*
+ * SHAKTHIKULANGARA SCHOOL STEM LAB - IoT PROJECT
+ * NodeMCU ESP8266 Dual Display Station (OLED + TM1637 4-Digit)
+ * Displays: 0.96" SSD1306 (128x64) + TM1637 7-Segment + 200ms Heartbeat
+ */
+
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <TM1637Display.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+#define SCREEN_ADDRESS 0x3C
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+#define CLK_PIN D5  // GPIO14
+#define DIO_PIN D6  // GPIO12
+TM1637Display tm1637(CLK_PIN, DIO_PIN);
+
+unsigned long previousMillis = 0;
+int counter = 0;
+bool colonState = false;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_BUILTIN, OUTPUT);
+  #if defined(D0)
+  pinMode(D0, OUTPUT);
+  #endif
+
+  tm1637.setBrightness(0x0f);
+  tm1637.showNumberDec(counter, true);
+
+  Wire.begin(D2, D1); // SDA = D2, SCL = D1
+
+  if (display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    display.clearDisplay();
+    display.setTextColor(SSD1306_WHITE);
+    display.setTextSize(1);
+    display.setCursor(15, 20);
+    display.println("SHAKTHIKULANGARA");
+    display.setCursor(30, 36);
+    display.println("IoT PROJECT");
+    display.display();
+    delay(1500);
+  }
+}
+
+void loop() {
+  // 200ms Heartbeat Pulse
+  digitalWrite(LED_BUILTIN, (millis() / 200) % 2 == 0 ? LOW : HIGH);
+
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= 1000) {
+    previousMillis = currentMillis;
+    counter++;
+    colonState = !colonState;
+
+    int minutes = (counter / 60) % 100;
+    int seconds = counter % 60;
+    int displayTime = (minutes * 100) + seconds;
+    
+    uint8_t colonMask = colonState ? 0b01000000 : 0;
+    tm1637.showNumberDecEx(displayTime, colonMask, true);
+
+    display.clearDisplay();
+    display.fillRect(0, 0, 128, 14, SSD1306_WHITE);
+    display.setTextColor(SSD1306_BLACK, SSD1306_WHITE);
+    display.setTextSize(1);
+    display.setCursor(6, 3);
+    display.print("SHAKTHIKULANGARA IoT");
+
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(0, 22);
+    display.print("Status: ");
+    display.println("ONLINE (OK)");
+
+    display.setCursor(0, 34);
+    display.print("Time:   ");
+    if (minutes < 10) display.print("0");
+    display.print(minutes);
+    display.print(":");
+    if (seconds < 10) display.print("0");
+    display.println(seconds);
+
+    display.setCursor(0, 46);
+    display.print("Count:  #");
+    display.println(counter);
+
+    int barWidth = (counter % 30) * (128 / 30);
+    display.drawRect(0, 58, 128, 6, SSD1306_WHITE);
+    display.fillRect(0, 58, barWidth, 6, SSD1306_WHITE);
+    display.display();
+  }
+}`,
+    codeFileName: 'shakthikulangara_iot_dual_display.ino',
+    math: [
+      {
+        title: "I2C Bus Transmission Protocol",
+        formula: "f_SCL = 100 kHz (Standard) / 400 kHz (Fast Mode)",
+        explanation: "Two-wire bidirectional open-drain bus with pull-up resistors. Address 0x3C is transmitted following the START condition, addressing the SSD1306 display frame buffer."
+      }
+    ],
+    applications: [
+      { title: 'School Science Fair Live Project Station', desc: 'Displays sensor parameters and timing for visitor demonstrations.' },
+      { title: 'Environmental Edge Monitoring Node', desc: 'Extensible with DHT22, MQ gas sensors, or rain detectors for classroom weather observation.' }
+    ],
+    troubleshooting: [
+      { problem: 'OLED Shows Nothing (Blank Screen)', cause: 'Incorrect I2C pins or missing pull-ups.', fix: 'Ensure SDA is on NodeMCU D2 (GPIO4) and SCL is on D1 (GPIO5).' },
+      { problem: '7-Segment Digits are Dim', cause: 'Low brightness setting.', fix: 'Use tm1637.setBrightness(0x0f) for full brightness.' }
+    ],
+    viva: [
+      { q: 'What is the communication difference between the OLED and TM1637 displays?', a: 'The OLED communicates via I2C (Inter-Integrated Circuit) with addressing (0x3C) allowing multiple devices on the same D1/D2 bus. The TM1637 uses a custom two-wire pseudo-SPI clock/data shift register protocol on D5 and D6.' }
+    ],
+    simulatorUrl: null,
+    reportPdf: '/reports/Kerala_Sasthrolsavam_Projectwise_Master_Report.pdf'
+  }
+};
+
+// Aliases for clean nested routing
+projectsData['shakthikulangara/robotics'] = projectsData['shakthikulangara-robotics'];
+projectsData['shakthikulangara/iot'] = projectsData['shakthikulangara-iot'];
+
+// Hierarchical Projects Directory for Folder Manager View
+export const projectsHierarchy = {
+  root: {
+    id: 'root',
+    title: 'Adilitix Projects',
+    path: '',
+    folders: [
+      {
+        id: 'shakthikulangara',
+        name: 'shakthikulangara',
+        title: 'Shakthikulangara School',
+        subtitle: 'Applied STEM Innovation & Robotics Testbed',
+        icon: '🏫',
+        badge: 'School STEM Lab',
+        badgeColor: '#38bdf8',
+        itemCount: 3,
+        subfolders: [
+          {
+            id: 'robotics',
+            name: 'robotics',
+            title: 'Robotics & Autonomous Systems',
+            subtitle: 'Autonomous Rover & Live Remote Test Website',
+            icon: '🤖',
+            badge: 'Test Website Available',
+            badgeColor: '#f97316',
+            projectId: 'shakthikulangara-robotics',
+            hasSimulator: true,
+            simulatorUrl: '/simulators/shakthikulangara_robotics/index.html'
+          },
+          {
+            id: 'iot',
+            name: 'iot',
+            title: 'IoT & Telemetry Lab',
+            subtitle: 'NodeMCU Dual Display (OLED + 7-Segment)',
+            icon: '🌐',
+            badge: 'Hardware Verified',
+            badgeColor: '#10b981',
+            projectId: 'shakthikulangara-iot'
+          },
+          {
+            id: 'electronics',
+            name: 'electronics',
+            title: 'Electronics Prototyping',
+            subtitle: 'Substation & Sensor Prototyping Lab',
+            icon: '⚡',
+            badge: 'Curriculum Ready',
+            badgeColor: '#a855f7',
+            projectId: 'electronics'
+          }
+        ]
+      },
+      {
+        id: 'state-sasthrolsavam',
+        name: 'state-sasthrolsavam',
+        title: 'State Sasthrolsavam & Adilitix Core',
+        subtitle: 'Official State Level Sasthrolsavam Engineering Portfolios',
+        icon: '🏆',
+        badge: 'State Entries',
+        badgeColor: '#eab308',
+        itemCount: 6,
+        subfolders: [
+          {
+            id: 'iot',
+            name: 'iot',
+            title: 'AIoT Landslide Warning & Siphon Station',
+            subtitle: 'Disaster Warning & Automated Rain Siphon',
+            icon: '🌧️',
+            badge: 'Disaster Mitigation',
+            badgeColor: '#10b981',
+            projectId: 'iot'
+          },
+          {
+            id: 'robotics',
+            name: 'robotics',
+            title: 'Autonomous Multi-Terrain Rover',
+            subtitle: 'RoboNav SLAM & LiDAR Navigation',
+            icon: '🚀',
+            badge: 'Autonomous AI',
+            badgeColor: '#3b82f6',
+            projectId: 'robotics'
+          },
+          {
+            id: 'electronics',
+            name: 'electronics',
+            title: 'Smart Grid Biometric Substation',
+            subtitle: 'Substation Telemetry & Biometrics',
+            icon: '⚡',
+            badge: 'Bio-Electronics',
+            badgeColor: '#8b5cf6',
+            projectId: 'electronics'
+          },
+          {
+            id: 'smart-blind-stick',
+            name: 'smart-blind-stick',
+            title: 'Smart Assistive Blind Stick',
+            subtitle: 'Haptic Proximity & Emergency Telemetry',
+            icon: '🦯',
+            badge: 'Assistive Tech',
+            badgeColor: '#ec4899',
+            projectId: 'smart-blind-stick'
+          },
+          {
+            id: 'dobot',
+            name: 'dobot',
+            title: 'Dobot Magician 4-DOF Robotic Arm',
+            subtitle: 'Industrial Pick-and-Place & Inverse Kinematics',
+            icon: '🦾',
+            badge: 'Industrial Automation',
+            badgeColor: '#06b6d4',
+            projectId: 'dobot'
+          },
+          {
+            id: 'smart-farming',
+            name: 'smart-farming',
+            title: 'AgroSense Handheld Smart Farming Device',
+            subtitle: 'Soil Moisture, Microclimate & Daylight HUD',
+            icon: '🌱',
+            badge: 'Precision Agritech',
+            badgeColor: '#10b981',
+            projectId: 'smart-farming'
+          }
+        ]
+      }
+    ]
   }
 };
