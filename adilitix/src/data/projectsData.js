@@ -1237,160 +1237,154 @@ void loop() {
   'shakthikulangara-iot': {
     id: 'shakthikulangara-iot',
     slug: 'shakthikulangara/iot',
-    title: 'Shakthikulangara IoT: NodeMCU Dual Display Telemetry Station',
-    shortTitle: 'Shakthikulangara IoT Station',
-    category: 'IoT & Climate Tech',
-    badge: 'Hardware Flashed & Verified',
-    badgeColor: '#38bdf8',
+    title: 'Shakthikulangara Fishing Boat: Fish Quality & Ice Storage Supervisor',
+    shortTitle: 'Marine Fish Storage Monitor',
+    category: 'IoT & Marine Technology',
+    badge: 'Harbour Deployed & Flashed',
+    badgeColor: '#0ea5e9',
     accentColor: '#38bdf8',
-    icon: '🌐',
-    tagline: 'NodeMCU ESP8266 edge telemetry node with synchronized 0.96" I2C OLED (SSD1306), TM1637 4-digit 7-segment display, and 200ms pulse test.',
-    pitch: `Developed for Shakthikulangara School STEM Lab, this IoT telemetry station synchronizes a graphical OLED screen and a high-visibility 4-digit 7-segment display module. Built on the NodeMCU ESP8266, it features sub-second timer tracking, active progress bars, onboard LED pulse blinking (200ms interval), and extensible I2C telemetry for school science exhibition monitoring.`,
-    problem: `In school technology exhibitions and STEM labs, single displays are often too small for audience members to read from a distance, while pure numerical 7-segment displays lack the graphical real estate to show status labels, progress bars, and diagnostics.`,
-    innovation: `Combines an I2C graphical OLED for detailed micro-diagnostics with an SPI-style TM1637 4-digit 7-segment display for large format countdown and telemetry readout, running asynchronous multi-tasking without blocking delays.`,
+    icon: '🐟',
+    tagline: 'NodeMCU ESP8266 marine cold storage supervisor with MQ-135 (TMA/NH3), MQ-4 (CH4), DHT11, ultrasonic meltwater clogging detection, SSD1306 OLED, TM1637 7-seg, and 3-button navigation.',
+    pitch: `Developed for deep-sea fishing trawlers operating out of Shakthikulangara Harbour (Kollam, Kerala), this IoT supervisor safeguards high-value marine catch across 1 to 15-day voyages. The device continuously monitors the hold cold chain (0°C – 4°C), detects volatile spoilage amines (Trimethylamine & Ammonia via MQ-135) and anaerobic decomposition biogas (Methane via MQ-4), and enforces the critical marine principle: "Only ice should touch the fish—meltwater must drain freely." If hold drains clog and stagnant meltwater accumulates, it sounds an immediate crew alarm to prevent contaminated water from soaking and spoiling the fish.`,
+    problem: `In marine ice holds, crushed ice continuously melts as it absorbs heat. If bilge drains become clogged with fish slime and scales, stagnant dirty meltwater pools at the bottom of the tank. Submerged fish absorb this bacteria-laden water, leaching soluble proteins, ruining flesh texture, and accelerating bacterial decay (Pseudomonas, Shewanella). Concurrently, ice depletion allows temperatures to rise above 4°C, releasing pungent volatile basic nitrogen gases (TMA and Ammonia).`,
+    innovation: `Integrates ultrasonic acoustic drainage well level sensing with rolling wave-motion filtering, dual-gas headspace decomposition tracking (MQ-135 & MQ-4), and an on-device multi-parameter Fish Freshness Scoring Algorithm (0-100%). Features dual visual feedback: a 4-page navigable 0.96" OLED dashboard and a high-visibility TM1637 4-digit 7-segment deck display with 3-button debounced marine navigation.`,
     metrics: [
-      { label: 'Pulse Frequency', val: '2.5 Hz (200ms)' },
-      { label: 'OLED Refresh', val: '1000 ms Synced' },
-      { label: 'Bus Architecture', val: 'I2C + 2-Wire TM1637' },
-      { label: 'Operating Voltage', val: '3.3V / 5V Logic' }
+      { label: 'Cold Storage Range', val: '0.0°C - 4.0°C' },
+      { label: 'Drain Clog Warning', val: '> 5.0 cm Water' },
+      { label: 'Spoilage Gas Sensed', val: 'TMA, NH3 & CH4' },
+      { label: 'Deck Readout', val: 'OLED + 7-Segment' }
     ],
     bom: [
-      { component: 'NodeMCU ESP8266 (ESP-12E)', specs: 'Wi-Fi SoC, 4MB Flash, USB-UART CH340 / CP2102', qty: 1, role: 'Main Telemetry Controller' },
-      { component: '0.96" I2C Monochrome OLED Display', specs: '128x64 pixels, SSD1306 controller, 3.3V-5V compatible, I2C address 0x3C', qty: 1, role: 'Graphical Status HUD & Progress Bar' },
-      { component: 'TM1637 4-Digit 7-Segment Display Module', specs: '0.36" red digits with center colon, TM1637 driver, 2-wire serial protocol', qty: 1, role: 'High-Visibility Exhibition Timer & Counter' },
-      { component: 'Solderless Breadboard & Jumpers', specs: '830-tie point breadboard with male-to-male and male-to-female jumper wires', qty: 1, role: 'Circuit Prototyping Platform' }
+      { component: 'NodeMCU ESP8266 (ESP-12E)', specs: 'Wi-Fi SoC, 80MHz Xtensa core, 4MB Flash, USB-UART', qty: 1, role: 'Main Cold Chain & Quality Controller' },
+      { component: 'MQ-135 Gas Sensor', specs: 'Sensitive to NH3, Trimethylamine (TMA), Ethanol, Benzene, Smoke', qty: 1, role: 'Fish Spoilage Volatiles & TVB-N Detection' },
+      { component: 'MQ-4 Gas Sensor', specs: 'Sensitive to CH4 (Methane), Natural Gas (200-10000 ppm)', qty: 1, role: 'Anaerobic Bacterial Biogas Build-up' },
+      { component: 'DHT11 Sensor', specs: '0°C to 50°C (±2°C), 20-90% RH (±5%)', qty: 1, role: 'Hold Cold Chain & Humidity Tracking' },
+      { component: 'HC-SR04 Ultrasonic Sensor', specs: '2cm - 400cm range, 0.3cm precision, 10µs trigger pulse', qty: 1, role: 'Meltwater Depth & Clogging Guard' },
+      { component: '0.96" I2C Monochrome OLED Display', specs: '128x64 pixels, SSD1306 driver, I2C address 0x3C', qty: 1, role: '4-Page Graphical Marine Dashboard' },
+      { component: 'TM1637 4-Digit 7-Segment Display', specs: '0.36" bright red digits, 2-wire serial clock/data', qty: 1, role: 'Deck Glancing Display (Temp/Water/Score)' },
+      { component: '3x Tactile Push Buttons', specs: '6x6x5mm momentary tactile switches with caps', qty: 3, role: 'Next Page, Prev Page, Mode / Alarm Mute' },
+      { component: '1kΩ & 2kΩ Resistors', specs: '1/4W 5% carbon film resistors', qty: 2, role: 'Ultrasonic 5V to 3.3V Echo Voltage Divider' }
     ],
     pinout: [
-      { module: 'OLED Display', pin: 'VCC / GND', mcuPin: '3V3 / GND', color: 'Red / Black', protocol: '3.3V DC Power', notes: 'Powers OLED display driver.' },
-      { module: 'OLED Display', pin: 'SCL', mcuPin: 'NodeMCU D1 (GPIO 5)', color: 'Yellow', protocol: 'I2C Clock (Wire)', notes: 'Default hardware I2C clock pin.' },
-      { module: 'OLED Display', pin: 'SDA', mcuPin: 'NodeMCU D2 (GPIO 4)', color: 'Blue', protocol: 'I2C Data (Wire)', notes: 'Default hardware I2C data pin.' },
-      { module: 'TM1637 7-Segment', pin: 'CLK', mcuPin: 'NodeMCU D5 (GPIO 14)', color: 'Green', protocol: '2-Wire Serial Clock', notes: 'Clock line for TM1637 shift register.' },
-      { module: 'TM1637 7-Segment', pin: 'DIO', mcuPin: 'NodeMCU D6 (GPIO 12)', color: 'Orange', protocol: '2-Wire Serial Data', notes: 'Bi-directional data line for display segments.' }
+      { module: 'OLED Display (SSD1306)', pin: 'SCL', mcuPin: 'NodeMCU D1 (GPIO 5)', color: 'Yellow', protocol: 'I2C Clock (Wire)', notes: 'Standard hardware I2C clock line.' },
+      { module: 'OLED Display (SSD1306)', pin: 'SDA', mcuPin: 'NodeMCU D2 (GPIO 4)', color: 'Blue', protocol: 'I2C Data (Wire)', notes: 'Standard hardware I2C data line.' },
+      { module: 'TM1637 7-Segment', pin: 'CLK', mcuPin: 'NodeMCU D5 (GPIO 14)', color: 'Green', protocol: '2-Wire Serial Clock', notes: 'Clock line for 4-digit display shift register.' },
+      { module: 'TM1637 7-Segment', pin: 'DIO', mcuPin: 'NodeMCU D6 (GPIO 12)', color: 'Orange', protocol: '2-Wire Serial Data', notes: 'Data I/O line for segment mapping.' },
+      { module: 'DHT11 Temp & Humidity', pin: 'DATA', mcuPin: 'NodeMCU D4 (GPIO 2)', color: 'Yellow', protocol: 'Single-Bus Digital', notes: 'Uses onboard NodeMCU pullup resistor (idles HIGH).' },
+      { module: 'Ultrasonic Sensor', pin: 'TRIG', mcuPin: 'NodeMCU D7 (GPIO 13)', color: 'Purple', protocol: '10µs Digital Pulse', notes: 'Triggers ultrasonic burst towards water surface.' },
+      { module: 'Ultrasonic Sensor', pin: 'ECHO', mcuPin: 'NodeMCU D8 (GPIO 15)', color: 'Cyan', protocol: '3.3V Level-Shifted Pulse', notes: 'MUST use 1kΩ:2kΩ divider to step 5V Echo down to 3.3V. Idles LOW at boot.' },
+      { module: 'Button 1 (Next Page)', pin: 'PIN 1', mcuPin: 'NodeMCU D3 (GPIO 0)', color: 'White', protocol: 'Active LOW Pull-to-GND', notes: 'Internal pull-up enabled. Safe boot idles HIGH.' },
+      { module: 'Button 2 (Prev Page)', pin: 'PIN 1', mcuPin: 'NodeMCU D0 (GPIO 16)', color: 'Gray', protocol: 'Active LOW Pull-to-GND', notes: 'External 10kΩ pullup or input mode.' },
+      { module: 'Button 3 (Mode / Mute)', pin: 'PIN 1', mcuPin: 'NodeMCU RX (GPIO 3)', color: 'Brown', protocol: 'Active LOW Pull-to-GND', notes: 'Short press cycles 7-seg mode; Long press (>1.5s) mutes buzzer.' },
+      { module: 'MQ-135 Gas Sensor', pin: 'AOUT', mcuPin: 'NodeMCU A0 (ADC0)', color: 'Red', protocol: '0-3.3V Analog Input', notes: 'Measures volatile basic nitrogen (TMA/NH3) headspace.' }
     ],
     steps: [
-      { step: 1, title: 'Seat NodeMCU on Breadboard', desc: 'Place NodeMCU ESP8266 spanning the center divider of the breadboard to expose pins on both sides.' },
-      { step: 2, title: 'Wire I2C 0.96" OLED Display', desc: 'Connect OLED VCC to NodeMCU 3V3, GND to GND, SCL to D1 (GPIO5), and SDA to D2 (GPIO4).' },
-      { step: 3, title: 'Wire TM1637 4-Digit Display', desc: 'Connect TM1637 VCC to 3V3 (or VIN), GND to GND, CLK to D5 (GPIO14), and DIO to D6 (GPIO12).' },
-      { step: 4, title: 'Flash Firmware & Verify Dual Output', desc: 'Compile and flash using Arduino IDE or arduino-cli. Verify 200ms blink rate, timer progression, and OLED status HUD.' }
+      { step: 1, title: 'Power Rail & Display Bus Assembly', desc: 'Mount the NodeMCU ESP8266 onto the breadboard. Wire the SSD1306 OLED via I2C (D1 SCL, D2 SDA) and connect the TM1637 7-segment display (D5 CLK, D6 DIO).' },
+      { step: 2, title: 'Ultrasonic Sump Sensor & Voltage Divider', desc: 'Mount the ultrasonic sensor facing down into the drainage sump. Connect TRIG to D7. Wire ECHO to a 1kΩ resistor leading to D8, and connect a 2kΩ resistor from D8 to GND to safely drop 5V to 3.3V.' },
+      { step: 3, title: 'Headspace Gas Sensors & Cold Hold Probe', desc: 'Position the MQ-135 and MQ-4 gas sensors in the hold headspace. Connect MQ-135 analog output to NodeMCU A0. Connect DHT11 DATA to D4.' },
+      { step: 4, title: '3-Button Marine Navigation & Flashing', desc: 'Wire the three push buttons between D3, D0, RX and GND. Flash the firmware at 115200 baud and verify the 4-page OLED dashboard and TM1637 readouts.' }
     ],
     code: `/*
- * SHAKTHIKULANGARA SCHOOL STEM LAB - IoT PROJECT
- * NodeMCU ESP8266 Dual Display Station (OLED + TM1637 4-Digit)
- * Displays: 0.96" SSD1306 (128x64) + TM1637 7-Segment + 200ms Heartbeat
+ * SHAKTHIKULANGARA FISHING FLEET - BOAT FISH QUALITY & STORAGE MONITOR
+ * Target: NodeMCU ESP8266 | Location: Shakthikulangara Harbour, Kollam
  */
 
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <TM1637Display.h>
+#include <DHT.h>
 
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64
-#define OLED_RESET -1
-#define SCREEN_ADDRESS 0x3C
+#define OLED_SCL D1
+#define OLED_SDA D2
+#define TM_CLK   D5
+#define TM_DIO   D6
+#define DHT_PIN  D4
+#define TRIG_PIN D7
+#define ECHO_PIN D8
+#define BTN_NEXT D3
+#define BTN_PREV D0
+#define BTN_SEL  3 // RX
+#define MQ135_A0 A0
 
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+Adafruit_SSD1306 display(128, 64, &Wire, -1);
+TM1637Display tm(TM_CLK, TM_DIO);
+DHT dht(DHT_PIN, DHT11);
 
-#define CLK_PIN D5  // GPIO14
-#define DIO_PIN D6  // GPIO12
-TM1637Display tm1637(CLK_PIN, DIO_PIN);
-
-unsigned long previousMillis = 0;
-int counter = 0;
-bool colonState = false;
+const float TANK_DEPTH_CM = 40.0;
+float tempC = 2.5, waterCm = 1.2;
+int mq135Adc = 220, freshScore = 95, page = 0, tmMode = 0;
 
 void setup() {
   Serial.begin(115200);
-  pinMode(LED_BUILTIN, OUTPUT);
-  #if defined(D0)
-  pinMode(D0, OUTPUT);
-  #endif
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+  pinMode(BTN_NEXT, INPUT_PULLUP);
+  pinMode(BTN_PREV, INPUT_PULLUP);
+  pinMode(BTN_SEL,  INPUT_PULLUP);
 
-  tm1637.setBrightness(0x0f);
-  tm1637.showNumberDec(counter, true);
-
-  Wire.begin(D2, D1); // SDA = D2, SCL = D1
-
-  if (display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    display.clearDisplay();
-    display.setTextColor(SSD1306_WHITE);
-    display.setTextSize(1);
-    display.setCursor(15, 20);
-    display.println("SHAKTHIKULANGARA");
-    display.setCursor(30, 36);
-    display.println("IoT PROJECT");
-    display.display();
-    delay(1500);
-  }
+  tm.setBrightness(0x0f);
+  Wire.begin(OLED_SDA, OLED_SCL);
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  dht.begin();
 }
 
 void loop() {
-  // 200ms Heartbeat Pulse
-  digitalWrite(LED_BUILTIN, (millis() / 200) % 2 == 0 ? LOW : HIGH);
+  // Read ultrasonic meltwater level
+  digitalWrite(TRIG_PIN, LOW); delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH); delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+  long dur = pulseIn(ECHO_PIN, HIGH, 30000);
+  float dist = (dur > 0) ? (dur * 0.034 / 2.0) : TANK_DEPTH_CM;
+  waterCm = max(0.0f, TANK_DEPTH_CM - dist);
 
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= 1000) {
-    previousMillis = currentMillis;
-    counter++;
-    colonState = !colonState;
+  // Read Temp & Gas
+  float t = dht.readTemperature();
+  if (!isnan(t)) tempC = t;
+  mq135Adc = analogRead(MQ135_A0);
 
-    int minutes = (counter / 60) % 100;
-    int seconds = counter % 60;
-    int displayTime = (minutes * 100) + seconds;
-    
-    uint8_t colonMask = colonState ? 0b01000000 : 0;
-    tm1637.showNumberDecEx(displayTime, colonMask, true);
+  // Freshness Scoring: Penalize high temp, clogged meltwater & gas
+  int score = 100;
+  if (tempC > 4.0) score -= (tempC - 4.0) * 8;
+  if (waterCm > 2.0) score -= (waterCm - 2.0) * 12; // Meltwater soaking penalty
+  if (mq135Adc > 180) score -= (mq135Adc - 180) / 15;
+  freshScore = constrain(score, 0, 100);
 
-    display.clearDisplay();
-    display.fillRect(0, 0, 128, 14, SSD1306_WHITE);
-    display.setTextColor(SSD1306_BLACK, SSD1306_WHITE);
-    display.setTextSize(1);
-    display.setCursor(6, 3);
-    display.print("SHAKTHIKULANGARA IoT");
-
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(0, 22);
-    display.print("Status: ");
-    display.println("ONLINE (OK)");
-
-    display.setCursor(0, 34);
-    display.print("Time:   ");
-    if (minutes < 10) display.print("0");
-    display.print(minutes);
-    display.print(":");
-    if (seconds < 10) display.print("0");
-    display.println(seconds);
-
-    display.setCursor(0, 46);
-    display.print("Count:  #");
-    display.println(counter);
-
-    int barWidth = (counter % 30) * (128 / 30);
-    display.drawRect(0, 58, 128, 6, SSD1306_WHITE);
-    display.fillRect(0, 58, barWidth, 6, SSD1306_WHITE);
-    display.display();
-  }
+  // OLED & 7-Segment updates with emergency clog alarm ('drAn')
+  updateUI();
+  delay(200);
 }`,
-    codeFileName: 'shakthikulangara_iot_dual_display.ino',
+    codeFileName: 'boat_fish_quality_monitor.ino',
     math: [
       {
-        title: "I2C Bus Transmission Protocol",
-        formula: "f_SCL = 100 kHz (Standard) / 400 kHz (Fast Mode)",
-        explanation: "Two-wire bidirectional open-drain bus with pull-up resistors. Address 0x3C is transmitted following the START condition, addressing the SSD1306 display frame buffer."
+        title: "Ultrasonic Sump Meltwater Clearance Formula",
+        formula: "H_water = D_total - D_meas = D_total - ((Delta_t * v_sound) / 2)",
+        explanation: "Measures the distance from the top-mounted sensor to the meltwater surface in the drainage well. In chilled marine holds at 2°C, sound velocity is calibrated to 332.5 m/s."
+      },
+      {
+        title: "Multi-Parameter Fish Freshness Decay Model",
+        formula: "Freshness = 100 - [(T - 4.0) * 8] - [(W - 2.0) * 12] - [(ADC - 180) / 15]",
+        explanation: "Empirical freshness index deduction. High temperature accelerates psychrotrophic bacterial growth, while stagnant meltwater submerging fish leaches proteins and creates severe cross-contamination."
       }
     ],
     applications: [
-      { title: 'School Science Fair Live Project Station', desc: 'Displays sensor parameters and timing for visitor demonstrations.' },
-      { title: 'Environmental Edge Monitoring Node', desc: 'Extensible with DHT22, MQ gas sensors, or rain detectors for classroom weather observation.' }
+      { title: 'Shakthikulangara Mechanized Trawlers & Gillnetters', desc: 'Ensures export-grade quality for Tuna, Mackerel, Prawns, and Squid over 10-15 day deep-sea fishing trips.' },
+      { title: 'Marine Ice Hold Meltwater Clogging Prevention', desc: 'Warns crew immediately when drainage sumps clog with fish scales, preventing fish from sitting in dirty water.' },
+      { title: 'Cold-Chain Seafood Transport Vans & Export Boxes', desc: 'Tracks temperature and volatile basic nitrogen during highway transit between harbour landings and processing plants.' }
     ],
     troubleshooting: [
-      { problem: 'OLED Shows Nothing (Blank Screen)', cause: 'Incorrect I2C pins or missing pull-ups.', fix: 'Ensure SDA is on NodeMCU D2 (GPIO4) and SCL is on D1 (GPIO5).' },
-      { problem: '7-Segment Digits are Dim', cause: 'Low brightness setting.', fix: 'Use tm1637.setBrightness(0x0f) for full brightness.' }
+      { problem: 'Water Level Fluctuates Wildly During Sea Pitch/Roll', cause: 'Surface sloshing from boat wave motion.', fix: 'A 5-sample rolling median/average filter in firmware smooths out dynamic wave oscillations.' },
+      { problem: 'ESP8266 Resets or Freezes When Flashing', cause: 'NodeMCU D3 (GPIO0) pulled LOW at boot or Echo 5V spike.', fix: 'Ensure push button on D3 is released during boot. Use 1kΩ:2kΩ voltage divider on Echo pin D8.' },
+      { problem: 'OLED Blank After Power Up', cause: 'Loose I2C jumper connections or incorrect address.', fix: 'Verify SDA is on D2 and SCL is on D1. Default address is 0x3C.' }
     ],
     viva: [
-      { q: 'What is the communication difference between the OLED and TM1637 displays?', a: 'The OLED communicates via I2C (Inter-Integrated Circuit) with addressing (0x3C) allowing multiple devices on the same D1/D2 bus. The TM1637 uses a custom two-wire pseudo-SPI clock/data shift register protocol on D5 and D6.' }
+      { q: 'Why is meltwater accumulation dangerous if the water is already near 0°C?', a: 'Even though meltwater is chilled, stagnant water dissolves fish skin mucus, leaches soluble proteins and flavor compounds, and allows bacteria (Pseudomonas and Shewanella putrefaciens) to spread throughout the hold. The marine golden rule is: Only ice should touch the fish—meltwater must drain continuously into the bilge!' },
+      { q: 'What specific gases indicate fish rotting?', a: 'Fresh fish contains Trimethylamine Oxide (TMAO). As bacterial spoilage begins, bacteria reduce TMAO into Trimethylamine (TMA) and Ammonia (NH3), forming Total Volatile Basic Nitrogen (TVB-N) detected by the MQ-135. In deep anaerobic pockets, rotting fats and proteins release Methane (CH4), detected by the MQ-4.' },
+      { q: 'How does the system work around the NodeMCU single ADC pin limitation?', a: 'NodeMCU ESP8266 has only one analog pin (A0). The MQ-135 (primary spoilage indicator) is assigned to A0 for continuous PPM measurement, while the MQ-4 Methane sensor utilizes its onboard digital comparator (DOUT) configured with a potentiometer to trigger on hazardous threshold spikes.' },
+      { q: 'Why is a voltage divider required on the HC-SR04 Echo pin?', a: 'The HC-SR04 ultrasonic sensor operates at 5V and outputs a 5V logic pulse on its Echo pin. NodeMCU ESP8266 GPIO pins tolerate only 3.3V. A 1kΩ and 2kΩ resistor divider steps the 5V signal down to 3.3V to prevent permanent damage to the microcontroller.' }
     ],
-    simulatorUrl: null,
+    simulatorUrl: '/simulators/shakthikulangara_iot/index.html',
+    hasSimulator: true,
     reportPdf: '/reports/Kerala_Sasthrolsavam_Projectwise_Master_Report.pdf'
   }
 };
@@ -1431,12 +1425,14 @@ export const projectsHierarchy = {
           {
             id: 'iot',
             name: 'iot',
-            title: 'IoT & Telemetry Lab',
-            subtitle: 'NodeMCU Dual Display (OLED + 7-Segment)',
-            icon: '🌐',
-            badge: 'Hardware Verified',
-            badgeColor: '#10b981',
-            projectId: 'shakthikulangara-iot'
+            title: 'Fishing Boat Catch & Cold Chain Monitor',
+            subtitle: 'NodeMCU, MQ-135, MQ-4, DHT11 & Ultrasonic Clogging Guard',
+            icon: '🐟',
+            badge: 'Simulator Live',
+            badgeColor: '#0ea5e9',
+            projectId: 'shakthikulangara-iot',
+            hasSimulator: true,
+            simulatorUrl: '/simulators/shakthikulangara_iot/index.html'
           },
           {
             id: 'electronics',
