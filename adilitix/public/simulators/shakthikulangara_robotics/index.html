@@ -110,9 +110,9 @@
       </div>
 
       <!-- Ultrasonic Telemetry Gauges -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
         <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-2.5 flex flex-col justify-between">
-          <span class="text-[10px] font-bold text-slate-400 uppercase">US Left (D5/D18)</span>
+          <span class="text-[10px] font-bold text-slate-400 uppercase">US Angle Left (D5/D18)</span>
           <div class="my-1 flex items-baseline gap-1">
             <span id="gauge-us-l" class="text-lg font-black font-mono text-cyan-400">85.0</span>
             <span class="text-xs text-slate-500 font-mono">cm</span>
@@ -123,7 +123,18 @@
         </div>
 
         <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-2.5 flex flex-col justify-between">
-          <span class="text-[10px] font-bold text-slate-400 uppercase">US Right (D19/D21)</span>
+          <span class="text-[10px] font-bold text-slate-400 uppercase">US Front (D22/D23)</span>
+          <div class="my-1 flex items-baseline gap-1">
+            <span id="gauge-us-f" class="text-lg font-black font-mono text-cyan-400">90.0</span>
+            <span class="text-xs text-slate-500 font-mono">cm</span>
+          </div>
+          <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+            <div id="bar-us-f" class="bg-cyan-400 h-full w-[90%] transition-all"></div>
+          </div>
+        </div>
+
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-2.5 flex flex-col justify-between">
+          <span class="text-[10px] font-bold text-slate-400 uppercase">US Angle Right (D19/D21)</span>
           <div class="my-1 flex items-baseline gap-1">
             <span id="gauge-us-r" class="text-lg font-black font-mono text-cyan-400">82.0</span>
             <span class="text-xs text-slate-500 font-mono">cm</span>
@@ -569,8 +580,10 @@
 
     // Telemetry Gauges Elements
     const gaugeUsL = document.getElementById('gauge-us-l');
+    const gaugeUsF = document.getElementById('gauge-us-f');
     const gaugeUsR = document.getElementById('gauge-us-r');
     const barUsL = document.getElementById('bar-us-l');
+    const barUsF = document.getElementById('bar-us-f');
     const barUsR = document.getElementById('bar-us-r');
     const gaugePwms = document.getElementById('gauge-pwms');
     const barPwm = document.getElementById('bar-pwm');
@@ -670,17 +683,19 @@
         car.vR = 0;
       }
 
-      // Ultrasonic Sonar Rays Calculation
+      // Ultrasonic Sonar Rays Calculation (Angle Left, Front Center, Angle Right)
       const noseX = car.x + Math.cos(car.angle) * (car.length / 2);
       const noseY = car.y + Math.sin(car.angle) * (car.length / 2);
       const leftSensorAngle = car.angle - 0.28;
+      const frontSensorAngle = car.angle;
       const rightSensorAngle = car.angle + 0.28;
 
       const usLeftDist = castRay(noseX, noseY, leftSensorAngle, 180);
+      const usFrontDist = castRay(noseX, noseY, frontSensorAngle, 180);
       const usRightDist = castRay(noseX, noseY, rightSensorAngle, 180);
 
       // Obstacle Alarm Buzz
-      if (isConnected && (usLeftDist < 25 || usRightDist < 25) && (car.vL > 0 || car.vR > 0)) {
+      if (isConnected && (usLeftDist < 25 || usFrontDist < 25 || usRightDist < 25) && (car.vL > 0 || car.vR > 0)) {
         if (now - lastBuzzTime > 300) {
           lastBuzzTime = now;
           playObstacleBuzz();
@@ -689,8 +704,10 @@
 
       // Update HUD Values
       gaugeUsL.innerText = usLeftDist.toFixed(1);
+      gaugeUsF.innerText = usFrontDist.toFixed(1);
       gaugeUsR.innerText = usRightDist.toFixed(1);
       barUsL.style.width = `${Math.min(100, (usLeftDist / 180) * 100)}%`;
+      barUsF.style.width = `${Math.min(100, (usFrontDist / 180) * 100)}%`;
       barUsR.style.width = `${Math.min(100, (usRightDist / 180) * 100)}%`;
       gaugePwms.innerText = `${car.vL} / ${car.vR}`;
       barPwm.style.width = `${Math.min(100, (Math.max(Math.abs(car.vL), Math.abs(car.vR)) / 255) * 100)}%`;
@@ -699,12 +716,12 @@
       poseCoords.innerText = `X: ${Math.round(car.x)} • Y: ${Math.round(car.y)} • θ: ${deg}°`;
 
       // Draw Everything
-      draw(usLeftDist, usRightDist, noseX, noseY, leftSensorAngle, rightSensorAngle);
+      draw(usLeftDist, usFrontDist, usRightDist, noseX, noseY, leftSensorAngle, frontSensorAngle, rightSensorAngle);
 
       requestAnimationFrame(update);
     }
 
-    function draw(usLeftDist, usRightDist, noseX, noseY, leftSensorAngle, rightSensorAngle) {
+    function draw(usLeftDist, usFrontDist, usRightDist, noseX, noseY, leftSensorAngle, frontSensorAngle, rightSensorAngle) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Floor Grid Pattern
@@ -758,8 +775,9 @@
         });
       }
 
-      // Draw Ultrasonic Cones
+      // Draw Ultrasonic Cones (3 Sensors: Angle Left, Front Center, Angle Right)
       drawSensorCone(noseX, noseY, leftSensorAngle, usLeftDist);
+      drawSensorCone(noseX, noseY, frontSensorAngle, usFrontDist);
       drawSensorCone(noseX, noseY, rightSensorAngle, usRightDist);
 
       // Draw Robot Car Body & ArUco Marker
