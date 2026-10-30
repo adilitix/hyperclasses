@@ -1,28 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, ShieldCheck } from 'lucide-react';
-import Logo from '../components/Logo';
+import { ShieldCheck, XCircle } from 'lucide-react';
+import SiteHeader from '../components/SiteHeader';
+import SiteFooter from '../components/SiteFooter';
+import { BASE_URL } from '../lib/api';
 
 const VerifyCertificate = () => {
-    const [certId, setCertId] = React.useState('');
-    const [status, setStatus] = React.useState('idle');
-    const [result, setResult] = React.useState(null);
-
-    const rawBase = import.meta.env.VITE_SERVER_URL ||
-        (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://hyperclass.onrender.com');
-    const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
+    const [certId, setCertId] = useState('');
+    const [status, setStatus] = useState('idle'); // 'idle' | 'verifying' | 'success' | 'invalid' | 'error'
+    const [result, setResult] = useState(null);
 
     const handleVerify = async (e) => {
         e.preventDefault();
-        if (!certId) return;
+        const id = certId.trim().toUpperCase();
+        if (!id) return;
 
         setStatus('verifying');
         try {
             const res = await fetch(`${BASE_URL}/api/adilitix/certificates/verify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ certificateId: certId })
+                body: JSON.stringify({ certificateId: id })
             });
             const data = await res.json();
 
@@ -31,88 +29,77 @@ const VerifyCertificate = () => {
                 setStatus('success');
             } else {
                 setResult(null);
-                setStatus('error');
+                setStatus('invalid');
             }
-        } catch (err) {
-            console.error(err);
+        } catch {
+            setResult(null);
             setStatus('error');
         }
     };
 
     return (
-        <div className="verify-page">
-            <nav className="navbar">
-                <Link to="/" className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <ArrowLeft size={20} color="var(--ad-orange)" /> Back to Main
-                </Link>
-                <Logo size="small" showText={true} textSub="VERIFICATION" />
-            </nav>
+        <div className="verify-page shop-page">
+            <SiteHeader />
 
-            <div className="registration-container">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="registration-form-card"
-                    style={{ textAlign: 'center' }}
-                >
-                    <div style={{ background: 'rgba(249, 115, 22, 0.15)', color: 'var(--ad-orange)', width: '70px', height: '70px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', border: '1px solid var(--ad-border)' }}>
-                        <ShieldCheck size={36} />
-                    </div>
-                    <h1 style={{ color: '#fff', fontSize: '1.8rem' }}>Certificate Verification</h1>
-                    <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.92rem', margin: '8px 0 28px' }}>
-                        Validate official <b>Adilitix Robotics</b> workshop credentials (Reg. UDYAM-KL-06-0070364).
+            <main className="registration-container">
+                <div className="registration-form-card" style={{ maxWidth: 520 }}>
+                    <div className="icon-tile"><ShieldCheck size={20} /></div>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Verify a certificate</h1>
+                    <p className="muted" style={{ margin: '8px 0 24px' }}>
+                        Enter the ID printed on an Adilitix Robotics workshop certificate to confirm it is genuine.
                     </p>
 
-                    <form onSubmit={handleVerify} className="form-group">
-                        <input
-                            type="text"
-                            placeholder="e.g. ADX-RO-001"
-                            value={certId}
-                            onChange={(e) => setCertId(e.target.value)}
-                            style={{ textAlign: 'center', fontSize: '1.2rem', padding: '16px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--ad-orange)', fontWeight: 'bold' }}
-                        />
-                        <button type="submit" disabled={status === 'verifying'} className="submit-btn" style={{ width: '100%', marginTop: '16px' }}>
-                            {status === 'verifying' ? 'Verifying Credential...' : 'VERIFY CERTIFICATE'}
+                    <form onSubmit={handleVerify}>
+                        <div className="form-group">
+                            <label htmlFor="cert-id">Certificate ID</label>
+                            <input
+                                id="cert-id"
+                                type="text"
+                                placeholder="e.g. ADX-RO-001"
+                                value={certId}
+                                onChange={(e) => setCertId(e.target.value)}
+                                autoCapitalize="characters"
+                                spellCheck={false}
+                                required
+                                style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', letterSpacing: '0.05em', textTransform: 'uppercase' }}
+                            />
+                        </div>
+                        <button type="submit" disabled={status === 'verifying'} className="btn btn-primary" style={{ width: '100%' }}>
+                            {status === 'verifying' ? 'Checking…' : 'Verify'}
                         </button>
                     </form>
 
                     {status === 'success' && result && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            style={{ background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '20px', borderRadius: '16px', marginTop: '24px', textAlign: 'left' }}
-                        >
-                            <div style={{ color: '#10b981', fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <ShieldCheck size={22} /> Authentic Verified Certificate
+                        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="notice notice-success" style={{ marginTop: 24 }} role="status">
+                            <div style={{ color: 'var(--success)', fontWeight: 600, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <ShieldCheck size={18} /> Valid certificate
                             </div>
-                            <div style={{ color: '#f8fafc', fontSize: '0.92rem', lineHeight: '1.7' }}>
-                                <p><b>Student:</b> {result.studentName}</p>
-                                <p><b>Workshop:</b> {result.workshopName || result.workshopId}</p>
-                                <p><b>Issue Date:</b> {new Date(result.completedAt || Date.now()).toLocaleDateString()}</p>
-                                <p><b>Certificate ID:</b> <span style={{ color: 'var(--ad-orange)', fontFamily: 'monospace' }}>{result.certificateId}</span></p>
-                                <p style={{ fontSize: '0.78rem', color: 'var(--ad-text-dim)', marginTop: '8px' }}>Issued by Adilitix Robotics, Kollam.</p>
-                            </div>
+                            <dl style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '6px 16px', color: 'var(--text)', fontSize: '0.92rem' }}>
+                                <dt className="subtle">Student</dt><dd>{result.studentName}</dd>
+                                <dt className="subtle">Workshop</dt><dd>{result.workshopName || result.workshopId}</dd>
+                                <dt className="subtle">Issued</dt>
+                                <dd>{result.completedAt ? new Date(result.completedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}</dd>
+                                <dt className="subtle">ID</dt><dd style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>{result.certificateId}</dd>
+                            </dl>
+                        </motion.div>
+                    )}
+
+                    {status === 'invalid' && (
+                        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="notice notice-error" style={{ marginTop: 24 }} role="alert">
+                            <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}><XCircle size={18} /> No matching certificate</div>
+                            <p style={{ fontSize: '0.875rem', marginTop: 4 }}>Check the ID for typos and try again. Contact us if you believe this is a mistake.</p>
                         </motion.div>
                     )}
 
                     {status === 'error' && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            style={{ background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#fca5a5', padding: '18px', borderRadius: '16px', marginTop: '24px' }}
-                        >
-                            <b>Invalid Certificate ID</b>
-                            <p style={{ fontSize: '0.85rem', marginTop: '4px', opacity: 0.8 }}>
-                                No matching record found. Please verify the ID format and try again.
-                            </p>
-                        </motion.div>
+                        <div className="notice notice-error" style={{ marginTop: 24 }} role="alert">
+                            We could not reach the verification service. Please try again in a moment.
+                        </div>
                     )}
+                </div>
+            </main>
 
-                    <p style={{ marginTop: '30px', fontSize: '0.8rem', color: '#64748b' }}>
-                        Adilitix Secure Verification System | Kollam, Kerala
-                    </p>
-                </motion.div>
-            </div>
+            <SiteFooter />
         </div>
     );
 };

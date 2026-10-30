@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { 
     ArrowLeft, ArrowRight, Award, Cpu, ShieldCheck, CheckCircle2, 
     Download, Play, Search, Layers, Zap, BookOpen, Folder, FolderOpen, 
     ChevronRight, ArrowUp, ExternalLink, Grid, List, Sparkles, Terminal 
 } from 'lucide-react';
-import Logo from '../components/Logo';
+import SiteHeader from '../components/SiteHeader';
+import SiteFooter from '../components/SiteFooter';
 import { projectsData, projectsHierarchy } from '../data/projectsData';
 
 const Projects = () => {
     const [searchParams, setSearchParams] = useSearchParams();
-    const navigate = useNavigate();
 
     // Folder navigation state synced with URL query (?folder=...)
     const initialFolder = searchParams.get('folder') || '';
@@ -20,12 +20,13 @@ const Projects = () => {
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
 
-    useEffect(() => {
-        const folderParam = searchParams.get('folder');
-        if (folderParam !== null && folderParam !== currentPath) {
-            setCurrentPath(folderParam);
-        }
-    }, [searchParams]);
+    // Follow the ?folder= query param (back/forward navigation) without an effect
+    const folderParam = searchParams.get('folder');
+    const [lastFolderParam, setLastFolderParam] = useState(folderParam);
+    if (folderParam !== lastFolderParam) {
+        setLastFolderParam(folderParam);
+        if (folderParam !== null && folderParam !== currentPath) setCurrentPath(folderParam);
+    }
 
     const navigateToFolder = (path) => {
         setCurrentPath(path);
@@ -63,45 +64,28 @@ const Projects = () => {
     });
 
     return (
-        <div className="shop-page" style={{ minHeight: '100vh', background: '#05070a', color: '#f8fafc' }}>
-            {/* Top Navigation */}
-            <nav className="navbar" style={{ background: 'rgba(5, 7, 10, 0.95)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', position: 'sticky', top: 0, zIndex: 1000 }}>
-                <Link to="/" className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <ArrowLeft size={18} color="var(--ad-orange)" /> Home
-                </Link>
-                <Logo size="small" showText={true} textSub="PROJECTS" />
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <Link to="/programs" className="nav-links" style={{ display: 'none', mdDisplay: 'block' }}>
-                        Programs
-                    </Link>
-                    <Link to="/inquiry" className="nav-btn-subtle" style={{ color: 'var(--ad-orange)', padding: '8px 16px', fontSize: '0.85rem' }}>
-                        Get Support
-                    </Link>
-                </div>
-            </nav>
+        <div className="shop-page" style={{ minHeight: '100vh', background: 'var(--bg)', color: '#f8fafc' }}>
+            <SiteHeader />
 
             {/* Hero Header */}
-            <header style={{ padding: '48px 8% 28px', maxWidth: '1240px', margin: '0 auto', textAlign: 'center' }}>
-                <div className="udyam-badge" style={{ margin: '0 auto 14px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                    <Award size={15} /> APPLIED ENGINEERING & STEM PROJECTS REPOSITORY
-                </div>
-                <h1 style={{ fontSize: '2.6rem', color: '#fff', fontWeight: '900', marginBottom: '12px', letterSpacing: '-0.5px' }}>
-                    Engineering Projects <span style={{ color: 'var(--ad-orange)' }}>& Live Testbeds</span>
+            <header style={{ padding: '56px var(--gutter) 28px', maxWidth: '1240px', margin: '0 auto', textAlign: 'center' }}>
+                <span className="eyebrow">Projects</span>
+                <h1 style={{ fontSize: 'clamp(2rem, 4vw, 2.6rem)', color: 'var(--text)', fontWeight: 700, marginBottom: '12px', letterSpacing: '-0.5px' }}>
+                    Engineering projects and live test benches
                 </h1>
                 <p style={{ color: 'var(--ad-text-dim)', fontSize: '1.05rem', maxWidth: '780px', margin: '0 auto', lineHeight: '1.6' }}>
-                    Hierarchical project file manager featuring live interactive test websites, verified circuit pinouts, ready-to-flash microcontroller firmware, and mathematical models.
+                    Browse the projects we have built with schools and colleges. Each one includes the circuit, pinout, firmware, build steps and, where available, a simulator you can try in the browser.
                 </p>
 
                 {/* Explorer Toolbar: Breadcrumbs, Search & View Switcher */}
                 <div style={{
                     margin: '32px auto 0',
                     maxWidth: '1000px',
-                    background: 'rgba(14, 26, 52, 0.7)',
+                    background: 'var(--surface)',
                     border: '1px solid var(--ad-border-navy)',
-                    borderRadius: '18px',
+                    borderRadius: 'var(--radius-lg)',
                     padding: '16px 20px',
-                    backdropFilter: 'blur(12px)',
-                    display: 'flex',
+                                        display: 'flex',
                     flexDirection: 'column',
                     gap: '14px'
                 }}>
@@ -179,7 +163,7 @@ const Projects = () => {
                         </div>
 
                         {/* View Switcher: Folder Manager vs All Grid */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(5, 7, 10, 0.6)', padding: '4px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--bg)', padding: '4px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
                             <button
                                 onClick={() => setViewMode('folder')}
                                 style={{
@@ -232,10 +216,10 @@ const Projects = () => {
                             style={{
                                 width: '100%',
                                 padding: '12px 14px 12px 40px',
-                                background: 'rgba(5, 7, 10, 0.6)',
+                                background: 'var(--bg)',
                                 border: '1px solid rgba(255, 255, 255, 0.08)',
                                 borderRadius: '12px',
-                                color: '#fff',
+                                color: 'var(--text)',
                                 fontSize: '0.9rem',
                                 outline: 'none'
                             }}
@@ -245,7 +229,7 @@ const Projects = () => {
             </header>
 
             {/* Main Content Area */}
-            <main style={{ padding: '0 8% 80px', maxWidth: '1240px', margin: '0 auto' }}>
+            <main style={{ padding: '0 var(--gutter) 80px', maxWidth: '1240px', margin: '0 auto' }}>
                 <AnimatePresence mode="wait">
                     {viewMode === 'folder' ? (
                         <motion.div
@@ -259,22 +243,22 @@ const Projects = () => {
                             {currentPath === '' && (
                                 <div>
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                                        <h2 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <h2 style={{ fontSize: '1.25rem', color: 'var(--text)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <FolderOpen size={20} color="var(--ad-orange)" /> Root Folders ({projectsHierarchy.root.folders.length})
                                         </h2>
                                         <span style={{ fontSize: '0.82rem', color: 'var(--ad-text-dim)' }}>Click a folder to browse contents</span>
                                     </div>
 
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '24px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: '24px' }}>
                                         {projectsHierarchy.root.folders.map(folder => (
                                             <motion.div
                                                 key={folder.id}
                                                 whileHover={{ y: -5, borderColor: folder.badgeColor }}
                                                 onClick={() => navigateToFolder(folder.id)}
                                                 style={{
-                                                    background: 'rgba(14, 26, 52, 0.75)',
+                                                    background: 'var(--surface)',
                                                     border: '1px solid var(--ad-border-navy)',
-                                                    borderRadius: '20px',
+                                                    borderRadius: 'var(--radius-lg)',
                                                     padding: '24px',
                                                     cursor: 'pointer',
                                                     backdropFilter: 'blur(10px)',
@@ -287,19 +271,19 @@ const Projects = () => {
                                                 
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                        <span style={{ fontSize: '2.4rem' }}>{folder.icon}</span>
+                                                        <span className="icon-tile" style={{ margin: 0 }}><Folder size={18} /></span>
                                                         <div>
                                                             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.82rem', color: 'var(--ad-orange)', fontWeight: 700 }}>
-                                                                📁 {folder.name}/
+                                                                {folder.name}/
                                                             </div>
-                                                            <h3 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 800, margin: '2px 0 0' }}>
+                                                            <h3 style={{ fontSize: '1.25rem', color: 'var(--text)', fontWeight: 700, margin: '2px 0 0' }}>
                                                                 {folder.title}
                                                             </h3>
                                                         </div>
                                                     </div>
                                                     <span style={{
                                                         fontSize: '0.72rem',
-                                                        fontWeight: 800,
+                                                        fontWeight: 700,
                                                         padding: '4px 10px',
                                                         borderRadius: '999px',
                                                         background: `${folder.badgeColor}20`,
@@ -347,7 +331,7 @@ const Projects = () => {
                                     <div style={{
                                         background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(56, 189, 248, 0.1) 100%)',
                                         border: '1px solid rgba(249, 115, 22, 0.3)',
-                                        borderRadius: '20px',
+                                        borderRadius: 'var(--radius-lg)',
                                         padding: '24px 28px',
                                         marginBottom: '28px',
                                         display: 'flex',
@@ -358,11 +342,10 @@ const Projects = () => {
                                     }}>
                                         <div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                                                <span style={{ fontSize: '1.6rem' }}>🏫</span>
-                                                <h2 style={{ fontSize: '1.4rem', color: '#fff', fontWeight: 900 }}>
+                                                                                                <h2 style={{ fontSize: '1.4rem', color: 'var(--text)', fontWeight: 700 }}>
                                                     Shakthikulangara School STEM Lab
                                                 </h2>
-                                                <span style={{ fontSize: '0.75rem', fontWeight: 800, padding: '3px 10px', borderRadius: '999px', background: '#38bdf820', color: '#38bdf8', border: '1px solid #38bdf840' }}>
+                                                <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '3px 10px', borderRadius: '999px', background: '#38bdf820', color: '#38bdf8', border: '1px solid #38bdf840' }}>
                                                     Active Lab
                                                 </span>
                                             </div>
@@ -382,8 +365,8 @@ const Projects = () => {
                                                 padding: '10px 20px',
                                                 borderRadius: '12px',
                                                 background: 'var(--ad-orange)',
-                                                color: '#fff',
-                                                fontWeight: 800,
+                                                color: 'var(--text)',
+                                                fontWeight: 700,
                                                 fontSize: '0.88rem',
                                                 textDecoration: 'none',
                                                 boxShadow: '0 4px 18px rgba(249, 115, 22, 0.4)'
@@ -393,14 +376,14 @@ const Projects = () => {
                                         </a>
                                     </div>
 
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '24px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: '24px' }}>
                                         {/* Shakthikulangara Robotics Subfolder */}
                                         <motion.div
                                             whileHover={{ y: -5, borderColor: '#f97316' }}
                                             style={{
-                                                background: 'rgba(14, 26, 52, 0.8)',
+                                                background: 'var(--surface)',
                                                 border: '1px solid rgba(249, 115, 22, 0.4)',
-                                                borderRadius: '20px',
+                                                borderRadius: 'var(--radius-lg)',
                                                 padding: '24px',
                                                 display: 'flex',
                                                 flexDirection: 'column',
@@ -410,10 +393,10 @@ const Projects = () => {
                                         >
                                             <div>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-                                                    <span style={{ fontSize: '2.2rem' }}>🤖</span>
+                                                    <span className="icon-tile" style={{ margin: 0 }}><Cpu size={18} /></span>
                                                     <span style={{
                                                         fontSize: '0.72rem',
-                                                        fontWeight: 800,
+                                                        fontWeight: 700,
                                                         padding: '4px 10px',
                                                         borderRadius: '999px',
                                                         background: 'rgba(249, 115, 22, 0.2)',
@@ -425,9 +408,9 @@ const Projects = () => {
                                                 </div>
 
                                                 <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.8rem', color: '#f97316', fontWeight: 700 }}>
-                                                    📁 shakthikulangara/robotics/
+                                                    shakthikulangara/robotics/
                                                 </div>
-                                                <h3 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 800, margin: '6px 0 10px' }}>
+                                                <h3 style={{ fontSize: '1.25rem', color: 'var(--text)', fontWeight: 700, margin: '6px 0 10px' }}>
                                                     Robotics: Autonomous Rover & Test Console
                                                 </h3>
                                                 <p style={{ fontSize: '0.88rem', color: 'var(--ad-text-dim)', lineHeight: '1.6', marginBottom: '20px' }}>
@@ -449,8 +432,8 @@ const Projects = () => {
                                                         padding: '10px 14px',
                                                         borderRadius: '10px',
                                                         background: 'var(--ad-orange)',
-                                                        color: '#fff',
-                                                        fontWeight: 800,
+                                                        color: 'var(--text)',
+                                                        fontWeight: 700,
                                                         fontSize: '0.82rem',
                                                         textDecoration: 'none'
                                                     }}
@@ -469,7 +452,7 @@ const Projects = () => {
                                                         borderRadius: '10px',
                                                         background: 'rgba(255, 255, 255, 0.08)',
                                                         border: '1px solid rgba(255, 255, 255, 0.15)',
-                                                        color: '#fff',
+                                                        color: 'var(--text)',
                                                         fontWeight: 700,
                                                         fontSize: '0.82rem',
                                                         textDecoration: 'none'
@@ -484,9 +467,9 @@ const Projects = () => {
                                         <motion.div
                                             whileHover={{ y: -5, borderColor: '#38bdf8' }}
                                             style={{
-                                                background: 'rgba(14, 26, 52, 0.8)',
+                                                background: 'var(--surface)',
                                                 border: '1px solid rgba(56, 189, 248, 0.3)',
-                                                borderRadius: '20px',
+                                                borderRadius: 'var(--radius-lg)',
                                                 padding: '24px',
                                                 display: 'flex',
                                                 flexDirection: 'column',
@@ -495,10 +478,10 @@ const Projects = () => {
                                         >
                                             <div>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-                                                    <span style={{ fontSize: '2.2rem' }}>🌐</span>
+                                                    <span className="icon-tile" style={{ margin: 0 }}><Cpu size={18} /></span>
                                                     <span style={{
                                                         fontSize: '0.72rem',
-                                                        fontWeight: 800,
+                                                        fontWeight: 700,
                                                         padding: '4px 10px',
                                                         borderRadius: '999px',
                                                         background: 'rgba(56, 189, 248, 0.2)',
@@ -510,9 +493,9 @@ const Projects = () => {
                                                 </div>
 
                                                 <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.8rem', color: '#38bdf8', fontWeight: 700 }}>
-                                                    📁 shakthikulangara/iot/
+                                                    shakthikulangara/iot/
                                                 </div>
-                                                <h3 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 800, margin: '6px 0 10px' }}>
+                                                <h3 style={{ fontSize: '1.25rem', color: 'var(--text)', fontWeight: 700, margin: '6px 0 10px' }}>
                                                     IoT: NodeMCU Dual Display Telemetry Node
                                                 </h3>
                                                 <p style={{ fontSize: '0.88rem', color: 'var(--ad-text-dim)', lineHeight: '1.6', marginBottom: '20px' }}>
@@ -545,9 +528,9 @@ const Projects = () => {
                                         <motion.div
                                             whileHover={{ y: -5, borderColor: '#a855f7' }}
                                             style={{
-                                                background: 'rgba(14, 26, 52, 0.8)',
+                                                background: 'var(--surface)',
                                                 border: '1px solid rgba(168, 85, 247, 0.3)',
-                                                borderRadius: '20px',
+                                                borderRadius: 'var(--radius-lg)',
                                                 padding: '24px',
                                                 display: 'flex',
                                                 flexDirection: 'column',
@@ -556,10 +539,10 @@ const Projects = () => {
                                         >
                                             <div>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-                                                    <span style={{ fontSize: '2.2rem' }}>⚡</span>
+                                                    <span className="icon-tile" style={{ margin: 0 }}><Cpu size={18} /></span>
                                                     <span style={{
                                                         fontSize: '0.72rem',
-                                                        fontWeight: 800,
+                                                        fontWeight: 700,
                                                         padding: '4px 10px',
                                                         borderRadius: '999px',
                                                         background: 'rgba(168, 85, 247, 0.2)',
@@ -571,9 +554,9 @@ const Projects = () => {
                                                 </div>
 
                                                 <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.8rem', color: '#c084fc', fontWeight: 700 }}>
-                                                    📁 shakthikulangara/electronics/
+                                                    shakthikulangara/electronics/
                                                 </div>
-                                                <h3 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 800, margin: '6px 0 10px' }}>
+                                                <h3 style={{ fontSize: '1.25rem', color: 'var(--text)', fontWeight: 700, margin: '6px 0 10px' }}>
                                                     Electronics: Sensor Prototyping & Power Lab
                                                 </h3>
                                                 <p style={{ fontSize: '0.88rem', color: 'var(--ad-text-dim)', lineHeight: '1.6', marginBottom: '20px' }}>
@@ -609,18 +592,18 @@ const Projects = () => {
                             {(currentPath === 'shakthikulangara/robotics' || currentPath === 'robotics') && (
                                 <div>
                                     <div style={{
-                                        background: 'rgba(14, 26, 52, 0.9)',
+                                        background: 'var(--surface)',
                                         border: '1px solid var(--ad-orange)',
-                                        borderRadius: '24px',
+                                        borderRadius: 'var(--radius-lg)',
                                         padding: '32px',
                                         marginBottom: '28px'
                                     }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
                                             <div>
-                                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', borderRadius: '999px', background: 'rgba(249, 115, 22, 0.15)', border: '1px solid var(--ad-orange)', color: 'var(--ad-orange)', fontSize: '0.78rem', fontWeight: 800, marginBottom: '12px' }}>
+                                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', borderRadius: '999px', background: 'rgba(249, 115, 22, 0.15)', border: '1px solid var(--ad-orange)', color: 'var(--ad-orange)', fontSize: '0.78rem', fontWeight: 700, marginBottom: '12px' }}>
                                                     <Sparkles size={14} /> LIVE TEST WEBSITE & REMOTE TELEMETRY
                                                 </div>
-                                                <h2 style={{ fontSize: '1.8rem', color: '#fff', fontWeight: 900 }}>
+                                                <h2 style={{ fontSize: '1.8rem', color: 'var(--text)', fontWeight: 700 }}>
                                                     Shakthikulangara Robotics Remote Testbed
                                                 </h2>
                                                 <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.95rem', maxWidth: '700px', marginTop: '6px', lineHeight: '1.6' }}>
@@ -640,8 +623,8 @@ const Projects = () => {
                                                         padding: '12px 24px',
                                                         borderRadius: '12px',
                                                         background: 'var(--ad-orange)',
-                                                        color: '#fff',
-                                                        fontWeight: 800,
+                                                        color: 'var(--text)',
+                                                        fontWeight: 700,
                                                         fontSize: '0.95rem',
                                                         textDecoration: 'none',
                                                         boxShadow: '0 6px 20px rgba(249, 115, 22, 0.4)'
@@ -659,7 +642,7 @@ const Projects = () => {
                                                         borderRadius: '12px',
                                                         background: 'rgba(255, 255, 255, 0.08)',
                                                         border: '1px solid rgba(255, 255, 255, 0.15)',
-                                                        color: '#fff',
+                                                        color: 'var(--text)',
                                                         fontWeight: 700,
                                                         fontSize: '0.9rem',
                                                         textDecoration: 'none'
@@ -686,13 +669,13 @@ const Projects = () => {
                             {currentPath === 'state-sasthrolsavam' && (
                                 <div>
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                                        <h2 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <h2 style={{ fontSize: '1.25rem', color: 'var(--text)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <FolderOpen size={20} color="var(--ad-orange)" /> State Sasthrolsavam Entries ({projectsHierarchy.root.folders[1].subfolders.length})
                                         </h2>
                                         <span style={{ fontSize: '0.82rem', color: 'var(--ad-text-dim)' }}>Select any project to view complete blueprint</span>
                                     </div>
 
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '24px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: '24px' }}>
                                         {projectsHierarchy.root.folders[1].subfolders.map(item => {
                                             const proj = projectsData[item.projectId];
                                             if (!proj) return null;
@@ -701,9 +684,9 @@ const Projects = () => {
                                                     key={item.id}
                                                     whileHover={{ y: -5, borderColor: item.badgeColor }}
                                                     style={{
-                                                        background: 'rgba(14, 26, 52, 0.75)',
+                                                        background: 'var(--surface)',
                                                         border: '1px solid var(--ad-border-navy)',
-                                                        borderRadius: '20px',
+                                                        borderRadius: 'var(--radius-lg)',
                                                         padding: '24px',
                                                         display: 'flex',
                                                         flexDirection: 'column',
@@ -716,10 +699,10 @@ const Projects = () => {
 
                                                     <div>
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-                                                            <span style={{ fontSize: '2.2rem' }}>{item.icon}</span>
+                                                            <span className="icon-tile" style={{ margin: 0 }}><Cpu size={18} /></span>
                                                             <span style={{
                                                                 fontSize: '0.72rem',
-                                                                fontWeight: 800,
+                                                                fontWeight: 700,
                                                                 padding: '4px 10px',
                                                                 borderRadius: '999px',
                                                                 background: `${item.badgeColor}20`,
@@ -731,9 +714,9 @@ const Projects = () => {
                                                         </div>
 
                                                         <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.8rem', color: item.badgeColor, fontWeight: 700 }}>
-                                                            📄 {item.id}
+                                                            {item.id}
                                                         </div>
-                                                        <h3 style={{ fontSize: '1.25rem', color: '#fff', fontWeight: 800, margin: '6px 0 10px' }}>
+                                                        <h3 style={{ fontSize: '1.25rem', color: 'var(--text)', fontWeight: 700, margin: '6px 0 10px' }}>
                                                             {proj.title}
                                                         </h3>
                                                         <p style={{ fontSize: '0.88rem', color: 'var(--ad-text-dim)', lineHeight: '1.6', marginBottom: '20px' }}>
@@ -752,7 +735,7 @@ const Projects = () => {
                                                             borderRadius: '10px',
                                                             background: 'rgba(255, 255, 255, 0.08)',
                                                             border: '1px solid rgba(255, 255, 255, 0.15)',
-                                                            color: '#fff',
+                                                            color: 'var(--text)',
                                                             fontWeight: 700,
                                                             fontSize: '0.85rem',
                                                             textDecoration: 'none'
@@ -784,7 +767,7 @@ const Projects = () => {
                                         onClick={() => setSelectedCategory(cat)}
                                         style={{
                                             padding: '8px 16px',
-                                            borderRadius: '20px',
+                                            borderRadius: 'var(--radius-lg)',
                                             fontSize: '0.82rem',
                                             fontWeight: 700,
                                             cursor: 'pointer',
@@ -799,7 +782,7 @@ const Projects = () => {
                                 ))}
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '28px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: '28px' }}>
                                 {filteredProjects.map((project, idx) => (
                                     <motion.div
                                         key={project.id}
@@ -807,16 +790,15 @@ const Projects = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ duration: 0.4, delay: idx * 0.05 }}
                                         style={{
-                                            background: 'rgba(14, 26, 52, 0.7)',
+                                            background: 'var(--surface)',
                                             border: '1px solid var(--ad-border-navy)',
-                                            borderRadius: '24px',
+                                            borderRadius: 'var(--radius-lg)',
                                             padding: '28px',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             justifyContent: 'space-between',
                                             transition: 'all 0.3s ease',
-                                            backdropFilter: 'blur(12px)',
-                                            position: 'relative',
+                                                                                        position: 'relative',
                                             overflow: 'hidden'
                                         }}
                                         whileHover={{ y: -6, borderColor: 'var(--ad-orange)' }}
@@ -825,10 +807,10 @@ const Projects = () => {
 
                                         <div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-                                                <span style={{ fontSize: '2rem' }}>{project.icon}</span>
+                                                <span className="icon-tile" style={{ margin: 0 }}><Cpu size={18} /></span>
                                                 <span style={{
                                                     fontSize: '0.72rem',
-                                                    fontWeight: 800,
+                                                    fontWeight: 700,
                                                     textTransform: 'uppercase',
                                                     letterSpacing: '0.6px',
                                                     padding: '4px 12px',
@@ -841,7 +823,7 @@ const Projects = () => {
                                                 </span>
                                             </div>
 
-                                            <h2 style={{ fontSize: '1.35rem', color: '#fff', fontWeight: 800, lineHeight: '1.3', marginBottom: '8px' }}>
+                                            <h2 style={{ fontSize: '1.35rem', color: 'var(--text)', fontWeight: 700, lineHeight: '1.3', marginBottom: '8px' }}>
                                                 {project.title}
                                             </h2>
                                             <p style={{ fontSize: '0.88rem', color: 'var(--ad-text-dim)', lineHeight: '1.6', marginBottom: '20px' }}>
@@ -850,9 +832,9 @@ const Projects = () => {
 
                                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '24px' }}>
                                                 {project.metrics.slice(0, 4).map((m, mIdx) => (
-                                                    <div key={mIdx} style={{ background: 'rgba(5, 7, 10, 0.5)', padding: '10px 12px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                                                        <div style={{ fontSize: '0.72rem', color: 'var(--ad-text-dim)', textTransform: 'uppercase', fontWeight: 700 }}>{m.label}</div>
-                                                        <div style={{ fontSize: '1.05rem', color: '#fff', fontWeight: 800, marginTop: '2px' }}>{m.val}</div>
+                                                    <div key={mIdx} style={{ background: 'var(--bg)', padding: '10px 12px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                                                        <div style={{ fontSize: '0.72rem', color: 'var(--ad-text-dim)', fontWeight: 700 }}>{m.label}</div>
+                                                        <div style={{ fontSize: '1.05rem', color: 'var(--text)', fontWeight: 700, marginTop: '2px' }}>{m.val}</div>
                                                     </div>
                                                 ))}
                                             </div>
@@ -888,8 +870,8 @@ const Projects = () => {
                                                     padding: '12px 18px',
                                                     borderRadius: '12px',
                                                     background: 'var(--ad-orange)',
-                                                    color: '#fff',
-                                                    fontWeight: 800,
+                                                    color: 'var(--text)',
+                                                    fontWeight: 700,
                                                     fontSize: '0.88rem',
                                                     display: 'flex',
                                                     alignItems: 'center',
@@ -909,6 +891,7 @@ const Projects = () => {
                     )}
                 </AnimatePresence>
             </main>
+            <SiteFooter />
         </div>
     );
 };

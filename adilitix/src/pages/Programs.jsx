@@ -1,29 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowLeft, Cpu, Layers, Sparkles, CheckCircle2, ArrowRight, BookOpen, Clock, Users, ShieldCheck, Zap, Briefcase, Award, Plus, FileText, Search, Printer, Share2 } from 'lucide-react';
-import Logo from '../components/Logo';
+import SiteHeader from '../components/SiteHeader';
+import SiteFooter from '../components/SiteFooter';
 import SyllabusModal from '../components/SyllabusModal';
 import ProposalModal from '../components/ProposalModal';
 import SyllabusEditorModal from '../components/SyllabusEditorModal';
 import { INITIAL_PROGRAMS } from '../data/programsData';
+import { getToken } from '../lib/api';
 import '../styles/brochure.css';
 
 const Programs = () => {
-    const navigate = useNavigate();
 
-    // Load saved programs or use initial dataset
-    const [programs, setPrograms] = useState(() => {
+    // Only locally drafted syllabi are stored in the browser. The published catalogue always comes from
+    // programsData, so edits to it reach returning visitors (the old code cached the whole list forever).
+    const [customPrograms, setCustomPrograms] = useState(() => {
         try {
-            const saved = localStorage.getItem('adilitix_brochure_programs');
-            return saved ? JSON.parse(saved) : INITIAL_PROGRAMS;
+            const saved = JSON.parse(localStorage.getItem('adilitix_brochure_custom_programs') || '[]');
+            return Array.isArray(saved) ? saved : [];
         } catch {
-            return INITIAL_PROGRAMS;
+            return [];
         }
     });
+    const programs = [...customPrograms, ...INITIAL_PROGRAMS];
+    const isAdmin = !!getToken();
 
-    const [selectedDept, setSelectedDept] = useState('All');
-    const [durationFilter, setDurationFilter] = useState('All');
+    const [selectedDept, setSelectedDept] = useState('All departments');
     const [searchQuery, setSearchQuery] = useState('');
     const [presentationMode, setPresentationMode] = useState(false);
 
@@ -43,31 +46,38 @@ const Programs = () => {
     const [showAddEditorModal, setShowAddEditorModal] = useState(false);
 
     useEffect(() => {
-        localStorage.setItem('adilitix_brochure_programs', JSON.stringify(programs));
-    }, [programs]);
+        try {
+            localStorage.removeItem('adilitix_brochure_programs');
+            localStorage.setItem('adilitix_brochure_custom_programs', JSON.stringify(customPrograms));
+        } catch { /* storage unavailable */ }
+    }, [customPrograms]);
 
     useEffect(() => {
-        localStorage.setItem('adilitix_proposal_basket', JSON.stringify(selectedPrograms));
+        try {
+            localStorage.setItem('adilitix_proposal_basket', JSON.stringify(selectedPrograms));
+        } catch { /* storage unavailable */ }
     }, [selectedPrograms]);
 
+    // Programs list several departments in one string (e.g. "Mechatronics, ECE, EEE & Mechanical"),
+    // so each filter matches on keywords rather than exact equality.
     const departments = [
-        'All',
-        'Robotics & Mechatronics',
-        'Computer Science & IT',
-        'Electronics & Electrical',
-        'Artificial Intelligence & Data Science',
-        'Cyber Security & Cloud'
+        { label: 'All departments', match: null },
+        { label: 'Robotics & Mechatronics', match: /robotics|mechatronics/i },
+        { label: 'Electronics & Electrical', match: /electronics|ECE|EEE/ },
+        { label: 'Computer Science & AI', match: /CSE|computer|artificial intelligence/i },
+        { label: 'Mechanical & Production', match: /mechanical|production/i },
     ];
 
+    const activeDept = departments.find(d => d.label === selectedDept) || departments[0];
+
     const filteredPrograms = programs.filter(p => {
-        const matchDept = selectedDept === 'All' || p.department === selectedDept;
-        const matchDuration = durationFilter === 'All' || p.duration.toLowerCase().includes(durationFilter.toLowerCase());
+        const matchDept = !activeDept.match || activeDept.match.test(p.department || '');
         const matchSearch = !searchQuery.trim() ||
             p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             p.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
             p.code.toLowerCase().includes(searchQuery.toLowerCase());
 
-        return matchDept && matchDuration && matchSearch;
+        return matchDept && matchSearch;
     });
 
     const toggleSelectProgram = (program) => {
@@ -80,72 +90,52 @@ const Programs = () => {
     };
 
     const handleSaveNewProgram = (newProg) => {
-        setPrograms([newProg, ...programs]);
+        setCustomPrograms([newProg, ...customPrograms]);
     };
 
     return (
-        <div className={`brochure-container ${presentationMode ? 'presentation-mode' : ''}`} style={{ background: '#05070a' }}>
-            <div className="brochure-bg-glow" />
-
-            {/* Navigation Bar */}
-            <nav className="navbar" style={{ background: 'rgba(5, 7, 10, 0.9)', borderColor: 'var(--ad-border-navy)' }}>
-                <Link to="/" className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <ArrowLeft size={18} color="var(--ad-orange)" /> Home
-                </Link>
-                <Logo size="small" showText={true} textSub="COLLEGE BROCHURE" />
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <button
-                        className="brochure-btn-secondary"
-                        onClick={() => setPresentationMode(!presentationMode)}
-                        style={{ fontSize: '0.8rem', padding: '6px 12px' }}
-                    >
-                        {presentationMode ? '📺 Exit Presenter Mode' : '📺 HOD Presenter Mode'}
-                    </button>
-                    <button
-                        className="brochure-btn-secondary"
-                        onClick={() => setShowAddEditorModal(true)}
-                        style={{ fontSize: '0.8rem', padding: '6px 12px' }}
-                    >
-                        <Plus size={14} /> Add Syllabus
-                    </button>
-                    <Link to="/inquiry" className="nav-btn-subtle" style={{ color: 'var(--ad-orange)', fontSize: '0.85rem', padding: '6px 14px' }}>
-                        Book Workshop →
-                    </Link>
-                </div>
-            </nav>
+        <div className={`brochure-container ${presentationMode ? 'presentation-mode' : ''}`} style={{ background: 'var(--bg)' }}>
+            
+            <SiteHeader />
 
             {/* Hero Header */}
-            <section className="brochure-hero" style={{ paddingTop: '40px' }}>
-                <div className="brochure-badge" style={{ background: 'rgba(249, 115, 22, 0.1)', borderColor: 'rgba(249, 115, 22, 0.3)', color: 'var(--ad-orange)' }}>
-                    🎓 ADILITIX ROBOTICS ACADEMIC CATALOG 2026
-                </div>
-                <h1 style={{ fontSize: '2.8rem', fontWeight: 900 }}>
-                    Institutional Programs & <br />
-                    <span className="gradient-text" style={{ background: 'linear-gradient(135deg, #f97316 0%, #38bdf8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        Syllabi Catalog for Colleges
-                    </span>
+            <section className="brochure-hero" style={{ paddingTop: '56px' }}>
+                <span className="eyebrow">Workshops for colleges · 2026 catalogue</span>
+                <h1 style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 700 }}>
+                    Hands-on engineering workshops
                 </h1>
-                <p style={{ color: 'var(--ad-text-dim)', fontSize: '1.1rem', maxWidth: '780px', margin: '0 auto 28px' }}>
-                    Led by trainers with <b>7+ years of experience</b> and <b>200+ successful workshops</b> in Kollam & Kerala. Browse module breakdowns, hardware kit specs, and build official college proposals.
+                <p style={{ color: 'var(--ad-text-dim)', fontSize: '1.05rem', maxWidth: '680px', margin: '12px auto 28px' }}>
+                    Three-day bootcamps run by trainers with 7+ years of experience and 200+ workshops across Kerala. Open any
+                    programme for its day-by-day syllabus, pick the ones you want, and generate a proposal for your HOD.
                 </p>
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '28px' }}>
+                    <Link to="/inquiry" className="btn btn-primary btn-sm">Book a workshop</Link>
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => setPresentationMode(!presentationMode)}>
+                        {presentationMode ? 'Exit presenter mode' : 'Presenter mode'}
+                    </button>
+                    {isAdmin && (
+                        <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowAddEditorModal(true)}>
+                            <Plus size={14} /> Add syllabus
+                        </button>
+                    )}
+                </div>
 
                 {/* Search Bar */}
                 <div style={{ maxWidth: '580px', margin: '0 auto 20px', position: 'relative' }}>
                     <input
                         type="text"
-                        placeholder="🔍 Search by topic (e.g. ESP32, Robotics, Generative AI, MERN, Python)..."
+                        placeholder="Search by topic, e.g. ESP32, OpenCV, 3D printing"
+                        aria-label="Search programmes"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         style={{
                             width: '100%',
-                            padding: '12px 20px',
-                            borderRadius: '30px',
-                            background: 'rgba(11, 17, 32, 0.9)',
-                            border: '1px solid rgba(249, 115, 22, 0.3)',
-                            color: '#fff',
-                            fontSize: '0.92rem',
-                            outline: 'none',
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
+                            padding: '12px 16px',
+                            borderRadius: 'var(--radius)',
+                            background: 'var(--surface)',
+                            border: '1px solid var(--border-strong)',
+                            color: 'var(--text)',
+                            fontSize: '0.95rem'
                         }}
                     />
                 </div>
@@ -154,35 +144,21 @@ const Programs = () => {
             {/* Department Filter Tabs */}
             <section className="brochure-controls">
                 <div className="brochure-dept-tabs">
-                    {departments.map((dept) => (
+                    {departments.map(({ label }) => (
                         <button
-                            key={dept}
-                            className={`dept-tab-btn ${selectedDept === dept ? 'active' : ''}`}
-                            onClick={() => setSelectedDept(dept)}
-                            style={selectedDept === dept ? { borderColor: 'var(--ad-orange)', color: 'var(--ad-orange)', background: 'rgba(249, 115, 22, 0.15)' } : {}}
+                            key={label}
+                            className={`dept-tab-btn ${selectedDept === label ? 'active' : ''}`}
+                            onClick={() => setSelectedDept(label)}
+                            aria-pressed={selectedDept === label}
                         >
-                            {dept === 'All' ? '🌐 All Departments' : dept}
+                            {label}
                         </button>
                     ))}
                 </div>
 
                 <div className="duration-level-filters">
-                    <div style={{ fontSize: '0.85rem', color: 'var(--ad-text-dim)', fontWeight: 600 }}>
-                        Showing {filteredPrograms.length} Academic Programs
-                    </div>
-
-                    <div className="filter-pill-group">
-                        <span style={{ fontSize: '0.8rem', color: '#64748b', alignSelf: 'center' }}>Filter Duration:</span>
-                        {['All', '1-Day', '3-Day', '5-Day'].map((dur) => (
-                            <button
-                                key={dur}
-                                className={`filter-pill ${durationFilter === dur ? 'active' : ''}`}
-                                onClick={() => setDurationFilter(dur)}
-                                style={durationFilter === dur ? { borderColor: 'var(--ad-orange)', color: 'var(--ad-orange)', background: 'rgba(249, 115, 22, 0.15)' } : {}}
-                            >
-                                {dur}
-                            </button>
-                        ))}
+                    <div style={{ fontSize: '0.875rem', color: 'var(--ad-text-dim)' }}>
+                        {filteredPrograms.length} {filteredPrograms.length === 1 ? 'programme' : 'programmes'}
                     </div>
                 </div>
             </section>
@@ -195,26 +171,22 @@ const Programs = () => {
                         <motion.div
                             key={prog.id}
                             className="program-card"
-                            style={{ background: 'rgba(11, 17, 32, 0.8)', borderColor: 'var(--ad-border-navy)' }}
                             initial={{ opacity: 0, y: 15 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.05 }}
                         >
                             <div className="program-card-header">
                                 <div className="program-card-badge-row">
-                                    <span className="program-category-badge" style={{ background: 'rgba(249, 115, 22, 0.15)', color: 'var(--ad-orange)', borderColor: 'rgba(249, 115, 22, 0.3)' }}>
+                                    <span className="program-category-badge" style={{ color: 'var(--text-muted)', borderColor: 'var(--border-strong)', background: 'transparent' }}>
                                         {prog.department}
                                     </span>
-                                    <span className="program-duration-badge" style={{ color: '#f59e0b' }}>
+                                    <span className="program-duration-badge" style={{ color: 'var(--text-muted)' }}>
                                         <Clock size={13} /> {prog.duration}
                                     </span>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <span style={{ fontSize: '2rem' }}>{prog.imageIcon || '🤖'}</span>
-                                    <div>
-                                        <span className="program-code">{prog.code}</span>
-                                        <h3 className="program-title" style={{ fontSize: '1.2rem', color: '#fff' }}>{prog.title}</h3>
-                                    </div>
+                                <div>
+                                    <span className="program-code">{prog.code}</span>
+                                    <h3 className="program-title" style={{ fontSize: '1.15rem', color: 'var(--text)' }}>{prog.title}</h3>
                                 </div>
                             </div>
 
@@ -222,8 +194,8 @@ const Programs = () => {
                                 <p className="program-desc" style={{ color: 'var(--ad-text-dim)', fontSize: '0.88rem' }}>{prog.desc}</p>
 
                                 <div className="program-tags-row">
-                                    <span className="tag-item">🎯 {prog.targetBatch}</span>
-                                    <span className="tag-item">⚡ {prog.level}</span>
+                                    <span className="tag-item">{prog.targetBatch}</span>
+                                    <span className="tag-item">{prog.level}</span>
                                 </div>
 
                                 <ul className="program-highlights-list">
@@ -233,11 +205,10 @@ const Programs = () => {
                                 </ul>
                             </div>
 
-                            <div className="program-card-footer" style={{ background: 'rgba(5, 7, 10, 0.6)' }}>
+                            <div className="program-card-footer" style={{ background: 'var(--bg)' }}>
                                 <button
                                     className="btn-view-syllabus"
                                     onClick={() => setActiveSyllabusProgram(prog)}
-                                    style={{ borderColor: 'rgba(249, 115, 22, 0.3)', color: 'var(--ad-orange)', background: 'rgba(249, 115, 22, 0.1)' }}
                                 >
                                     <BookOpen size={14} /> View Syllabus
                                 </button>
@@ -246,29 +217,34 @@ const Programs = () => {
                                     className={`btn-select-proposal ${isSelected ? 'selected' : ''}`}
                                     onClick={() => toggleSelectProgram(prog)}
                                 >
-                                    {isSelected ? '✓ Selected' : '+ Pick'}
+                                    {isSelected ? <><CheckCircle2 size={14} /> Added</> : <><Plus size={14} /> Add to proposal</>}
                                 </button>
                             </div>
                         </motion.div>
                     );
                 })}
+                {filteredPrograms.length === 0 && (
+                    <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--ad-text-dim)', padding: '48px 0' }}>
+                        No programmes match your search. Try a different topic or department.
+                    </p>
+                )}
             </section>
 
             {/* Floating HOD Proposal Basket Bar */}
             {selectedPrograms.length > 0 && (
                 <motion.div
                     className="hod-proposal-bar"
-                    style={{ background: 'rgba(11, 17, 32, 0.95)', borderColor: 'var(--ad-orange)' }}
+                    
                     initial={{ y: 80, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 80, opacity: 0 }}
                 >
                     <div className="proposal-bar-info">
-                        <div className="proposal-badge-count" style={{ background: 'var(--ad-orange)' }}>
+                        <div className="proposal-badge-count">
                             {selectedPrograms.length}
                         </div>
                         <div className="proposal-bar-text">
-                            <h4>HOD Proposal Basket</h4>
+                            <h4>Proposal</h4>
                             <p>{selectedPrograms.map(p => p.code).join(', ')}</p>
                         </div>
                     </div>
@@ -277,8 +253,8 @@ const Programs = () => {
                         <button className="brochure-btn-secondary" onClick={() => setSelectedPrograms([])}>
                             Clear
                         </button>
-                        <button className="brochure-btn-primary" style={{ background: 'linear-gradient(135deg, #f97316, #dd6b20)' }} onClick={() => setShowProposalModal(true)}>
-                            📋 Generate Official College Proposal
+                        <button className="brochure-btn-primary" onClick={() => setShowProposalModal(true)}>
+                            <FileText size={15} /> Generate proposal
                         </button>
                     </div>
                 </motion.div>
@@ -302,6 +278,8 @@ const Programs = () => {
                     onClearAll={() => setSelectedPrograms([])}
                 />
             )}
+
+            <SiteFooter />
 
             {showAddEditorModal && (
                 <SyllabusEditorModal

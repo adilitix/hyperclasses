@@ -1,41 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, Trash2, Send, CheckCircle, X, Cpu } from 'lucide-react';
-import Logo from '../components/Logo';
+import { ShoppingCart, Trash2, Send, CheckCircle2, X, Minus, Plus } from 'lucide-react';
+import SiteHeader from '../components/SiteHeader';
+import SiteFooter from '../components/SiteFooter';
+import { BASE_URL } from '../lib/api';
 
 const Shop = () => {
     const [inventory, setInventory] = useState([]);
+    const [loadState, setLoadState] = useState('loading'); // 'loading' | 'ready' | 'error'
     const [cart, setCart] = useState([]);
     const [showCheckout, setShowCheckout] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(false);
     const [formData, setFormData] = useState({ name: '', phone: '', requirements: '' });
-    const [loading, setLoading] = useState(true);
-    const [showToast, setShowToast] = useState(false);
-
-    const rawBase = import.meta.env.VITE_SERVER_URL ||
-        (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://hyperclass.onrender.com');
-    const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
+    const [submitting, setSubmitting] = useState(false);
+    const [checkoutError, setCheckoutError] = useState('');
+    const [toast, setToast] = useState('');
 
     useEffect(() => {
         fetch(`${BASE_URL}/api/adilitix/inventory`)
-            .then(res => res.json())
-            .then(data => {
-                setInventory(data || []);
-                setLoading(false);
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
             })
-            .catch(err => {
-                console.error(err);
-                setLoading(false);
-            });
+            .then(data => {
+                setInventory(Array.isArray(data) ? data : []);
+                setLoadState('ready');
+            })
+            .catch(() => setLoadState('error'));
     }, []);
+
+    useEffect(() => {
+        if (!toast) return undefined;
+        const t = setTimeout(() => setToast(''), 2200);
+        return () => clearTimeout(t);
+    }, [toast]);
+
+    useEffect(() => {
+        if (!showCheckout) return undefined;
+        const onKey = (e) => { if (e.key === 'Escape') setShowCheckout(false); };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [showCheckout]);
+
+    const cartCount = cart.reduce((a, b) => a + b.quantity, 0);
 
     const addToCart = (item) => {
         const existing = cart.find(c => c.id === item.id);
         const currentQty = existing ? existing.quantity : 0;
 
         if (currentQty >= item.count) {
-            alert(`Sorry, only ${item.count} units available!`);
+            setToast(`Only ${item.count} units of ${item.name} are in stock.`);
             return;
         }
 
@@ -44,25 +59,15 @@ const Shop = () => {
         } else {
             setCart([...cart, { ...item, quantity: 1 }]);
         }
-
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 2000);
+        setToast(`${item.name} added to your list.`);
     };
 
     const updateQuantity = (id, delta) => {
         setCart(cart.map(cartItem => {
-            if (cartItem.id === id) {
-                const stockItem = inventory.find(i => i.id === id);
-                const maxStock = stockItem ? stockItem.count : 999;
-                const newQty = Math.max(1, Math.min(cartItem.quantity + delta, maxStock));
-
-                if (newQty === maxStock && delta > 0 && cartItem.quantity === maxStock) {
-                    alert(`Max available stock reached for ${cartItem.name}`);
-                }
-
-                return { ...cartItem, quantity: newQty };
-            }
-            return cartItem;
+            if (cartItem.id !== id) return cartItem;
+            const stockItem = inventory.find(i => i.id === id);
+            const maxStock = stockItem ? stockItem.count : 999;
+            return { ...cartItem, quantity: Math.max(1, Math.min(cartItem.quantity + delta, maxStock)) };
         }));
     };
 
@@ -72,162 +77,195 @@ const Shop = () => {
 
     const handleCheckout = async (e) => {
         e.preventDefault();
+        setCheckoutError('');
 
-        if (formData.phone.length < 10) {
-            alert("Please enter a valid 10-digit phone number.");
+        if (formData.phone.replace(/\D/g, '').length < 10) {
+            setCheckoutError('Please enter a phone number with at least 10 digits.');
             return;
         }
 
-        setLoading(true);
+        setSubmitting(true);
         try {
             const response = await fetch(`${BASE_URL}/api/adilitix/orders`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...formData,
-                    items: cart
-                })
+                body: JSON.stringify({ ...formData, items: cart })
             });
             const data = await response.json();
             if (data.success) {
                 setOrderSuccess(true);
+                setShowCheckout(false);
                 setCart([]);
+            } else {
+                setCheckoutError(data.message || 'We could not place your order. Please try again.');
             }
-        } catch (err) {
-            alert('Failed to place order.');
+        } catch {
+            setCheckoutError('Could not reach the server. Please try again, or call +91 80753 55024.');
         } finally {
-            setLoading(false);
+            setSubmitting(false);
         }
     };
 
-    if (orderSuccess) {
-        return (
-            <div className="registration-container">
-                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="registration-form-card" style={{ textAlign: 'center' }}>
-                    <div style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-                        <CheckCircle size={48} />
-                    </div>
-                    <h2>Order Requirement Received!</h2>
-                    <p style={{ color: 'var(--ad-text-dim)', margin: '16px 0 24px' }}>
-                        Thank you <b>{formData.name}</b>. Adilitix Robotics team (Viva Palace, Convent Road, Kollam) will review your requirements and contact you on <b>{formData.phone}</b>.
-                    </p>
-                    <Link to="/" className="cta-primary" style={{ justifyContent: 'center' }}>Back to Home</Link>
-                </motion.div>
-            </div>
-        );
-    }
+    const cartButton = (
+        <button type="button" onClick={() => setShowCheckout(true)} className="nav-cart-btn" aria-label={`Open order list, ${cartCount} items`}>
+            <ShoppingCart size={18} />
+            {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+        </button>
+    );
 
     return (
         <div className="shop-page">
-            <nav className="navbar">
-                <Link to="/" className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <ArrowLeft size={20} color="var(--ad-orange)" /> Back to Main
-                </Link>
-                <Logo size="small" showText={true} textSub="STORE" />
-                <button onClick={() => setShowCheckout(true)} className="nav-cart-btn">
-                    <ShoppingCart size={20} color="var(--ad-orange)" />
-                    {cart.length > 0 && <span className="cart-badge">{cart.reduce((a, b) => a + b.quantity, 0)}</span>}
-                </button>
-            </nav>
+            <SiteHeader actions={orderSuccess ? null : cartButton} />
 
-            <div className="shop-container" style={{ padding: '40px 6%' }}>
-                <header className="shop-header" style={{ marginBottom: '40px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                        <Cpu size={28} color="var(--ad-orange)" />
-                        <h1 style={{ fontSize: '2.4rem', color: '#fff' }}>Robotics Component Store</h1>
+            <main className="container" style={{ paddingBottom: 96 }}>
+                {orderSuccess ? (
+                    <div className="registration-form-card" style={{ margin: '72px auto' }} role="status">
+                        <div className="icon-tile" style={{ background: 'rgba(34, 197, 94, 0.1)', color: 'var(--success)' }}>
+                            <CheckCircle2 size={20} />
+                        </div>
+                        <h1 style={{ fontSize: '1.4rem', fontWeight: 600 }}>Order request received</h1>
+                        <p className="muted" style={{ margin: '10px 0 24px' }}>
+                            Thanks, {formData.name}. We will check availability and call you on {formData.phone} to confirm pricing and delivery.
+                        </p>
+                        <div className="cta-group">
+                            <button type="button" className="btn btn-secondary" onClick={() => setOrderSuccess(false)}>Keep browsing</button>
+                            <Link to="/" className="btn btn-primary">Back to home</Link>
+                        </div>
                     </div>
-                    <p style={{ color: 'var(--ad-text-dim)' }}>
-                        Official hardware components, sensors, microcontrollers, and prototyping modules by <b>Adilitix Robotics</b> (Kollam, Kerala).
-                    </p>
-                </header>
-
-                {loading ? (
-                    <div style={{ textAlign: 'center', padding: '60px', color: 'var(--ad-orange)' }}>Loading Component Catalog...</div>
                 ) : (
-                    <div className="db-grid">
-                        {inventory.length === 0 ? (
-                            <div style={{ gridColumn: '1 / -1', textFillColor: 'var(--ad-text-dim)', textAlign: 'center', padding: '40px' }}>
-                                No items currently listed. Please check back soon or contact support at +91 8075355024.
+                    <>
+                        <header className="page-header">
+                            <span className="eyebrow">Store</span>
+                            <h1>Robotics components</h1>
+                            <p>
+                                Microcontrollers, sensors, actuators and prototyping modules in stock at our Kollam lab. Add what you need and
+                                send the list. We confirm price and availability by phone before anything is charged.
+                            </p>
+                        </header>
+
+                        {loadState === 'loading' && (
+                            <div className="db-grid" aria-busy="true">
+                                {[0, 1, 2].map(i => (
+                                    <div key={i} className="db-card" style={{ height: 150, opacity: 0.5 }} />
+                                ))}
                             </div>
-                        ) : (
-                            inventory.map(item => (
-                                <div key={item.id} className="db-card" style={{ flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
-                                    <div className="card-info" style={{ width: '100%' }}>
-                                        <span className="inv-cat">{item.category || 'Hardware'}</span>
-                                        <h3 style={{ margin: '10px 0 6px', color: '#fff', fontSize: '1.2rem' }}>{item.name}</h3>
-                                        <p style={{ color: 'var(--ad-text-dim)', fontSize: '0.85rem' }}>Available Stock: <b>{item.count} units</b></p>
-                                    </div>
-                                    <button onClick={() => addToCart(item)} className="cta-primary" style={{ width: '100%', padding: '12px', fontSize: '0.85rem', justifyContent: 'center' }}>
-                                        <ShoppingCart size={16} /> ADD TO CART
-                                    </button>
-                                </div>
-                            ))
                         )}
-                    </div>
+
+                        {loadState === 'error' && (
+                            <div className="notice notice-error">
+                                We could not load the catalogue right now. Please refresh, or call +91 80753 55024 for stock.
+                            </div>
+                        )}
+
+                        {loadState === 'ready' && inventory.length === 0 && (
+                            <div className="notice">
+                                No items are listed at the moment. Call +91 80753 55024 and we will source what you need.
+                            </div>
+                        )}
+
+                        {loadState === 'ready' && inventory.length > 0 && (
+                            <div className="db-grid">
+                                {inventory.map(item => {
+                                    const inCart = cart.find(c => c.id === item.id);
+                                    return (
+                                        <div key={item.id} className="db-card" style={{ flexDirection: 'column', justifyContent: 'space-between', gap: 20 }}>
+                                            <div>
+                                                <span className="inv-cat">{item.category || 'Hardware'}</span>
+                                                <h3 style={{ margin: '6px 0 4px', fontSize: '1.05rem', fontWeight: 600 }}>{item.name}</h3>
+                                                <p className="muted" style={{ fontSize: '0.875rem' }}>
+                                                    {item.count > 0 ? `${item.count} in stock` : 'Out of stock'}
+                                                </p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => addToCart(item)}
+                                                className={`btn btn-sm ${inCart ? 'btn-secondary' : 'btn-primary'}`}
+                                                disabled={item.count <= 0}
+                                            >
+                                                {inCart ? `Added (${inCart.quantity}) · add another` : 'Add to list'}
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </>
                 )}
-            </div>
+            </main>
+
+            <SiteFooter />
 
             <AnimatePresence>
                 {showCheckout && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="checkout-overlay">
-                        <motion.div initial={{ y: 50 }} animate={{ y: 0 }} className="checkout-modal">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="checkout-overlay"
+                        onClick={(e) => { if (e.target === e.currentTarget) setShowCheckout(false); }}
+                    >
+                        <motion.div
+                            initial={{ y: 16, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: 16, opacity: 0 }}
+                            className="checkout-modal"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="checkout-title"
+                        >
                             <div className="modal-header">
-                                <h2 style={{ color: '#fff' }}>Your Requirements Cart</h2>
-                                <div style={{ display: 'flex', gap: '10px' }}>
+                                <h2 id="checkout-title" style={{ fontSize: '1.15rem', fontWeight: 600 }}>Your order list</h2>
+                                <div style={{ display: 'flex', gap: 8 }}>
                                     {cart.length > 0 && (
-                                        <button onClick={() => setCart([])} className="nav-btn-subtle" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
-                                            <Trash2 size={14} /> Clear
-                                        </button>
+                                        <button type="button" onClick={() => setCart([])} className="btn btn-ghost btn-sm">Clear</button>
                                     )}
-                                    <button onClick={() => setShowCheckout(false)} className="close-btn"><X size={20} /></button>
+                                    <button type="button" onClick={() => setShowCheckout(false)} className="close-btn" aria-label="Close"><X size={18} /></button>
                                 </div>
                             </div>
 
-                            <div className="cart-items">
-                                {cart.length === 0 ? (
-                                    <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--ad-text-dim)' }}>
-                                        <ShoppingCart size={48} style={{ opacity: 0.3, marginBottom: '16px' }} />
-                                        <p>Your cart is empty.</p>
-                                        <button onClick={() => setShowCheckout(false)} className="cta-primary" style={{ marginTop: '16px', margin: '16px auto 0' }}>Start Browsing</button>
-                                    </div>
-                                ) : (
-                                    cart.map(item => (
+                            {cart.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '32px 0' }}>
+                                    <p className="muted">Your list is empty.</p>
+                                    <button type="button" onClick={() => setShowCheckout(false)} className="btn btn-secondary btn-sm" style={{ marginTop: 16 }}>
+                                        Browse components
+                                    </button>
+                                </div>
+                            ) : (
+                                <>
+                                    {cart.map(item => (
                                         <div key={item.id} className="cart-item">
                                             <div>
-                                                <h4 style={{ color: '#fff', fontSize: '0.95rem' }}>{item.name}</h4>
-                                                <small style={{ color: 'var(--ad-orange)' }}>{item.category}</small>
+                                                <div style={{ fontWeight: 500, fontSize: '0.95rem' }}>{item.name}</div>
+                                                <div className="subtle" style={{ fontSize: '0.8rem' }}>{item.category}</div>
                                             </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                    <button onClick={() => updateQuantity(item.id, -1)} className="qty-btn">-</button>
-                                                    <span style={{ fontWeight: 'bold', color: '#fff' }}>{item.quantity}</span>
-                                                    <button onClick={() => updateQuantity(item.id, 1)} className="qty-btn">+</button>
-                                                </div>
-                                                <button onClick={() => removeFromCart(item.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                                <button type="button" onClick={() => updateQuantity(item.id, -1)} className="qty-btn" aria-label={`Fewer ${item.name}`}><Minus size={14} /></button>
+                                                <span style={{ minWidth: 18, textAlign: 'center', fontWeight: 600 }}>{item.quantity}</span>
+                                                <button type="button" onClick={() => updateQuantity(item.id, 1)} className="qty-btn" aria-label={`More ${item.name}`}><Plus size={14} /></button>
+                                                <button type="button" onClick={() => removeFromCart(item.id)} className="qty-btn" aria-label={`Remove ${item.name}`} style={{ color: '#f87171' }}><Trash2 size={14} /></button>
                                             </div>
                                         </div>
-                                    ))
-                                )}
-                            </div>
+                                    ))}
 
-                            {cart.length > 0 && (
-                                <form onSubmit={handleCheckout} className="checkout-form" style={{ marginTop: '20px' }}>
-                                    <div className="form-group">
-                                        <label>Full Name</label>
-                                        <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required placeholder="Aadil S P" />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Phone Number (10 Digits)</label>
-                                        <input type="tel" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} required placeholder="+91 8075355024" />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Additional Notes / Project Requirements</label>
-                                        <textarea value={formData.requirements} onChange={e => setFormData({ ...formData, requirements: e.target.value })} placeholder="Mention special specifications or quantities..." rows="3" />
-                                    </div>
-                                    <button type="submit" className="submit-btn" style={{ width: '100%' }}>
-                                        CONFIRM ORDER INQUIRY <Send size={18} />
-                                    </button>
-                                </form>
+                                    <form onSubmit={handleCheckout} style={{ marginTop: 20 }}>
+                                        <div className="form-group">
+                                            <label htmlFor="co-name">Full name</label>
+                                            <input id="co-name" type="text" autoComplete="name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="co-phone">Phone / WhatsApp</label>
+                                            <input id="co-phone" type="tel" autoComplete="tel" inputMode="tel" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} required />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="co-notes">Notes <span className="subtle">(optional)</span></label>
+                                            <textarea id="co-notes" value={formData.requirements} onChange={e => setFormData({ ...formData, requirements: e.target.value })} placeholder="Specifications, quantities or delivery address" rows="3" />
+                                        </div>
+                                        {checkoutError && <p role="alert" className="form-error">{checkoutError}</p>}
+                                        <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={submitting}>
+                                            {submitting ? 'Sending…' : <>Send order request <Send size={16} /></>}
+                                        </button>
+                                    </form>
+                                </>
                             )}
                         </motion.div>
                     </motion.div>
@@ -235,29 +273,31 @@ const Shop = () => {
             </AnimatePresence>
 
             <AnimatePresence>
-                {showToast && (
+                {toast && (
                     <motion.div
-                        initial={{ opacity: 0, y: 50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 50 }}
+                        role="status"
+                        initial={{ opacity: 0, y: 12, x: '-50%' }}
+                        animate={{ opacity: 1, y: 0, x: '-50%' }}
+                        exit={{ opacity: 0, y: 12, x: '-50%' }}
                         style={{
                             position: 'fixed',
-                            bottom: '30px',
+                            bottom: 24,
                             left: '50%',
-                            translateX: '-50%',
-                            background: 'linear-gradient(135deg, #ff6b00 0%, #ea580c 100%)',
-                            color: '#fff',
-                            padding: '12px 24px',
-                            borderRadius: '50px',
-                            boxShadow: '0 10px 30px var(--ad-orange-glow)',
+                            background: 'var(--text)',
+                            color: 'var(--bg)',
+                            padding: '10px 16px',
+                            borderRadius: 'var(--radius)',
+                            boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '10px',
-                            fontWeight: '700',
-                            zIndex: 2500
+                            gap: 8,
+                            fontSize: '0.9rem',
+                            fontWeight: 500,
+                            zIndex: 2500,
+                            maxWidth: 'calc(100vw - 32px)'
                         }}
                     >
-                        <CheckCircle size={20} /> Item Added to Cart!
+                        <CheckCircle2 size={16} /> {toast}
                     </motion.div>
                 )}
             </AnimatePresence>

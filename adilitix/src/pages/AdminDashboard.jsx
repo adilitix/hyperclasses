@@ -34,7 +34,8 @@ import {
     ChevronLeft,
     Calendar
 } from 'lucide-react';
-import { io } from 'socket.io-client';
+import { BASE_URL, getToken, clearSession } from '../lib/api';
+import '../styles/certificate-fonts.css';
 
 // ... external components
 const ApprovalToggle = ({ status, onToggle }) => {
@@ -213,7 +214,6 @@ const CertificatePaper = ({ data, settings, scale = 1 }) => {
 };
 
 const AdminDashboard = () => {
-    console.log('AdminDashboard: Component Render Start');
     const navigate = useNavigate();
     const [registrations, setRegistrations] = useState([]);
     const [inventory, setInventory] = useState([]);
@@ -243,7 +243,7 @@ const AdminDashboard = () => {
     const adminRole = localStorage.getItem('adilitix_role') || 'admin';
     const adminUsername = localStorage.getItem('adilitix_username') || 'Admin';
     const isSuperAdmin = adminRole === 'superadmin';
-    const [adminPerms, setAdminPerms] = useState(() => {
+    const [adminPerms] = useState(() => {
         try { return JSON.parse(localStorage.getItem('adilitix_permissions') || 'null'); } catch { return null; }
     });
     const hasPerm = (perm) => isSuperAdmin || !adminPerms || adminPerms[perm] !== false;
@@ -274,23 +274,14 @@ const AdminDashboard = () => {
     const [selectedRegs, setSelectedRegs] = useState(new Set());
     const [copiedWsId, setCopiedWsId] = useState('');
 
-
-    const rawBase = import.meta.env.VITE_SERVER_URL ||
-        (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://hyperclass.onrender.com');
-    const BASE_URL = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
-
     const HYPERCLASS_URL = window.location.hostname === 'localhost'
         ? 'http://localhost:3000'
         : 'https://hyperclass.adilitix.com';
 
     useEffect(() => {
-        console.log('AdminDashboard: Initializing...');
-        const isAdmin = localStorage.getItem('adilitix_admin');
-        if (!isAdmin) {
-            console.log('AdminDashboard: Not logged in, redirecting...');
+        if (!getToken()) {
             navigate('/admin-login');
         } else {
-            console.log('AdminDashboard: Logged in as', adminUsername);
             fetchData();
 
             /* Socket temporarily disabled for stability diagnostic
@@ -302,6 +293,8 @@ const AdminDashboard = () => {
             return () => socket.disconnect();
             */
         }
+    // fetchData is redeclared on every render; this should only run once per mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [navigate]);
 
     const fetchData = async (silent = false) => {
@@ -360,9 +353,7 @@ const AdminDashboard = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('adilitix_admin');
-        localStorage.removeItem('adilitix_username');
-        localStorage.removeItem('adilitix_role');
+        clearSession();
         navigate('/');
     };
 
@@ -624,7 +615,7 @@ const AdminDashboard = () => {
                 setNewAdmin({ username: '', password: '', role: 'admin' });
                 fetchData(true);
             }
-        } catch (err) { alert('Error adding admin'); }
+        } catch { alert('Error adding admin'); }
     };
 
     // --- NOTICEBOARD ---
@@ -641,7 +632,7 @@ const AdminDashboard = () => {
                 setNewNotice({ title: '', content: '', priority: 'normal' });
                 fetchData(true);
             }
-        } catch (err) { alert('Error posting notice'); }
+        } catch { alert('Error posting notice'); }
     };
 
     const deleteNotice = async (id) => {

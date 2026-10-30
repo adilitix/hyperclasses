@@ -1,15 +1,16 @@
+import { X } from 'lucide-react';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SyllabusEditorModal = ({ onSaveProgram, onClose }) => {
   const [title, setTitle] = useState('');
-  const [code, setCode] = useState(`ADI-CUST-${Math.floor(100 + Math.random() * 900)}`);
+  const [code, setCode] = useState(() => `ADI-CUST-${Math.floor(100 + Math.random() * 900)}`);
   const [department, setDepartment] = useState('Computer Science & IT');
   const [category, setCategory] = useState('Coding');
   const [duration, setDuration] = useState('3-Day Intensive Bootcamp');
   const [desc, setDesc] = useState('');
-  const [targetBatch, setTargetBatch] = useState('2nd & 3rd Year Engineering');
-  const [prerequisites, setPrerequisites] = useState('Basic programming concepts');
+  const [targetBatch] = useState('2nd & 3rd Year Engineering');
+  const [prerequisites] = useState('Basic programming concepts');
 
   const [rawSyllabusText, setRawSyllabusText] = useState('');
 
@@ -104,10 +105,10 @@ const SyllabusEditorModal = ({ onSaveProgram, onClose }) => {
         >
           <div className="syllabus-modal-header">
             <div className="syllabus-modal-title">
-              <h2>➕ Add / Paste New Program Syllabus</h2>
+              <h2>Add / Paste New Program Syllabus</h2>
               <p>Easily add custom college syllabi, workshop tracks, or tailored courses.</p>
             </div>
-            <button className="btn-close-modal" onClick={onClose}>✕</button>
+            <button className="btn-close-modal" onClick={onClose} aria-label="Close"><X size={18} /></button>
           </div>
 
           <form onSubmit={handleSubmit} className="syllabus-modal-body">
@@ -120,7 +121,7 @@ const SyllabusEditorModal = ({ onSaveProgram, onClose }) => {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff' }}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: 'var(--text)' }}
                 />
               </div>
 
@@ -129,7 +130,7 @@ const SyllabusEditorModal = ({ onSaveProgram, onClose }) => {
                 <select
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff' }}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: 'var(--text)' }}
                 >
                   <option value="Computer Science & IT">Computer Science & IT</option>
                   <option value="Robotics & Mechatronics">Robotics & Mechatronics</option>
@@ -147,7 +148,7 @@ const SyllabusEditorModal = ({ onSaveProgram, onClose }) => {
                   type="text"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff' }}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: 'var(--text)' }}
                 />
               </div>
               <div>
@@ -157,7 +158,7 @@ const SyllabusEditorModal = ({ onSaveProgram, onClose }) => {
                   placeholder="e.g. Robotics / Coding"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff' }}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: 'var(--text)' }}
                 />
               </div>
               <div>
@@ -167,7 +168,7 @@ const SyllabusEditorModal = ({ onSaveProgram, onClose }) => {
                   placeholder="e.g. 3 Days / 30-Hr VAC"
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff' }}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: 'var(--text)' }}
                 />
               </div>
             </div>
@@ -179,15 +180,15 @@ const SyllabusEditorModal = ({ onSaveProgram, onClose }) => {
                 placeholder="Brief summary of what students will build and learn..."
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
-                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff' }}
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: 'var(--text)' }}
               />
             </div>
 
             {/* Quick Paste Raw Text Section */}
             <div style={{ background: 'rgba(249, 115, 22, 0.08)', border: '1px dashed rgba(249, 115, 22, 0.3)', padding: '14px', borderRadius: '10px', marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--ad-orange)', fontWeight: 700 }}>⚡ Quick Syllabus Text Converter</span>
-                <button type="button" onClick={handleParseRawText} style={{ background: 'var(--ad-orange)', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--ad-orange)', fontWeight: 700 }}>Quick Syllabus Text Converter</span>
+                <button type="button" onClick={handleParseRawText} style={{ background: 'var(--ad-orange)', color: 'var(--text)', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>
                   Auto-Convert to Modules
                 </button>
               </div>
@@ -201,7 +202,7 @@ const SyllabusEditorModal = ({ onSaveProgram, onClose }) => {
             </div>
 
             {/* Modules List */}
-            <h4 style={{ color: '#fff', margin: '0 0 10px' }}>Modules ({modules.length})</h4>
+            <h4 style={{ color: 'var(--text)', margin: '0 0 10px' }}>Modules ({modules.length})</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
               {modules.map((m, idx) => (
                 <div key={idx} style={{ background: 'rgba(17, 24, 39, 0.7)', border: '1px solid rgba(255,255,255,0.08)', padding: '12px', borderRadius: '8px' }}>

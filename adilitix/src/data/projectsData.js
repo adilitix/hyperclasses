@@ -138,7 +138,7 @@ void handleRoot() {
     "<div class='val'>" + String((int)hazardIndex) + "% Hazard Index</div>"
     "<p>Soil Saturation: " + String(currentSoilPct) + "% | Stream Level: " + String(currentDistance1,1) + " cm</p>"
     "<p>Temp: " + String(currentTemp,1) + "°C | Humidity: " + String(currentHumidity,1) + "%</p>"
-    "<button class='btn' onclick='location.href=\"/relay\"'>Toggle Siphon Flush</button>"
+    "<button class='btn' onclick='location.href="/relay"'>Toggle Siphon Flush</button>"
     "</div></body></html>";
   server.send(200, "text/html", html);
 }

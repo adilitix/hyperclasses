@@ -6,7 +6,7 @@ const Logo = ({ size = 'medium', showText = true, textSub = 'ROBOTICS', classNam
     const iconHeight = size === 'small' ? 24 : size === 'large' ? 48 : 32;
 
     return (
-        <div className={`adilitix-brand-logo ${className}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+        <div className={`adilitix-brand-logo ${className}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', }}>
             {/* SVG Logo Icon matching exact Adilitix "A" circuit + "D" navy mark */}
             <svg
                 width={iconWidth}
@@ -14,7 +14,7 @@ const Logo = ({ size = 'medium', showText = true, textSub = 'ROBOTICS', classNam
                 viewBox="0 0 400 260"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-                style={{ filter: 'drop-shadow(0 4px 12px rgba(249, 87, 0, 0.25))' }}
+                aria-hidden="true"
             >
                 <defs>
                     {/* Orange Circuit Gradient */}

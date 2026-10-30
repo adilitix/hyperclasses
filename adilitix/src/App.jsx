@@ -1,18 +1,30 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Landing from './pages/Landing';
-import Programs from './pages/Programs';
-import About from './pages/About';
-import Inquiry from './pages/Inquiry';
-import Register from './pages/Register';
-import Shop from './pages/Shop';
-import AdminLogin from './pages/AdminLogin';
-import AdminDashboard from './pages/AdminDashboard';
-import VerifyCertificate from './pages/VerifyCertificate';
-import OfficeStatus from './pages/OfficeStatus';
-import Projects from './pages/Projects';
-import ProjectDetail from './pages/ProjectDetail';
 import './App.css';
+
+// Everything except the home page is split into its own chunk so first load stays small.
+const Programs = lazy(() => import('./pages/Programs'));
+const About = lazy(() => import('./pages/About'));
+const Inquiry = lazy(() => import('./pages/Inquiry'));
+const Register = lazy(() => import('./pages/Register'));
+const Shop = lazy(() => import('./pages/Shop'));
+const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const VerifyCertificate = lazy(() => import('./pages/VerifyCertificate'));
+const OfficeStatus = lazy(() => import('./pages/OfficeStatus'));
+const Projects = lazy(() => import('./pages/Projects'));
+const ProjectDetail = lazy(() => import('./pages/ProjectDetail'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+// Route changes should start at the top of the new page, unless they target an anchor.
+function ScrollToTop() {
+  const { pathname, hash } = useLocation();
+  useEffect(() => {
+    if (!hash) window.scrollTo(0, 0);
+  }, [pathname, hash]);
+  return null;
+}
 
 function App() {
   const getBasename = () => {
@@ -21,23 +33,26 @@ function App() {
 
   return (
     <Router basename={getBasename()}>
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/programs" element={<Programs />} />
-        <Route path="/projects" element={<Projects />} />
-        <Route path="/projects/:id" element={<ProjectDetail />} />
-        <Route path="/projects/:folder/:id" element={<ProjectDetail />} />
-        <Route path="/projects/shakthikulangara/robotics" element={<ProjectDetail />} />
-        <Route path="/shakthikulangara/robotics" element={<ProjectDetail />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/inquiry" element={<Inquiry />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/shop" element={<Shop />} />
-        <Route path="/admin-login" element={<AdminLogin />} />
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/verify" element={<VerifyCertificate />} />
-        <Route path="/office" element={<OfficeStatus />} />
-      </Routes>
+      <ScrollToTop />
+      <Suspense fallback={<div style={{ minHeight: '100vh', background: 'var(--bg)' }} />}>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/programs" element={<Programs />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/projects/:id" element={<ProjectDetail />} />
+          <Route path="/projects/:folder/:id" element={<ProjectDetail />} />
+          <Route path="/shakthikulangara/robotics" element={<Navigate to="/projects/shakthikulangara/robotics" replace />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/inquiry" element={<Inquiry />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/verify" element={<VerifyCertificate />} />
+          <Route path="/office" element={<OfficeStatus />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 }

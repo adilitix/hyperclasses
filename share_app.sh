@@ -11,7 +11,7 @@ cd ..
 
 echo "📦 Building Adilitix for Production..."
 cd adilitix
-npm run build
+npm run build -- --base=/adilitix/
 cd ..
 
 echo "---------------------------------------------------"

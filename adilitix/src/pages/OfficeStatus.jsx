@@ -35,6 +35,7 @@ import {
   CheckCheck,
   Settings
 } from 'lucide-react';
+import { BASE_URL, getToken, saveSession, clearSession } from '../lib/api';
 
 const REAL_CONTACTS_SEED = [
   {
@@ -91,8 +92,9 @@ const REAL_CONTACTS_SEED = [
 
 const OfficeStatus = () => {
   // Authentication State
+  // Office console is superadmin-only; the server checks the password and issues the token
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('adilitix_office_auth') === 'true';
+    return !!getToken() && localStorage.getItem('adilitix_role') === 'superadmin';
   });
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -106,7 +108,7 @@ const OfficeStatus = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [isLiveConnected, setIsLiveConnected] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastRefreshed, setLastRefreshed] = useState(new Date());
+  const [, setLastRefreshed] = useState(() => new Date());
 
   // WhatsApp Real-Time State
   const [contacts, setContacts] = useState(REAL_CONTACTS_SEED);
@@ -163,20 +165,33 @@ const OfficeStatus = () => {
   }, [messages]);
 
   // Auth Handler
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (username === 'admin' && (password === 'Aadil@123' || password === '1234' || password === '7860')) {
-      setIsAuthenticated(true);
-      localStorage.setItem('adilitix_office_auth', 'true');
-      setAuthError('');
-    } else {
-      setAuthError('Invalid Master credentials. Access denied.');
+    setAuthError('');
+    try {
+      const res = await fetch(`${BASE_URL}/api/adilitix/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (data.success && data.role === 'superadmin') {
+        saveSession(data);
+        setPassword('');
+        setIsAuthenticated(true);
+      } else if (data.success) {
+        setAuthError('This console is limited to superadmins.');
+      } else {
+        setAuthError(data.message || 'Invalid credentials.');
+      }
+    } catch {
+      setAuthError('Could not reach the server.');
     }
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    localStorage.removeItem('adilitix_office_auth');
+    clearSession();
   };
 
   // 1. Fetch Real WhatsApp Contacts / Chats from Pi
@@ -199,7 +214,7 @@ const OfficeStatus = () => {
       }
     } catch (e) {
       // Keep existing contacts if local network or mixed content
-      console.log('Chats fetch notice:', e.message);
+      if (import.meta.env.DEV) console.debug('Chats fetch notice:', e.message);
     }
   };
 
@@ -223,7 +238,7 @@ const OfficeStatus = () => {
         }
       }
     } catch (e) {
-      console.log('Messages fetch notice:', e.message);
+      if (import.meta.env.DEV) console.debug('Messages fetch notice:', e.message);
     }
   };
 
@@ -245,7 +260,7 @@ const OfficeStatus = () => {
         setIsLiveConnected(true);
       }
       setLastRefreshed(new Date());
-    } catch (e) {
+    } catch {
       // Dynamic realistic simulation if unreachable
       setTelemetry(prev => ({
         ...prev,
@@ -272,6 +287,8 @@ const OfficeStatus = () => {
     }, 4000);
 
     return () => clearInterval(interval);
+    // The fetchers are redeclared each render and only read state they are passed, so they are safe to omit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, selectedContact, gatewayUrl]);
 
   // Handle Send Real WhatsApp Message
@@ -312,8 +329,8 @@ const OfficeStatus = () => {
       } else {
         setQuickActionStatus(`Dispatched locally to queue.`);
       }
-    } catch (err) {
-      setQuickActionStatus(`Message sent to WhatsApp gateway.`);
+    } catch {
+      setQuickActionStatus('Could not reach the WhatsApp gateway. Message not sent.');
     } finally {
       setIsSendingMsg(false);
       setTimeout(() => setQuickActionStatus(null), 3500);

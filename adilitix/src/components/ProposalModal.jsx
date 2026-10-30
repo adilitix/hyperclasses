@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -8,7 +9,9 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [studentCount, setStudentCount] = useState(120);
-  const [preferredDates, setPreferredDates] = useState('');
+  const [preferredDates] = useState('');
+  // Fixed once per modal open so the reference doesn't change on every render
+  const [proposalRef] = useState(() => Date.now().toString().slice(-6));
   const [durationMode, setDurationMode] = useState('3-Day Intensive Bootcamp');
   const [customNotes, setCustomNotes] = useState('');
   const [previewProposal, setPreviewProposal] = useState(false);
@@ -39,10 +42,10 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
           {/* Header */}
           <div className="syllabus-modal-header">
             <div className="syllabus-modal-title">
-              <h2>📋 Institutional Program Proposal Builder</h2>
+              <h2>Institutional Program Proposal Builder</h2>
               <p>Tailor academic programs, estimate student batches, and generate official HOD brochure proposals.</p>
             </div>
-            <button className="btn-close-modal" onClick={onClose}>✕</button>
+            <button className="btn-close-modal" onClick={onClose} aria-label="Close"><X size={18} /></button>
           </div>
 
           {/* Toggle between Form & Formal Document Preview */}
@@ -51,13 +54,13 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
               className={`modal-tab-btn ${!previewProposal ? 'active' : ''}`}
               onClick={() => setPreviewProposal(false)}
             >
-              ✍️ Customize Proposal Details ({selectedPrograms.length} Selected)
+              Customize Proposal Details ({selectedPrograms.length} Selected)
             </button>
             <button
               className={`modal-tab-btn ${previewProposal ? 'active' : ''}`}
               onClick={() => setPreviewProposal(true)}
             >
-              📄 Preview Official HOD Proposal Document
+              Preview Official HOD Proposal Document
             </button>
           </div>
 
@@ -66,7 +69,7 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
               /* FORM VIEW */
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                 <div>
-                  <h3 style={{ color: '#fff', fontSize: '1.1rem', marginTop: 0, marginBottom: '16px' }}>
+                  <h3 style={{ color: 'var(--text)', fontSize: '1.1rem', marginTop: 0, marginBottom: '16px' }}>
                     1. College & Department Details
                   </h3>
 
@@ -78,7 +81,7 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
                         placeholder="e.g. TKM College of Engineering / Amrita Vishwa Vidyapeetham"
                         value={collegeName}
                         onChange={(e) => setCollegeName(e.target.value)}
-                        style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', fontSize: '0.9rem' }}
+                        style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: 'var(--text)', fontSize: '0.9rem' }}
                       />
                     </div>
 
@@ -90,7 +93,7 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
                           placeholder="e.g. Dept of ECE / CSE"
                           value={departmentName}
                           onChange={(e) => setDepartmentName(e.target.value)}
-                          style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', fontSize: '0.9rem' }}
+                          style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: 'var(--text)', fontSize: '0.9rem' }}
                         />
                       </div>
                       <div>
@@ -100,7 +103,7 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
                           placeholder="Dr. / Prof. Name"
                           value={contactName}
                           onChange={(e) => setContactName(e.target.value)}
-                          style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', fontSize: '0.9rem' }}
+                          style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: 'var(--text)', fontSize: '0.9rem' }}
                         />
                       </div>
                     </div>
@@ -113,7 +116,7 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
                           placeholder="+91 8075355024"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', fontSize: '0.9rem' }}
+                          style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: 'var(--text)', fontSize: '0.9rem' }}
                         />
                       </div>
                       <div>
@@ -123,7 +126,7 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
                           placeholder="hod.ece@college.edu.in"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', fontSize: '0.9rem' }}
+                          style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: 'var(--text)', fontSize: '0.9rem' }}
                         />
                       </div>
                     </div>
@@ -134,7 +137,7 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
                         <select
                           value={studentCount}
                           onChange={(e) => setStudentCount(Number(e.target.value))}
-                          style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', fontSize: '0.9rem' }}
+                          style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: 'var(--text)', fontSize: '0.9rem' }}
                         >
                           <option value={60}>60 Students (1 Batch)</option>
                           <option value={120}>120 Students (2 Batches)</option>
@@ -147,7 +150,7 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
                         <select
                           value={durationMode}
                           onChange={(e) => setDurationMode(e.target.value)}
-                          style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', fontSize: '0.9rem' }}
+                          style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: 'var(--text)', fontSize: '0.9rem' }}
                         >
                           <option value="1-Day Hands-on Workshop">1-Day Hands-on Workshop</option>
                           <option value="3-Day Intensive Bootcamp">3-Day Intensive Bootcamp</option>
@@ -164,7 +167,7 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
                         placeholder="Mention any custom topics or lab requirements requested by HOD..."
                         value={customNotes}
                         onChange={(e) => setCustomNotes(e.target.value)}
-                        style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', fontSize: '0.88rem' }}
+                        style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.15)', color: 'var(--text)', fontSize: '0.88rem' }}
                       />
                     </div>
                   </div>
@@ -173,7 +176,7 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
                 {/* SELECTED PROGRAMS SIDE PANEL */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3 style={{ color: '#fff', fontSize: '1.1rem', margin: 0 }}>
+                    <h3 style={{ color: 'var(--text)', fontSize: '1.1rem', margin: 0 }}>
                       2. Selected Programs ({selectedPrograms.length})
                     </h3>
                     {selectedPrograms.length > 0 && (
@@ -194,7 +197,7 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
                         <div key={p.id} style={{ background: 'rgba(17, 24, 39, 0.8)', border: '1px solid rgba(249, 115, 22, 0.3)', padding: '12px 16px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div>
                             <div style={{ fontSize: '0.75rem', color: '#f97316', fontWeight: 700 }}>{p.code} • {p.department}</div>
-                            <div style={{ fontSize: '0.92rem', color: '#fff', fontWeight: 700 }}>{p.title}</div>
+                            <div style={{ fontSize: '0.92rem', color: 'var(--text)', fontWeight: 700 }}>{p.title}</div>
                             <div style={{ fontSize: '0.78rem', color: '#f59e0b' }}>⏱️ {p.duration}</div>
                           </div>
                           <button
@@ -211,7 +214,7 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
                   {selectedPrograms.length > 0 && (
                     <div style={{ marginTop: '20px', background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.2)', padding: '14px', borderRadius: '10px' }}>
                       <div style={{ fontSize: '0.85rem', color: '#fde68a', fontWeight: 700, marginBottom: '4px' }}>
-                        💡 Adilitix Institutional Advantage
+                        Adilitix Institutional Advantage
                       </div>
                       <div style={{ fontSize: '0.8rem', color: '#cbd5e1', lineHeight: 1.5 }}>
                         Includes complete hardware kits for student groups, trainer honorarium, ISO/blockchain certificates, and NAAC documentation data.
@@ -226,22 +229,22 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
                 {/* Proposal Header / Letterhead */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #0f172a', paddingBottom: '20px', marginBottom: '24px' }}>
                   <div>
-                    <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.5px' }}>ADILITIX ROBOTICS</h1>
-                    <div style={{ fontSize: '0.82rem', color: '#ea580c', fontWeight: 800 }}>MSME Govt Reg: UDYAM-KL-06-0070364</div>
+                    <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 700, color: '#0f172a', letterSpacing: '-0.5px' }}>ADILITIX ROBOTICS</h1>
+                    <div style={{ fontSize: '0.82rem', color: '#ea580c', fontWeight: 700 }}>MSME Govt Reg: UDYAM-KL-06-0070364</div>
                     <div style={{ fontSize: '0.8rem', color: '#475569' }}>1st Floor, Aswathy Building, Main Road, Kollam, Kerala</div>
                     <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Contact: +91 8075355024 | Web: adilitix.com</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#ea580c' }}>OFFICIAL ACADEMIC PROPOSAL</div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Ref: ADI-PROP-{Date.now().toString().slice(-6)}</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Ref: ADI-PROP-{proposalRef}</div>
                     <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Date: {new Date().toLocaleDateString()}</div>
                   </div>
                 </div>
 
                 {/* To & Institution */}
                 <div style={{ marginBottom: '24px', background: '#f8fafc', padding: '16px', borderRadius: '8px', borderLeft: '4px solid #ea580c' }}>
-                  <div style={{ fontSize: '0.8rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>Prepared For:</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>{contactName || 'The Head of Department'}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', letterSpacing: '1px', fontWeight: 700 }}>Prepared For:</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>{contactName || 'The Head of Department'}</div>
                   <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#334155' }}>{departmentName || 'Department of Engineering'}</div>
                   <div style={{ fontSize: '0.95rem', color: '#475569' }}>{collegeName || '[College / Institution Name]'}</div>
                   {phone && <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '4px' }}>Phone: {phone} | Email: {email}</div>}
@@ -286,7 +289,7 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
 
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginBottom: '40px' }}>For Adilitix Robotics</div>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', textDecoration: 'overline' }}>Aadil S P</div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', textDecoration: 'overline' }}>Aadil S P</div>
                     <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Founder & CEO | Adilitix Robotics</div>
                   </div>
                 </div>
@@ -297,22 +300,22 @@ const ProposalModal = ({ selectedPrograms, onRemoveProgram, onClose, onClearAll 
           {/* Footer Actions */}
           <div style={{ padding: '16px 30px', background: 'rgba(10, 15, 26, 0.95)', borderTop: '1px solid rgba(255, 255, 255, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <button className="brochure-btn-secondary no-print" onClick={handlePrintDocument}>
-              🖨️ Print / Save PDF Proposal
+              Print / Save PDF Proposal
             </button>
 
             <div style={{ display: 'flex', gap: '12px' }}>
               {!previewProposal ? (
                 <button className="brochure-btn-secondary" onClick={() => setPreviewProposal(true)}>
-                  📄 Preview Document
+                  Preview Document
                 </button>
               ) : (
                 <button className="brochure-btn-secondary" onClick={() => setPreviewProposal(false)}>
-                  ✍️ Edit Form
+                  Edit Form
                 </button>
               )}
 
               <button className="brochure-btn-primary" style={{ background: 'var(--ad-orange)' }} onClick={handleWhatsAppShare}>
-                📱 Share via WhatsApp to HOD / Company
+                Share via WhatsApp to HOD / Company
               </button>
             </div>
           </div>
